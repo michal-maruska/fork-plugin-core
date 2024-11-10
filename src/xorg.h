@@ -176,6 +176,7 @@ public:
         }
         InternalEvent* event = static_cast<XorgEvent*>(pevent)->event;
         free(event);
+        static_cast<XorgEvent*>(pevent)->event = nullptr;
     }
 
     // so this is orthogonal? platform-independent?
