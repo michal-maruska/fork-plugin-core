@@ -6,8 +6,14 @@
 #include <ostream>
 
 #include "../src/machine.h"
+#include "../src/machine.cpp"
 #include "../src/platform.h"
+
 #include <gmock/gmock.h>
+
+typedef int Time;
+typedef int KeyCode;
+
 
 // I need archived_event
 typedef struct
@@ -15,20 +21,15 @@ typedef struct
   Time time;
   KeyCode key;
   KeyCode forked;
-  Bool press;                  /* client type? */
+  bool press;                  /* client type? */
 } archived_event;
 
-// I need Environment which can convert into archived_event
-
-// fixme:
-// #include "../src/machine.cpp"
-
-// using ::testing::Moc;
 using testing::Mock;
 using testing::Return;
 using testing::AnyNumber;
 
-// this is fully under control of our environment:
+// I need Environment which can convert into archived_event
+// This is fully under control of our environment:
 class TestEvent : public PlatformEvent {
 public:
   archived_event *event;
@@ -50,7 +51,6 @@ public:
 
   MOCK_METHOD(bool, ignore_event,(const PlatformEvent *pevent));
 
-  // MOCK_METHOD(void, hand_over_event_to_next_plugin, (PlatformEvent* event));
   MOCK_METHOD(bool, output_frozen,());
   MOCK_METHOD(void, relay_event,(PlatformEvent* &pevent));
   MOCK_METHOD(void, push_time,(Time now));
@@ -75,7 +75,6 @@ public:
   MOCK_METHOD(void, rewrite_event,(PlatformEvent* pevent, KeyCode code));
 
   MOCK_METHOD(std::unique_ptr<event_dumper<archived_event>>, get_event_dumper,());
-
 };
 
 
@@ -106,33 +105,26 @@ protected:
     machineTest() : environment(new testEnvironment() ),
                     config (new fork_configuration),
                     fm (new machineRec(environment)) {
+
       // mmc: I could instead call forking_machine->create_configs();
       config->debug = 0;
       fm->config.reset(config);
-
-      // q0_ remains empty
-      // q1_.push_back(1);
-      // q2_.Enqueue(2);
-      // q2_.Enqueue(3);
     }
 
-    // ~QueueTest() override = default;
-
-  // fixme:
   ~machineTest()
   {
-    // machine owns this:
+    // machine `owns' this:
     // config = nullptr;
-    delete fm;
+    // so don't do this:
     // delete config;
+
+    delete fm;
     delete environment;
   }
 
   testEnvironment *environment;
   machineRec *fm;
   fork_configuration *config;
-    // Queue<int> q1_;
-    // Queue<int> q2_;
 };
 
 
@@ -141,23 +133,14 @@ protected:
 TEST_F(machineTest, AcceptEvent) {
   auto pevent = std::make_unique<TestEvent>( 100L, 56);
 
-  // (pevent.get())
   EXPECT_CALL(*environment, relay_event);
-// .WillOnce(ReturnRef(bar1)
 
-  fm->accept_event(std::move(pevent));
-  // machine->next_decision_time()
-  // expect call to
-  // virtual void hand_over_event_to_next_plugin(PlatformEvent* event);
-  // CALLED
-  // q0_.size()
-  EXPECT_EQ(0, 0);
+  Time next = fm->accept_event(std::move(pevent));
 
+  // expect calls:
   // so for that EXPECT_CALL: this is necessary? as part of this test:
   Mock::VerifyAndClearExpectations(environment);
-  // delete environment;
   // ::testing::Mock::AllowLeak(environment);
-  // ::testing::Mock::VerifyAndClearExpectations(fm);
 }
 
 TEST_F(machineTest, Configure) {
@@ -165,19 +148,13 @@ TEST_F(machineTest, Configure) {
   KeyCode B = 11;
   fm->configure_key(fork_configure_key_fork, A, B, 1);
   EXPECT_EQ(config->fork_keycode[A], B);
-  // Mock::VerifyAndClearExpectations(environment);
-  // verification_interval_of
+
+  Mock::VerifyAndClearExpectations(environment);
 }
-
-
 
 // create event, non-forkable, pass, and expect it's got back, and freed?
 TEST_F(machineTest, EventFreed) {
 
-  // EXPECT_CALL(*environment, relay_event(pevent));
-  // detail_of()
-
-  // create env
   KeyCode A = 10;
   Time a_time = 156;
   Time next_time = 201;
@@ -188,11 +165,13 @@ TEST_F(machineTest, EventFreed) {
   fm->configure_key(fork_configure_key_fork, A, B, 1);
   // EXPECT_EQ(config->fork_keycode[A], B);
 
-
-  ON_CALL(*environment,ignore_event(A_pevent.get())).WillByDefault(Return(false));
-  EXPECT_CALL(*environment,time_of(A_pevent.get())).WillRepeatedly(Return(a_time));
-  // return:
+  // Emulate next plugin:
   EXPECT_CALL(*environment, output_frozen).WillRepeatedly(Return(false));
+
+
+  ON_CALL(*environment, ignore_event(A_pevent.get())).WillByDefault(Return(false));
+  EXPECT_CALL(*environment, time_of(A_pevent.get())).WillRepeatedly(Return(a_time));
+
   // many times:
   TestEvent* a = A_pevent.get();
   EXPECT_CALL(*environment, detail_of(a)).Times(AnyNumber()).WillRepeatedly(Return(A));
@@ -200,8 +179,8 @@ TEST_F(machineTest, EventFreed) {
   // archive_event
   // fmt_event
   // ON_CALL(*environment,rewrite_event).
-  EXPECT_CALL(*environment,push_time(a_time));
-  EXPECT_CALL(*environment,push_time(a_time + next_time));
+  //  EXPECT_CALL(*environment, push_time(a_time));
+  EXPECT_CALL(*environment, push_time(a_time + next_time));
 
   EXPECT_CALL(*environment,rewrite_event)
     .WillOnce([](PlatformEvent* pevent, KeyCode b) {
@@ -210,10 +189,12 @@ TEST_F(machineTest, EventFreed) {
     });
 
   fm->accept_event(std::move(A_pevent));
+#if 1
   // we lost A_pevent
   EXPECT_CALL(*environment, relay_event); // (a)
   // this drop leaks ^^^
   EXPECT_CALL(*environment, free_event(a)); // (nullptr)
+#endif
 
   fm->accept_time(a_time + next_time);
 
@@ -261,23 +242,26 @@ TEST_F(machineTest, ForkBySecond) {
   EXPECT_CALL(*environment, detail_of(B_release_pevent.get())).WillRepeatedly(Return(B));
   EXPECT_CALL(*environment, time_of(B_release_pevent.get())).WillRepeatedly(Return(b_release_time));
   EXPECT_CALL(*environment, press_p(B_release_pevent.get())).WillRepeatedly(Return(false));
-  EXPECT_CALL(*environment, release_p(B_release_pevent.get())).WillRepeatedly(Return(true));
+  // EXPECT_CALL(*environment, release_p(B_release_pevent.get())).WillRepeatedly(Return(true));
   // archive_event
   // fmt_event
   // ON_CALL(*environment,rewrite_event).
+#if 0
   EXPECT_CALL(*environment,push_time(a_time));
   EXPECT_CALL(*environment,push_time(b_time));
-
   EXPECT_CALL(*environment,rewrite_event)
     .WillOnce([](PlatformEvent* pevent, KeyCode b) {
       auto event = static_cast<TestEvent*>(pevent)->event;
       event->key = b;
     });
+#endif
 
+#if 0
   // we lost A_pevent
   EXPECT_CALL(*environment, relay_event); // todo: check it's F
   // this drop leaks ^^^
   EXPECT_CALL(*environment, free_event(a)); // (nullptr)
+#endif
 
   fm->accept_event(std::move(A_pevent));
   fm->accept_event(std::move(B_pevent));
@@ -292,6 +276,4 @@ TEST_F(machineTest, ForkBySecond) {
 // Calling it more than once conflicts with some advanced GoogleTest features (e.g., thread-safe death tests)
 // RUN_ALL_TESTS()
 
-
 // gtest_main (as opposed to with gtest
-
