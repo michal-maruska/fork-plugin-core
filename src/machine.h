@@ -392,6 +392,17 @@ private:
         run_automaton(force_also);
     };
 
+    /** Another event has been determined. So:
+     * todo:  possible emit a (notification) event immediately,
+     * ... and push the event down the pipeline, when not frozen.
+     */
+    void issue_event() {
+        // assert(ev->p_event != nullptr);
+        // mdb("%s: %p %p\n", __func__, ev.get(), ev->p_event);
+        tq.move_to_first();
+        // output_queue.push(ev.release());
+    }
+
     /**
      * Apply event EV to (state, internal-queue, time).
      * This can append to the output-queue
@@ -945,16 +956,6 @@ private:
         return (forkActive[code]);
     }
 
-
-    /** Another event has been determined. So:
-     * todo:  possible emit a (notification) event immediately,
-     * ... and push the event down the pipeline, when not frozen.
-     */
-    void issue_event(std::unique_ptr<key_event> ev) {
-        assert(ev->p_event != nullptr);
-        mdb("%s: %p %p\n", __func__, ev.get(), ev->p_event);
-        output_queue.push(ev.release());
-    }
 
     // can modify the event!
     void relay_event(PlatformEvent& event) {
