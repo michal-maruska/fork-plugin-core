@@ -1,6 +1,6 @@
 #pragma once
 
-// namespace fork {
+namespace forkNS {
 
 // these as template non-type parameters?
 #define KEYCODE_UNUSED 0
@@ -123,4 +123,6 @@ public:
     }
 
 };
+
+}
 

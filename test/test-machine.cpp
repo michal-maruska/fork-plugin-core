@@ -79,7 +79,7 @@ public:
 
 
 using machineRec = forkNS::forkingMachine<KeyCode, Time, archived_event>;
-using fork_configuration = ForkConfiguration<KeyCode, Time, 256>;
+using fork_configuration = forkNS::ForkConfiguration<KeyCode, Time, 256>;
 
 // template instantiation
 namespace forkNS {
