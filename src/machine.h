@@ -720,8 +720,11 @@ private:
             && (key != forkActive[key])) // not `self_forked'
             {
                 mdb("%s: the key is forked, ignoring\n", __func__);
-
+#if 0
+                // bug:
+                tq.drop();
                 environment->free_event(ev->p_event);
+#endif
                 return;
             }
 #endif
