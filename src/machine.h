@@ -20,12 +20,13 @@ namespace forkNS {
 
 template <typename Time>
 bool time_difference_more(Time now, Time past, Time limit_difference) {
-    return ( (now - past) > limit_difference);
+    return (now > past + limit_difference);
+    // return ( (now - past) > limit_difference);
 }
 
 
 /* fixme: inherit from xorg! */
-constexpr int MAX_KEYCODE=256;
+constexpr int MAX_KEYCODE = 256;
 
 /**
  * machine keeps log of `archived_event_t'
