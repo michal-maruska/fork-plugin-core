@@ -1242,7 +1242,7 @@ public:
             event->p_event = ref;
             return 0;
 #endif
-            input_queue.push(event.release());
+            tq.push(event.release());
         }
         run_automaton(false);
 
