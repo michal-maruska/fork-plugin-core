@@ -10,6 +10,8 @@
 #include <string>
 #include <memory>
 
+namespace forkNS {
+
 
 template <typename archived_fork_event>
 class event_dumper {
@@ -61,3 +63,4 @@ public:
 
     virtual ~platformEnvironment() = default;
 };
+}

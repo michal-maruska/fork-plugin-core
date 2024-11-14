@@ -20,8 +20,10 @@ struct archived_event
     bool press;                  /* client type? */
 };
 
+using PlatformEvent = forkNS::PlatformEvent;
 
-class libinputEvent : public PlatformEvent {
+
+class libinputEvent : public forkNS::PlatformEvent {
 public:
   // private:
   // we don't own them!
@@ -75,7 +77,7 @@ class xorg_event_publisher : public event_publisher<archived_event>
 
 #if 1
 // Closure
-class libinput_event_dumper : public event_dumper<archived_event>
+class libinput_event_dumper : public forkNS::event_dumper<archived_event>
 {
 private:
   // services
@@ -107,7 +109,7 @@ public:
 
 // using Keycode int;
 
-class libinputEnvironment : public platformEnvironment<int, uint64_t, archived_event> {
+class libinputEnvironment : public forkNS::platformEnvironment<int, uint64_t, archived_event> {
 private:
   libinput_fork_services *services;
 
@@ -231,7 +233,7 @@ public:
 
 #if 1
   virtual
-  std::unique_ptr<event_dumper<archived_event>> get_event_dumper() override {
+  std::unique_ptr<forkNS::event_dumper<archived_event>> get_event_dumper() override {
     // return nullptr;
     return std::make_unique<libinput_event_dumper>(); // services
   }

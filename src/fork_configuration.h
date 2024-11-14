@@ -9,12 +9,12 @@ namespace forkNS {
 template <typename Keycode, typename Time, int MAX_KEYCODE>
 class ForkConfiguration {
 
-typedef Time keycode_parameter_matrix[MAX_KEYCODE][MAX_KEYCODE];
-
 private:
+    typedef Time keycode_parameter_matrix[MAX_KEYCODE][MAX_KEYCODE];
     // declaration, not definition!
+#if MULTIPLE_CONFIGURATIONS
     static inline int config_counter;
-
+#endif
 public:
     Keycode          fork_keycode[MAX_KEYCODE];
     bool          fork_repeatable[MAX_KEYCODE]; /* True -> if repeat, cancel possible fork. */
@@ -53,9 +53,12 @@ private:
     }
 
 public:
-    ForkConfiguration() : id(config_counter++) {
-
-        // use bzero!
+    ForkConfiguration()
+#if MULTIPLE_CONFIGURATIONS
+        :  id(config_counter++)
+#endif
+    {
+            // use bzero!
         for (int i = 0; i < 256; i++) {
             // local timings:  0 = use global timing
             for (int j = 0; j < 256; j++) { /* 1 ? */

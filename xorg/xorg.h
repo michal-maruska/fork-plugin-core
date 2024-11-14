@@ -35,6 +35,8 @@ static void dump_event(KeyCode key, KeyCode fork, bool press, Time event_time,
                        XkbDescPtr xkb, XkbSrvInfoPtr xkbi, Time prev_time);
 
 
+using PlatformEvent = forkNS::PlatformEvent;
+
 class XorgEvent : public PlatformEvent {
 public:
     // take ownership:
@@ -44,7 +46,7 @@ public:
 };
 
 
-class xorg_event_publisher : public event_publisher<archived_event>
+class xorg_event_publisher : public forkNS::event_publisher<archived_event>
 {
     private:
     char* memory;
@@ -85,7 +87,7 @@ class xorg_event_publisher : public event_publisher<archived_event>
 
 
 // Closure
-class xorg_event_dumper : public event_dumper<archived_event>
+class xorg_event_dumper : public forkNS::event_dumper<archived_event>
 {
 private:
     const XkbSrvInfoPtr xkbi;
@@ -117,7 +119,7 @@ public:
 
 
 
-class XOrgEnvironment : public platformEnvironment<KeyCode, Time, archived_event> {
+class XOrgEnvironment : public forkNS::platformEnvironment<KeyCode, Time, archived_event> {
 private:
     const DeviceIntPtr keybd; // reference
     PluginInstance* const plugin;
@@ -249,7 +251,7 @@ public:
     };
 
     virtual
-    std::unique_ptr<event_dumper<archived_event>> get_event_dumper() override {
+    std::unique_ptr<forkNS::event_dumper<archived_event>> get_event_dumper() override {
         return std::make_unique<xorg_event_dumper>(keybd);
     }
 
@@ -262,7 +264,7 @@ public:
 
 
     // specific, not virtual!:
-    std::unique_ptr<event_publisher<archived_event>> get_event_publisher(ClientPtr client, PluginInstance *plugin) {
+    std::unique_ptr<forkNS::event_publisher<archived_event>> get_event_publisher(ClientPtr client, PluginInstance *plugin) {
         return std::make_unique<xorg_event_publisher>(client, plugin);
     }
 };
