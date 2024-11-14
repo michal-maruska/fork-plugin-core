@@ -840,7 +840,7 @@ private:
         mDecision_time = 0; // nothing to decide
         suspect = no_key;
         verificator_keycode = no_key;
-        reverse_splice(internal_queue, input_queue);
+        tq.rewind_middle();
     }
 
 
@@ -901,9 +901,7 @@ private:
     void run_automaton(bool force_also) {
         // fixme: maybe All I need is the nextPlugin?
         std::scoped_lock lock(mLock);
-        if (environment->output_frozen() ||
-            (!input_queue.empty() || !internal_queue.empty())
-           ) {
+        if (environment->output_frozen() || (! tq.middle_empty() )) {
             // log_queues_and_nextplugin(message)
 #if 0
             mdb("%s: next %sfrozen: internal %d, input: %d\n", __func__,
@@ -916,9 +914,10 @@ private:
         // notice that instead of recursion, all the calls to `rewind_machine' are
         // followed by return to this cycle!
         while (! environment->output_frozen()) {
-            if (! input_queue.empty()) {
-                std::unique_ptr<key_event> ev(input_queue.pop());
-                transition_by_key(std::move(ev)); // here crash?
+
+            if (! tq.third_empty()) {
+                const PlatformEvent& event = tq.peek_third();
+                transition_by_key(event); // here crash?
             } else {
                 if (mCurrent_time && (state != st_normal)) {
                     if (transition_by_time(mCurrent_time))
