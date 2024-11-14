@@ -375,13 +375,6 @@ private:
 
     fork_configuration** find_configuration_n(int n);
 
-    bool queues_non_empty() const {
-        return (!output_queue.empty() || !input_queue.empty() || !internal_queue.empty());
-    }
-    Time queue_front_time(list_with_tail &queue) const {
-        return environment->time_of(queue.front()->p_event);
-    }
-
     /**
      * Resets the machine, so as to reconsider the events on the
      * `internal' queue from scratch.
@@ -1104,14 +1097,11 @@ private:
         // if that plugin is gone. todo!
 
         Time now;
-        if (!output_queue.empty()) {
-            now = queue_front_time(output_queue);
-        } else if (!internal_queue.empty()) {
-            now = queue_front_time(internal_queue);
-        } else if (!input_queue.empty()) {
-            now = queue_front_time(input_queue);
-        } else {
+        const PlatformEvent *item = tq.first();
+        if (item == nullptr) {
             now = mCurrent_time;
+        } else {
+            now = environment->time_of(*item);
             // in this case we might:
             mCurrent_time = 0;
         }
