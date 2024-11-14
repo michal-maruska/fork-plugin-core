@@ -867,17 +867,21 @@ public:
     void mdb(const char* format...) const
     {
         if (config->debug) {
+            va_list argptr;
+            va_start(argptr, format);
+#if 1
+            environment->vlog(format, argptr);
+#else
             // alloca()
             char* new_format = (char*) malloc(strlen(format) + 2);
             new_format[0] = ' ';
             strcpy(new_format + 1, format);
 
-            va_list argptr;
-            va_start(argptr, format);
             environment->vlog(new_format, argptr);
+            free(new_format);
+#endif
             va_end(argptr);
 
-            free(new_format);
         }
     };
 
