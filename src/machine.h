@@ -1077,9 +1077,9 @@ private:
      *queue. Unlocks to be re-entrant!
      **/
     void flush_to_next() {
-        while (!environment->output_frozen() && !output_queue.empty()) {
+        while (!environment->output_frozen() && !tq.can_pop()) {
             std::scoped_lock lock(mLock);
-            std::unique_ptr<key_event> event(output_queue.pop());
+            std::unique_ptr<key_event> event(tq.pop());
             save_event_log(event.get());
             // unlocks!
             relay_event(event);
@@ -1087,8 +1087,10 @@ private:
         if (!environment->output_frozen()) {
             push_time_to_next();
         }
-        if (!output_queue.empty())
+#if 0
+        if (!tq.can_pop())
             mdb("%s: still %d events to output\n", __func__, output_queue.length());
+#endif
     }
 
     void push_time_to_next() {
