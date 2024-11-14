@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <libinput.h>
 #include <memory>
-#include <map>
+#include <vector>
 #include "machine.h"
 #include "machine.cpp"
 #include "libinput_environment.h"
@@ -71,7 +71,7 @@ void fork_init(struct libinput_fork_services* services)
   forking_machine->configure_key(fork_configure_key_fork,
                                  65-8,
                                  29, 1);
-  for ( auto const& [from,to] : std::map<int, int>{
+  for( auto const& [from,to] : std::vector<std::pair<int, int>>{
       {41, 61},
       {46, 61},
 
