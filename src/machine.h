@@ -645,29 +645,29 @@ private:
     */
     void activate_fork(fork_reason_t fork_reason) {
         check_locked();
-        assert(!internal_queue.empty());
 
-        std::unique_ptr<key_event> event(internal_queue.pop());
+        PlatformEvent& pevent = tq.rewrite_head();
 
         // here or at the end?:
         rewind_machine(st_activated);
 
-        Keycode forked_key = environment->detail_of(event->p_event);
+        Keycode forked_key = environment->detail_of(pevent);
         // why not:
         // assert(forked_key == suspect);
-        event->original_keycode = forked_key;
+
+        // todo:
+        // fixme: event->original_keycode = forked_key;
 
         /* Change the keycode, but remember the original: */
         forkActive[forked_key] = config->fork_keycode[forked_key];
         // todo: use std::format(), not hard-coded %d
-        mdb("%s the key %d-> forked to: %d. Internal queue has %d events. %s\n",
+        mdb("%s the key %d-> forked to: %d. %s\n",
             __func__,
             forked_key, forkActive[forked_key],
-            internal_queue.length (),
             describe_machine_state(this->state));
 
-        environment->rewrite_event(event->p_event, forkActive[forked_key]);
-        issue_event(std::move(event));
+        environment->rewrite_event(pevent, forkActive[forked_key]);
+        issue_event();
     };
 
 
