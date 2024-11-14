@@ -600,6 +600,29 @@ private:
         }
     };
 
+
+    /**
+     * low-level machine step.
+     */
+    void transition_by_force() {
+      if (state == st_normal) {
+        // so (internal_queue.empty())
+        return;
+      }
+
+      if (state == st_deactivated) {
+        environment->log("%s: BUG.\n", __func__);
+        return;
+      }
+
+      /* so, the state is one of: verify, suspect or activated. */
+      log_state(__func__);
+
+      // bug: it might activate multiple forks!
+      activate_fork(fork_reason_t::reason_force);
+    }
+
+
     /**
      * One key-event investigation finished,
      * now reset for the next one */
@@ -1242,27 +1265,6 @@ public:
         run_automaton(false);
         flush_to_next();
         return next_decision_time();
-    }
-
-    /**
-     * low-level machine step.
-     */
-    void transition_by_force() {
-      if (state == st_normal) {
-        // so (internal_queue.empty())
-        return;
-      }
-
-      if (state == st_deactivated) {
-        environment->log("%s: BUG.\n", __func__);
-        return;
-      }
-
-      /* so, the state is one of: verify, suspect or activated. */
-      log_state(__func__);
-
-      // bug: it might activate multiple forks!
-      activate_fork(fork_reason_t::reason_force);
     }
 
     /** public api
