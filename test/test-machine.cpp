@@ -28,6 +28,7 @@ using testing::Mock;
 using testing::Return;
 using testing::AnyNumber;
 
+using PlatformEvent = forkNS::PlatformEvent;
 // I need Environment which can convert into archived_event
 // This is fully under control of our environment:
 class TestEvent : public PlatformEvent {
@@ -41,7 +42,7 @@ public:
 };
 
 // I want to mock this:
-class testEnvironment final : public platformEnvironment<KeyCode, Time, archived_event> {
+class testEnvironment final : public forkNS::platformEnvironment<KeyCode, Time, archived_event> {
 public:
   // virtual
   MOCK_METHOD(bool, press_p,(const PlatformEvent* event));
@@ -74,7 +75,7 @@ public:
   MOCK_METHOD(void, free_event,(PlatformEvent* pevent), (const));
   MOCK_METHOD(void, rewrite_event,(PlatformEvent* pevent, KeyCode code));
 
-  MOCK_METHOD(std::unique_ptr<event_dumper<archived_event>>, get_event_dumper,());
+  MOCK_METHOD(std::unique_ptr<forkNS::event_dumper<archived_event>>, get_event_dumper,());
 };
 
 
@@ -94,7 +95,7 @@ template int forkingMachine<KeyCode, Time, archived_event>::configure_global(int
 
 template int forkingMachine<KeyCode, Time, archived_event>::configure_twins(int type, KeyCode key, KeyCode twin, int value, bool set);
 
-template int forkingMachine<KeyCode, Time, archived_event>::dump_last_events_to_client(event_publisher<archived_event>* publisher, int max_requested);
+template int forkingMachine<KeyCode, Time, archived_event>::dump_last_events_to_client(forkNS::event_publisher<archived_event>* publisher, int max_requested);
 }
 // end template instantiation
 
