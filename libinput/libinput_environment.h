@@ -147,6 +147,7 @@ public:
 
 
   virtual void free_event(PlatformEvent* pevent) const override {
+    log("%s: %p\n", __func__, pevent);
     if (pevent == nullptr) {
       // ErrorF("BUG %s: %p\n", __func__, pevent);
       return;
@@ -169,6 +170,11 @@ public:
 
   virtual uint64_t time_of(const PlatformEvent* pevent) override {
     auto* event = GET_EVENT(pevent);
+    // libinput_event_keyboard_get_time
+#if DEBUG
+    log("%s: %lu, %lu usec\n", __func__, libinput_event_keyboard_get_time(event),
+        libinput_event_keyboard_get_time_usec(event));
+#endif
     return libinput_event_keyboard_get_time(event);
   }
 
@@ -188,13 +194,12 @@ public:
     archived_event.press = press_p(pevent);
   };
 
-
-
   virtual void relay_event(PlatformEvent* &pevent) override {
     auto* event = GET_EVENT(pevent);
+    log("%s: (%p) %p, device %p\n", __func__, pevent, event, GET_DEVICE(pevent));
+
     services->post_event(services, GET_DEVICE(pevent), event);
-    // we didn't allocate?
-    // pevent = nullptr;
+    //
     static_cast<libinputEvent*>(pevent)->event = NULL;
     static_cast<libinputEvent*>(pevent)->device = NULL;
   };
@@ -219,6 +224,8 @@ public:
   // the idea was to return a string. but who will deallocate it?
   virtual std::string fmt_event(const PlatformEvent *pevent) override {
     // return std::string("");
+    log("%s: %pm\n", __func__, GET_EVENT(pevent));
+
     return "";
   };
 
