@@ -1,7 +1,7 @@
 // (c) Michal Maruska 2003-2024
 #pragma once
 
-
+#include <assert.h>
 #include <cstdarg>
 #include "config.h"
 #include <algorithm>
