@@ -7,6 +7,7 @@
 
 #include "../src/machine.h"
 #include "../src/platform.h"
+#include "empty_last.h"
 
 #include <gmock/gmock.h>
 
@@ -78,23 +79,25 @@ public:
 };
 
 
-using machineRec = forkNS::forkingMachine<KeyCode, Time, archived_event>;
+using last_events_t = empty_last_events_t<archived_event>;
+using machineRec = forkNS::forkingMachine<KeyCode, Time, archived_event, last_events_t>;
 using fork_configuration = forkNS::ForkConfiguration<KeyCode, Time, 256>;
 
 // template instantiation
 namespace forkNS {
-template Time forkingMachine<KeyCode, Time, archived_event>::accept_event(std::unique_ptr<PlatformEvent> pevent);
-template Time forkingMachine<KeyCode, Time, archived_event>::accept_time(const Time);
 
-template bool forkingMachine<KeyCode, Time, archived_event>::create_configs();
+template Time forkingMachine<KeyCode, Time, archived_event, last_events_t>::accept_event(std::unique_ptr<PlatformEvent> pevent);
+template Time forkingMachine<KeyCode, Time, archived_event, last_events_t>::accept_time(const Time);
 
-template int forkingMachine<KeyCode, Time, archived_event>::configure_key(int type, KeyCode key, int value, bool set);
+template bool forkingMachine<KeyCode, Time, archived_event, last_events_t>::create_configs();
 
-template int forkingMachine<KeyCode, Time, archived_event>::configure_global(int type, int value, bool set);
+template int forkingMachine<KeyCode, Time, archived_event, last_events_t>::configure_key(int type, KeyCode key, int value, bool set);
 
-template int forkingMachine<KeyCode, Time, archived_event>::configure_twins(int type, KeyCode key, KeyCode twin, int value, bool set);
+template int forkingMachine<KeyCode, Time, archived_event, last_events_t>::configure_global(int type, int value, bool set);
 
-template int forkingMachine<KeyCode, Time, archived_event>::dump_last_events_to_client(forkNS::event_publisher<archived_event>* publisher, int max_requested);
+template int forkingMachine<KeyCode, Time, archived_event, last_events_t>::configure_twins(int type, KeyCode key, KeyCode twin, int value, bool set);
+
+template int forkingMachine<KeyCode, Time, archived_event, last_events_t>::dump_last_events_to_client(forkNS::event_publisher<archived_event>* publisher, int max_requested);
 }
 // end template instantiation
 

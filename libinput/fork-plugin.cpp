@@ -5,14 +5,17 @@
 #include <vector>
 #include "machine.h"
 #include "libinput_environment.h"
-
+#include <boost/circular_buffer.hpp>
 // it seems this will be part of libinput!
 // but I want it c++
 
-using machineRec = forkNS::forkingMachine<int, uint64_t, archived_event>;
+
+using machineRec = forkNS::forkingMachine<int, uint64_t,
+                                          archived_event, boost::circular_buffer<archived_event>>;
 
 namespace forkNS {
-template uint64_t forkingMachine<int, uint64_t, archived_event>::accept_event(std::unique_ptr<PlatformEvent> pevent);
+  // explicit instantiation
+template uint64_t forkingMachine<int, uint64_t, archived_event, boost::circular_buffer<archived_event>>::accept_event(std::unique_ptr<PlatformEvent> pevent);
 }
 
 

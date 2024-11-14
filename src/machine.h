@@ -10,7 +10,6 @@
 #include "queue.h"
 #include "platform.h"
 #include "colors.h"
-#include <boost/circular_buffer.hpp>
 #include <memory>
 #include <mutex>
 
@@ -39,7 +38,7 @@ constexpr int MAX_KEYCODE = 256;
  *
  */
 template <typename Keycode, typename Time, typename archived_event_t,
-          typename last_events_t = boost::circular_buffer<archived_event_t>>
+          typename last_events_t>
 class forkingMachine {
 
     constexpr static const Keycode no_key = 0;
@@ -52,8 +51,6 @@ private:
     }
 
 public:
-        // typedef boost::circular_buffer<archived_event_t> last_events_t;
-
 
     /* Environment_t must be able to convert from
      * platformEvent to archived_event_t

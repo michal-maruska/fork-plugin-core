@@ -18,5 +18,8 @@ extern "C"
 #undef max
 #undef min
 }
+#include "empty_last.h"
 
-using machineRec = forkNS::forkingMachine<KeyCode, Time, archived_event>;
+using last_events_t = empty_last_events_t<archived_event>;
+using machineRec = forkNS::forkingMachine<KeyCode, Time,
+                                          archived_event, last_events_t>;
