@@ -10,7 +10,7 @@
 // using namespace __gnu_cxx;
 
 namespace forkNS {
-/* LIFO -- single-linked list
+/* FIFO -- single-linked list
    + slice operation,
 
    Memory/ownerhip:

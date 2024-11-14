@@ -1,6 +1,5 @@
 #include "config.h"
 #include "xmachine.h"
-#include "machine.cpp"
 // This is the price of not including machine.cpp queueu.h in fork-plugin.cpp
 
 extern "C" {

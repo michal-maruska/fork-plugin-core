@@ -4,7 +4,6 @@
 #include <memory>
 #include <vector>
 #include "machine.h"
-#include "machine.cpp"
 #include "libinput_environment.h"
 
 // it seems this will be part of libinput!

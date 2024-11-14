@@ -6,7 +6,6 @@
 #include <ostream>
 
 #include "../src/machine.h"
-#include "../src/machine.cpp"
 #include "../src/platform.h"
 
 #include <gmock/gmock.h>
