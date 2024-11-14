@@ -206,8 +206,8 @@ private:
     last_events_t last_events_log;
     int max_last = 10; // can be updated!
 
+    // this must be public:
     using fork_configuration = ForkConfiguration<Keycode, Time, MAX_KEYCODE>;
-
 public:
     std::unique_ptr<fork_configuration> config; // list<fork_configuration>
 
