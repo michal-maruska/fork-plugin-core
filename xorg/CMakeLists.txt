@@ -18,8 +18,6 @@ set(CMAKE_DEBUG_TARGET_PROPERTIES
 # source only library:
 # the header file?
 
-
-
 # not GLOB_RECURSE
 # file(GLOB sources "*.cpp"  "*.c")
 set(sources
@@ -51,7 +49,7 @@ pkg_search_module(xorg-server REQUIRED xorg-server
   IMPORTED_TARGET GLOBAL)
 # /usr/lib/x86_64-linux-gnu/pkgconfig/xorg-server.pc
 # or SDK?
-#target_include_directories(fork SYSTEM PUBLIC ${xorg-server_INCLUDE_DIRS})
+
 
 #why not ${PkgConfig::xorg-server} -- because those are imported targets!
 target_link_libraries(fork PkgConfig::xorg-server)
