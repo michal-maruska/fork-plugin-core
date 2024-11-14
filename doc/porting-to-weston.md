@@ -5,7 +5,7 @@ It took a week.
 ## From Weston to libinput
 I started to look where I could interrupt the flow of key-events processing and insert the plugin (forking machine).
 
-I wanted to target [libinput](https://wayland.freedesktop.org/libinput/doc/latest/index.html) because it does emulate middle-button (by postponing 2 mouse clicks), so
+I wanted to target [libinput](https://wayland.freedesktop.org/libinput/doc/latest/index.html) because it does [emulate middle-button](https://wayland.freedesktop.org/libinput/doc/latest/configuration.html#middle-button-emulation) (by postponing 2 mouse clicks), so
 this is similar.
 
 * I found `libinput_udev_create_context` which seems the point when Weston starts to use libinput.
@@ -42,9 +42,12 @@ The plugin itself hardcoded a forking for Space key, to act as Shift. And voila!
 
 ## Activating XKB -- my XKB keymap
 To get a working weston-terminal, I need much more than Space-as-shift. And certainly my XKB keymap,
-at least Control on right Alt key.
+at least Control on right Alt key. (it's all [static](https://unix.stackexchange.com/questions/309580/does-wayland-use-xkb-for-keyboard-layouts) btw)
 
-But Weston uses libxkbcommon, and only the RMLVO specs. But I use my assembled xkb file. So
+But Weston uses libxkbcommon, and only the
+[RMLVO](https://who-t.blogspot.com/2020/02/user-specific-xkb-configuration-part-1.html) specs. But I use my assembled xkb
+file. So
+
 * I changed Weston the use the other Api -- `xkb_keymap_new_from_file`:
  https://github.com/MichalMaruska/weston/blob/mmc/libweston/input.c#L4061
 
