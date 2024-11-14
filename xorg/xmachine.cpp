@@ -1,7 +1,7 @@
 #include "config.h"
 #include "xmachine.h"
 #include "machine.cpp"
-#include "queue.h"
+// This is the price of not including machine.cpp queueu.h in fork-plugin.cpp
 
 extern "C" {
 // todo: archived_event coud be avoided ... it's X specific
@@ -15,7 +15,6 @@ extern "C" {
 
 namespace forkNS {
 
-template void forkNS::reverse_splice(my_queue<Time> & pre, my_queue<Time> &post);
 
 // explicit instantation:
 
