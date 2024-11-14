@@ -42,7 +42,7 @@ pkg_search_module(xorg-server
 )
 
 if(xorg-server_MODULE_NAME)
-  add_subdirectory(src)
+  add_subdirectory(xorg)
 else()
   message("xorg-server NOT FOUND, hence not building")
 endif()

@@ -17,11 +17,7 @@ set(CMAKE_DEBUG_TARGET_PROPERTIES
 
 # source only library:
 # the header file?
-set(platform_independent_sources
-  machine.cpp
-  platform.h
-  fork_configuration.h
-  )
+
 
 
 # not GLOB_RECURSE
@@ -42,6 +38,8 @@ set(sources
 # Wall
 add_compile_options("-Wall")
 add_library(fork MODULE ${sources})
+target_include_directories(fork PUBLIC AFTER PRIVATE "../src/")
+target_include_directories(fork PUBLIC AFTER PRIVATE ".")
 target_compile_definitions(fork PRIVATE VERSION_STRING="git-local-2")
 
 set_target_properties(fork PROPERTIES PREFIX "" # drop lib

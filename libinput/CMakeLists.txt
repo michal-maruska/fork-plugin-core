@@ -9,6 +9,7 @@ target_compile_definitions(fork-libinput PRIVATE VERSION_STRING="git-local-2")
 target_link_libraries(fork-libinput PkgConfig::libinput)
 
 target_include_directories(fork-libinput PRIVATE ../src/)
+target_include_directories(fork-libinput PRIVATE AFTER ".")
 
 set_property(TARGET fork-libinput PROPERTY NO_SONAME)
 

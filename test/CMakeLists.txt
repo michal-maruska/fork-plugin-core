@@ -6,6 +6,8 @@
 include(GoogleTest)
 include(../CodeCoverage.cmake)
 
+include_directories(.)
+
 # this was crucial to use GTest::gtest_main
 find_package(GTest REQUIRED)
 # find_package(GMock REQUIRED)
