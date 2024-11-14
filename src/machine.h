@@ -816,7 +816,6 @@ private:
         else
             return decision_time;
     };
-    Time verifier_decision_time(Time current_time);
 
    /* Return the keycode into which CODE has forked _last_ time.
    Returns code itself, if not forked. */
