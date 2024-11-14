@@ -403,6 +403,291 @@ private:
         // output_queue.push(ev.release());
     }
 
+    // so EVENT confirms fork of the current event, and also enters queue,
+    // which will be `immediately' relocated to the input queue.
+    void confirm_fork_and_enqueue(fork_reason_t fork_reason) {
+        /* fixme: event is the just-read event. But that is surely not the head
+           of queue (which is confirmed to fork) */
+        mdb("confirm:\n");
+
+        activate_fork(fork_reason);
+        issue_event();
+    }
+
+    // So the event proves, that the current event is not forked.
+    // /----internal--queue--/ event /----input event----/
+    //  ^ suspect                ^ confirmation.
+    void do_confirm_non_fork_by() {
+        check_locked();
+        assert(state == st_suspect || state == st_verify);
+#if 0
+        std::unique_ptr<key_event> non_forked_event(internal_queue.pop());
+        mdb("this is not a fork! %d\n",
+            environment->detail_of(non_forked_event->p_event));
+        internal_queue.push(ev.release());
+#endif
+        issue_event();
+        rewind_machine(st_deactivated); // short-lived state. is it worth it?
+        // possibly unlocks
+    };
+
+
+    /**  First (press)
+     *    v   ^     (0   <-- we are here. Input q
+     *        Second|
+     *             next @event
+     */
+    void apply_event_to_suspect(const PlatformEvent &pevent) {
+        assert(state == st_suspect);
+
+        Time simulated_time = environment->time_of(pevent);
+        Keycode key = environment->detail_of(pevent);
+
+        /* Here, we can
+         * o refuse .... if suspected/forkable is released quickly,
+         * o fork (definitively),  ... for _time_
+         * o start verifying, or wait, or confirm (timeout)
+         * todo: I should repeat a bi-depressed forkable.
+         */
+
+        // first we look at the time:
+        if (0 == (mDecision_time = key_pressed_too_long(simulated_time))) {
+            confirm_fork_and_enqueue(fork_reason_t::reason_long);
+            return;
+        };
+
+        /* So, we now have a second key, since the duration of 1 key
+         * was not enough. */
+        if (environment->release_p(pevent)) {
+            mdb("suspect/release: suspected = %d, time diff: %d\n", suspect,
+                (int)(simulated_time - suspect_time));
+            if (key == suspect) {
+                do_confirm_non_fork_by();
+                return;
+                /* fixme:  here we confirm, that it was not a user error.....
+                   bad synchro. i.e. the suspected key was just released  */
+            } else {
+                /* something released, but not verificating, b/c we are in `suspect',
+                 * not `confirm'  */
+                tq.move_to_second();
+                return;
+            };
+        } else {
+            if (!environment->press_p(pevent)) { // why not release_p() ?
+                // RawPress & Device events.
+                if (!environment->release_p(pevent)) {
+                    mdb("a bizzare event scanned\n");
+                }
+                tq.move_to_second();
+                return;
+            }
+            // press-event here:
+            if (key == suspect) {
+                /* How could this happen? Auto-repeat on the lower/hw level?
+                 * And that AR interval is shorter than the fork-verification */
+                if (config->fork_repeatable[key]) {
+                    mdb("The suspected key is configured to repeat, so ...\n");
+                    forkActive[suspect] = suspect;
+                    do_confirm_non_fork_by();
+                    return;
+                } else {
+                    // fixme: this keycode is repeating, but we still don't know what to
+                    // do.
+                    // ..... `discard' the event???
+                    // fixme: but we should recalc the mDecision_time !!
+                    return;
+                }
+            } else {
+                // another key pressed
+                change_state(st_verify);
+                verificator_time = simulated_time;
+                verificator_keycode =
+                    key; /* if already we had one -> we are not in this state!
+                            if the verificator becomes a modifier ?? fixme:*/
+                // verify overlap
+                Time decision_time = config->verifier_decision_time(
+                    simulated_time, suspect, suspect_time, verificator_keycode,
+                    verificator_time);
+
+                // well, this is an abuse ... this should never be 0.
+                if (decision_time == 0) {
+                    mdb("absurd\n"); // this means that verificator key verifies
+                    // immediately!
+                }
+                if (decision_time < mDecision_time)
+                    mDecision_time = decision_time;
+
+                tq.move_to_second();
+                return;
+            };
+        }
+    };
+
+
+    // is mDecision_time always recalculated?
+    // possibly unlocks
+    void apply_event_to_normal(const PlatformEvent &pevent) {
+
+        const Keycode key = environment->detail_of(pevent);
+        const Time simulated_time = environment->time_of(pevent);
+
+        assert(state == st_normal);
+
+        // if this key might start a fork....
+        if (forkable_p(config.get(), key)
+            && environment->press_p(pevent)
+            && !environment->ignore_event(pevent)) {
+            /* ".-" AR-trick: by depressing/re-pressing the key rapidly, AR is invoked, not fork */
+#if DEBUG
+            if ( !key_forked(key) && (last_released == key )) {
+                mdb("can we invoke autorepeat? %d  upper bound %d ms\n",
+                    // mmc: config is pointing outside memory range!
+                    (int)(simulated_time - last_released_time), config->repeat_max);
+            }
+#endif
+            /* So, unless we see the .- trick, we do suspect: */
+            if (!key_forked(key) &&
+                ((last_released != key )
+                 || time_difference_more(simulated_time, last_released_time, config->repeat_max))) {
+
+                change_state(st_suspect);
+                suspect = key;
+                suspect_time = environment->time_of(pevent);
+                mDecision_time = suspect_time +
+                    config->verification_interval_of(key, 0);
+
+                tq.move_to_second();
+                return;
+            } else {
+                // .- trick: (fixme: or self-forked)
+                mdb("re-pressed very quickly\n");
+                forkActive[key] = key; // fixme: why not 0 ?
+
+                // double move:
+                tq.move_to_second();
+                issue_event();
+                return;
+            };
+        } else if (environment->release_p(pevent) && (key_forked(key))) {
+            mdb("releasing forked key\n");
+            // fixme:  we should see if the fork was `used'.
+            if (config->consider_forks_for_repeat){
+                // C-f   f long becomes fork. now we wanted to repeat it....
+                last_released = environment->detail_of(pevent);
+                last_released_time = environment->time_of(pevent);
+            } else {
+                // imagine mouse-button during the short 1st press. Then
+                // the 2nd press ..... should not relate the the 1st one.
+                last_released = no_key;
+                last_released_time = 0;
+            }
+            /* we finally release a (self-)forked key. Rewrite back the keycode.
+             *
+             * fixme: do i do this in other machine states?
+             */
+
+            environment->rewrite_event(tq.rewrite_head(), forkActive[key]);
+            forkActive[key] = 0;
+            issue_event();
+        } else {
+            // non forkable, for example:
+            if (environment->release_p(pevent)) {
+
+                last_released = environment->detail_of(pevent);
+                last_released_time = environment->time_of(pevent);
+            };
+            // pass along the un-forkable event.
+            issue_event();
+        };
+    }
+
+    /**
+     * Timeline:
+     * ========
+     * first
+     * second .. verifier
+     * third-event  < we are here now.
+     *
+     * ???? how long?
+     * second Released.
+     * So, already 2 keys have been pressed, and still no decision.
+     * Now we have the 3rd key.
+     * We wait only for time, and for the release of the key
+     */
+    void apply_event_to_verify_state(const PlatformEvent &pevent) {
+        Time simulated_time = environment->time_of(pevent);
+        Keycode key = environment->detail_of(pevent);
+
+        /* We pressed a forkable key I, and another one E (which could possibly
+           use the modifier). Now, either the forkable key was intended
+           to be `released' before the press of the other key (and we have an
+           error due to mis-synchronization), or in fact, the forkable
+           was actually `used' as a modifier.
+
+           This should not be fork:
+           I----I (short)
+           E--E
+
+           This should be a fork:
+           I-----I (long)
+           E--E
+
+           Motivation:  we want to press the modifier for short time (simultaneously
+           pressing other keys). But sometimes writing quickly, we
+           press before we release the previous letter. We handle this, ignoring
+           a short overlay. I.e. we wait for the verification key
+           to be down in parallel for at least X ms.
+
+           There might be a matrix of values! How to train it?
+        */
+
+        /* As before, in the suspect case, we check the 1-key timeout ? But this time,
+           we have the 2 key, and we can have a more specific parameter:  Some keys
+           are slow to release, when we press a specific one afterwards. So in this case fork slower!
+        */
+
+        if (0 == (mDecision_time = key_pressed_too_long(simulated_time))) {
+            confirm_fork_and_enqueue(fork_reason_t::reason_long);
+            return;
+        }
+
+        /* now, check the overlap of the 2 first keys */
+        Time decision_time = config->verifier_decision_time(simulated_time,
+                                                            suspect, suspect_time,
+                                                            verificator_keycode, verificator_time);
+        if (decision_time == 0) {
+            confirm_fork_and_enqueue(fork_reason_t::reason_overlap);
+            return;
+        }
+
+        // how is this possible?
+        if (decision_time < mDecision_time)
+            mDecision_time = decision_time;
+
+        if ((key == suspect) && environment->release_p(pevent)){ // fixme: is release_p(event) useless?
+            mdb("fork-key released on time: %" TIME_FMT "ms is a tolerated error (< %lu)\n",
+                (simulated_time -  suspect_time),
+                config->verification_interval_of(suspect,
+                                                 verificator_keycode));
+            do_confirm_non_fork_by();
+
+        } else if ((verificator_keycode == key) && environment->release_p(pevent)) {
+            // todo: maybe this is too weak.
+
+            // todo: we might be interested in percentage, then here we should do the work!
+
+            change_state(st_suspect);
+            verificator_keycode = 0;   // we _should_ take the next possible verificator
+
+            tq.move_to_first();
+        } else {
+            // fixme: a (repeated) press of the verificator ?
+            // fixme: we pressed another key: but we should tell XKB to repeat it !
+            tq.move_to_first();
+        };
+    };
+
+
     /**
      * Apply event EV to (state, internal-queue, time).
      * This can append to the output-queue
@@ -414,10 +699,8 @@ private:
      *   either the ev  is pushed on internal_queue, or to the output-queue
      *   the head of internal_queue may be pushed to the output-queue as well.
      */
-   void transition_by_key(std::unique_ptr<key_event> ev) {
+   void transition_by_key(const PlatformEvent& pevent) {
         check_locked();
-        assert(ev);
-        const PlatformEvent* pevent = ev->p_event;
         const Keycode key = environment->detail_of(pevent);
 
         mdb("%s: %lu\n", __func__, key);
@@ -445,16 +728,16 @@ private:
         // assert(release_p(event) || (key < MAX_KEYCODE && forkActive[key] == 0));
         switch (state) {
         case st_normal:
-            apply_event_to_normal(std::move(ev));
+            apply_event_to_normal(pevent);
             return;
         case st_suspect:
         {
-            apply_event_to_suspect(std::move(ev));
+            apply_event_to_suspect(pevent);
             return;
         }
         case st_verify:
         {
-            apply_event_to_verify_state(std::move(ev));
+            apply_event_to_verify_state(pevent);
             return;
         }
         default:
@@ -510,98 +793,6 @@ private:
           "(prematurely woken)\n",
           __func__, mDecision_time - current_time);
       return false;
-    };
-
-    /**  First (press)
-     *    v   ^     0   <-- we are here.
-     *        Second
-     */
-    void apply_event_to_suspect(std::unique_ptr<key_event> ev) {
-        const PlatformEvent *pevent = ev->p_event;
-        Time simulated_time = environment->time_of(pevent);
-        Keycode key = environment->detail_of(pevent);
-
-        auto &queue = internal_queue;
-        assert(!queue.empty() && state == st_suspect);
-
-        /* Here, we can
-         * o refuse .... if suspected/forkable is released quickly,
-         * o fork (definitively),  ... for _time_
-         * o start verifying, or wait, or confirm (timeout)
-         * todo: I should repeat a bi-depressed forkable.
-         */
-
-        // first we look at the time:
-        if (0 == (mDecision_time = key_pressed_too_long(simulated_time))) {
-            confirm_fork_and_enqueue(std::move(ev), fork_reason_t::reason_long);
-            return;
-        };
-
-        /* So, we now have a second key, since the duration of 1 key
-         * was not enough. */
-        if (environment->release_p(pevent)) {
-            mdb("suspect/release: suspected = %d, time diff: %d\n", suspect,
-                (int)(simulated_time - suspect_time));
-            if (key == suspect) {
-                do_confirm_non_fork_by(std::move(ev));
-                return;
-                /* fixme:  here we confirm, that it was not a user error.....
-                   bad synchro. i.e. the suspected key was just released  */
-            } else {
-                /* something released, but not verificating, b/c we are in `suspect',
-                 * not `confirm'  */
-                internal_queue.push(ev.release());
-                return;
-            };
-        } else {
-            if (!environment->press_p(pevent)) { // why not release_p() ?
-                // RawPress & Device events.
-                if (!environment->release_p(pevent)) {
-                    mdb("a bizzare event scanned\n");
-                }
-                internal_queue.push(ev.release());
-                return;
-            }
-            // press-event here:
-            if (key == suspect) {
-                /* How could this happen? Auto-repeat on the lower/hw level?
-                 * And that AR interval is shorter than the fork-verification */
-                if (config->fork_repeatable[key]) {
-                    mdb("The suspected key is configured to repeat, so ...\n");
-                    forkActive[suspect] = suspect;
-                    do_confirm_non_fork_by(std::move(ev));
-                    return;
-                } else {
-                    // fixme: this keycode is repeating, but we still don't know what to
-                    // do.
-                    // ..... `discard' the event???
-                    // fixme: but we should recalc the mDecision_time !!
-                    return;
-                }
-            } else {
-                // another key pressed
-                change_state(st_verify);
-                verificator_time = simulated_time;
-                verificator_keycode =
-                    key; /* if already we had one -> we are not in this state!
-                            if the verificator becomes a modifier ?? fixme:*/
-                // verify overlap
-                Time decision_time = config->verifier_decision_time(
-                    simulated_time, suspect, suspect_time, verificator_keycode,
-                    verificator_time);
-
-                // well, this is an abuse ... this should never be 0.
-                if (decision_time == 0) {
-                    mdb("absurd\n"); // this means that verificator key verifies
-                    // immediately!
-                }
-                if (decision_time < mDecision_time)
-                    mDecision_time = decision_time;
-
-                internal_queue.push(ev.release());
-                return;
-            };
-        }
     };
 
 
@@ -741,191 +932,6 @@ private:
         }
     };
 
-
-    // so EVENT confirms fork of the current event, and also enters queue,
-    // which will be `immediately' relocated to the input queue.
-    void confirm_fork_and_enqueue(std::unique_ptr<key_event> event, fork_reason_t fork_reason) {
-        /* fixme: event is the just-read event. But that is surely not the head
-           of queue (which is confirmed to fork) */
-        mdb("confirm:\n");
-        internal_queue.push(event.release());
-        activate_fork(fork_reason);
-    }
-
-    // So the event proves, that the current event is not forked.
-    // /----internal--queue--/ event /----input event----/
-    //  ^ suspect                ^ confirmation.
-    void do_confirm_non_fork_by(std::unique_ptr<key_event> ev) {
-        check_locked();
-        assert(state == st_suspect || state == st_verify);
-
-        std::unique_ptr<key_event> non_forked_event(internal_queue.pop());
-        mdb("this is not a fork! %d\n",
-            environment->detail_of(non_forked_event->p_event));
-        internal_queue.push(ev.release());
-        rewind_machine(st_deactivated); // short-lived state. is it worth it?
-        // possibly unlocks
-        issue_event(std::move(non_forked_event));
-    };
-
-    /**
-     * Timeline:
-     * ========
-     * first
-     * second .. verifier
-     * third-event  < we are here now.
-     *
-     * ???? how long?
-     * second Released.
-     * So, already 2 keys have been pressed, and still no decision.
-     * Now we have the 3rd key.
-     * We wait only for time, and for the release of the key
-     */
-    void apply_event_to_verify_state(std::unique_ptr<key_event> ev) {
-        const PlatformEvent* pevent = ev->p_event;
-        Time simulated_time = environment->time_of(pevent);
-        Keycode key = environment->detail_of(pevent);
-
-        /* We pressed a forkable key I, and another one E (which could possibly
-           use the modifier). Now, either the forkable key was intended
-           to be `released' before the press of the other key (and we have an
-           error due to mis-synchronization), or in fact, the forkable
-           was actually `used' as a modifier.
-
-           This should not be fork:
-           I----I (short)
-           E--E
-
-           This should be a fork:
-           I-----I (long)
-           E--E
-
-           Motivation:  we want to press the modifier for short time (simultaneously
-           pressing other keys). But sometimes writing quickly, we
-           press before we release the previous letter. We handle this, ignoring
-           a short overlay. I.e. we wait for the verification key
-           to be down in parallel for at least X ms.
-
-           There might be a matrix of values! How to train it?
-        */
-
-        /* As before, in the suspect case, we check the 1-key timeout ? But this time,
-           we have the 2 key, and we can have a more specific parameter:  Some keys
-           are slow to release, when we press a specific one afterwards. So in this case fork slower!
-        */
-
-        if (0 == (mDecision_time = key_pressed_too_long(simulated_time))) {
-            confirm_fork_and_enqueue(std::move(ev), fork_reason_t::reason_long);
-            return;
-        }
-
-        /* now, check the overlap of the 2 first keys */
-        Time decision_time = config->verifier_decision_time(simulated_time,
-                                                            suspect, suspect_time,
-                                                            verificator_keycode, verificator_time);
-        if (decision_time == 0) {
-            confirm_fork_and_enqueue(std::move(ev), fork_reason_t::reason_overlap);
-            return;
-        }
-
-        // how is this possible?
-        if (decision_time < mDecision_time)
-            mDecision_time = decision_time;
-
-        if ((key == suspect) && environment->release_p(pevent)){ // fixme: is release_p(event) useless?
-            mdb("fork-key released on time: %" TIME_FMT "ms is a tolerated error (< %lu)\n",
-                (simulated_time -  suspect_time),
-                config->verification_interval_of(suspect,
-                                                 verificator_keycode));
-            do_confirm_non_fork_by(std::move(ev));
-
-        } else if ((verificator_keycode == key) && environment->release_p(pevent)) {
-            // todo: maybe this is too weak.
-
-            // todo: we might be interested in percentage, then here we should do the work!
-
-            change_state(st_suspect);
-            verificator_keycode = 0;   // we _should_ take the next possible verificator
-            internal_queue.push(ev.release());
-        } else {
-            // fixme: a (repeated) press of the verificator ?
-            // fixme: we pressed another key: but we should tell XKB to repeat it !
-            internal_queue.push(ev.release());
-        };
-    };
-
-    // is mDecision_time always recalculated?
-    // possibly unlocks
-    void apply_event_to_normal(std::unique_ptr<key_event> event) {
-        const PlatformEvent *pevent = event->p_event;
-
-        const Keycode key = environment->detail_of(pevent);
-        const Time simulated_time = environment->time_of(pevent);
-
-        assert(state == st_normal && internal_queue.empty());
-
-        // if this key might start a fork....
-        if (forkable_p(config.get(), key)
-            && environment->press_p(pevent)
-            && !environment->ignore_event(pevent)) {
-            /* ".-" AR-trick: by depressing/re-pressing the key rapidly, AR is invoked, not fork */
-#if DEBUG
-            if ( !key_forked(key) && (last_released == key )) {
-                mdb("can we invoke autorepeat? %d  upper bound %d ms\n",
-                    // mmc: config is pointing outside memory range!
-                    (int)(simulated_time - last_released_time), config->repeat_max);
-            }
-#endif
-            /* So, unless we see the .- trick, we do suspect: */
-            if (!key_forked(key) &&
-                ((last_released != key )
-                 || time_difference_more(simulated_time, last_released_time, config->repeat_max))) {
-
-                change_state(st_suspect);
-                suspect = key;
-                suspect_time = environment->time_of(pevent);
-                mDecision_time = suspect_time +
-                    config->verification_interval_of(key, 0);
-                internal_queue.push(event.release());
-                return;
-            } else {
-                // .- trick: (fixme: or self-forked)
-                mdb("re-pressed very quickly\n");
-                forkActive[key] = key; // fixme: why not 0 ?
-                issue_event(std::move(event));
-                return;
-            };
-        } else if (environment->release_p(pevent) && (key_forked(key))) {
-            mdb("releasing forked key\n");
-            // fixme:  we should see if the fork was `used'.
-            if (config->consider_forks_for_repeat){
-                // C-f   f long becomes fork. now we wanted to repeat it....
-                last_released = environment->detail_of(pevent);
-                last_released_time = environment->time_of(pevent);
-            } else {
-                // imagine mouse-button during the short 1st press. Then
-                // the 2nd press ..... should not relate the the 1st one.
-                last_released = no_key;
-                last_released_time = 0;
-            }
-            /* we finally release a (self-)forked key. Rewrite back the keycode.
-             *
-             * fixme: do i do this in other machine states?
-             */
-            environment->rewrite_event(const_cast<PlatformEvent*>(pevent), forkActive[key]);
-            forkActive[key] = 0;
-
-            issue_event(std::move(event));
-        } else {
-            // non forkable, for example:
-            if (environment->release_p(pevent)) {
-                last_released = environment->detail_of(pevent);
-                last_released_time = environment->time_of(pevent);
-            };
-            // pass along the un-forkable event.
-            issue_event(std::move(event));
-        };
-    }
 
     // todo: so Time type must allow 0
     // return 0  if the current/first key is pressed enough time to fork.
