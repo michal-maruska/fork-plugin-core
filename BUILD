@@ -32,7 +32,7 @@ ai libclang-rt-dev
 
 
 * debug:
-script zapis  -c ninja
+script zapis  -c "ninja -v"
 
 
 * Xorg headers files not clean to be used by C++ compiler
