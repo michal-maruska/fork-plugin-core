@@ -1,3 +1,5 @@
+// (c) Michal Maruska
+
 
 #include "config.h"
 #include "colors.h"
@@ -142,12 +144,12 @@ forkingMachine<Keycode, Time, archived_event_t>::configure_key(int type, Keycode
        __func__, key, value, type);
 
    switch (type) {
-       case fork_configure_key_fork:
+       case fork_configure_key_fork: // define  key -> key2 ?
            if (set)
                config->fork_keycode[key] = value;
            else return config->fork_keycode[key];
            break;
-       case fork_configure_key_fork_repeat:
+       case fork_configure_key_fork_repeat: // if AR?
            if (set)
                config->fork_repeatable[key] = value;
            else return config->fork_repeatable[key];
@@ -159,6 +161,7 @@ forkingMachine<Keycode, Time, archived_event_t>::configure_key(int type, Keycode
 }
 
 
+// ask the platform environment to send events as data.
 template <typename Keycode, typename Time, typename archived_event_t>
 int
 forkingMachine<Keycode, Time, archived_event_t>::dump_last_events_to_client(
@@ -191,7 +194,7 @@ forkingMachine<Keycode, Time, archived_event_t>::dump_last_events_to_client(
 
 /**
  * We concluded the key is forked. "Output" it and prepare for the next one.
- * fixme: locking?
+ * fixme: locking -- possibly unlocks?
  */
 template <typename Keycode, typename Time, typename archived_event_t>
 void
@@ -205,6 +208,7 @@ forkingMachine<Keycode, Time, archived_event_t>::activate_fork(fork_reason_t for
     rewind_machine(st_activated);
 
     Keycode forked_key = environment->detail_of(event->p_event);
+    // why not:
     // assert(forked_key == suspect);
     event->original_keycode = forked_key;
 
@@ -258,7 +262,7 @@ forkingMachine<Keycode, Time, archived_event_t>::run_automaton(bool force_also)
     while (! environment->output_frozen()) {
         if (! input_queue.empty()) {
             std::unique_ptr<key_event> ev(input_queue.pop());
-            transition_by_key(std::move(ev));
+            transition_by_key(std::move(ev)); // here crash?
         } else {
             if (mCurrent_time && (state != st_normal)) {
                 if (transition_by_time(mCurrent_time))
@@ -287,12 +291,25 @@ Time
 forkingMachine<Keycode, Time, archived_event_t>::accept_event(std::unique_ptr<PlatformEvent> pevent) noexcept(false) {
     {
         std::scoped_lock lock(mLock);
+        // environment->fmt_event(pevent.get());
+        // mdb("%s: event time: %ul\n", __func__, );
+
+        // mdb("%s: event time: %ul\n", __func__, environment->time_of(pevent.get()));
+
         // fixme: mouse must not preempt us. But what if it does?
+        // mmc: allocation:
         auto event = std::make_unique<key_event>(std::move(pevent));
+
+        // mdb("event time: %ul\n", environment->time_of(event->p_event));
 
         if (mCurrent_time > environment->time_of(event->p_event))
             mdb("bug: time moved backwards!");
-
+#if 0
+        PlatformEvent* ref = event->p_event;
+        environment->relay_event(ref);
+        event->p_event = ref;
+        return 0;
+#endif
         input_queue.push(event.release());
     }
     run_automaton(false);
@@ -309,6 +326,7 @@ forkingMachine<Keycode, Time, archived_event_t>::accept_event(std::unique_ptr<Pl
 */
 
 
+// todo: so Time type must allow 0
 // return 0  if the current/first key is pressed enough time to fork.
 // or time when this will happen.
 template <typename Keycode, typename Time, typename archived_event_t>
@@ -450,6 +468,7 @@ forkingMachine<Keycode, Time, archived_event_t>::apply_event_to_normal(std::uniq
 
         issue_event(std::move(event));
     } else {
+        // non forkable, for example:
         if (environment->release_p(pevent)) {
             last_released = environment->detail_of(pevent);
             last_released_time = environment->time_of(pevent);
@@ -655,16 +674,15 @@ template <typename Keycode, typename Time, typename archived_event_t>
 void
 forkingMachine<Keycode, Time, archived_event_t>::transition_by_key(std::unique_ptr<key_event> ev)
 {
-    mdb("%s:\n", __func__);
     check_locked();
     assert(ev);
     const PlatformEvent* pevent = ev->p_event;
     const Keycode key = environment->detail_of(pevent);
 
+    mdb("%s: %lu\n", __func__, key);
+
     /* Please, first change the state, then enqueue, and then EMIT_EVENT.
      * fixme: should be a function then  !!!*/
-
-    // mDecision_time = 0;
 
 #if DDX_REPEATS_KEYS || 1
     /* `quick_ignore': I want to ignore _quickly_ the hw-repeated unfiltered (forked) modifiers.
@@ -704,4 +722,3 @@ forkingMachine<Keycode, Time, archived_event_t>::transition_by_key(std::unique_p
 }
 
 }
-

@@ -73,7 +73,9 @@ public:
             // bug: must call environment -> free_event()
             // notice that currently we nullify this pointer.
             // so virtual d-tor?
+#if 1
             env->log("%s: %p %p\n", __func__, this, p_event);
+#endif
             if (p_event != nullptr)
                 env->free_event(p_event);
         }
