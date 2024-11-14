@@ -198,8 +198,8 @@ private:
                                   * Externals don't accept, so we keep them. */
 
 public:
-    /* we cannot hold only a Bool, since when we have to reconfigure, we need the original
-       forked keycode for the release event. */
+    /* forkActive(x) == y  means we sent downstream Keycode Y instead of X.
+     * what is the meaning of:  0 and X ? */
     Keycode          forkActive[MAX_KEYCODE];
 
 private:
