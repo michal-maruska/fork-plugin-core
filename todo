@@ -1,4 +1,43 @@
+* avoid allocating memory
+** keep the queus fixed-sized.... events not allocated.
+**
+
+
+
+
+* libinput
+
+evdev_process_event
+
+
+
+* use std::format
+
+* mouse signal
+schedule if locked.
+
+
+surrogate template
+
+
+* fmt_event  drop or ?
+
+* rename  Time -> time_t
+/usr/include/X11/X.h
+typedef CARD32 Time;
+
+
+#if DDX_REPEATS_KEYS || 1
+
+
+* key_event   key_event_wrapper
+depends on template
+
+** build with clang ?
+done
+
 * reinterpret_cast ?
+
 
 ** done: gcov
 
@@ -10,6 +49,11 @@ genhtml coverage.info --output-directory out
 ai extra-cmake-modules
 ai cmake-extras
 
+* alternative,  coverage.cmake could be TOOLCHAIN file?
+https://www.youtube.com/watch?v=VFgvNsyTikg
+ai gcovr
+gcovr --root .. -j 10 --html-details -o html .
+--exclude-throw-branches --exclude-unreachable-branches
 
 * clean up Cmake ?
 https://github.com/ninja-build/ninja/issues/174
@@ -25,6 +69,8 @@ use sanitizers?
 * move into machine.h
 
 * queue?
+I want to pop only unique_ptr
+
 
 why do I have to invoke inside template the other methods with this->method ?
 why not method ?
@@ -43,6 +89,17 @@ enum twin_relationship {
 src/config.h  printf format PRIu32
 
 * split fork_archived_events.h
+--- enums -- requests fork_configure_last_events, ....
+archived_event should be platform agnostic.
+
+archived_event base class.
+derived would be x_archived_event
+
+virtual archived_event archive_event(const key_event& event) = 0;
+should just searialize
+virtual serialize_event(archived_event& archive, const PlatformEvent *pevent)
+
+
 
 
 * install with correct path!

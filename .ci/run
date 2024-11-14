@@ -30,3 +30,9 @@ build_run_tests
 
 rm -f **/*gcda
 ) || :
+
+
+
+# cmake install --install . --prefix tmp -v
+DESTDIR=/home/michal/repo/fork/fork-plugin/build.1/tmp   cmake  --install .   -v
+DESTDIR=/home/michal/repo/fork/fork-plugin/build.1/tmp ninja -v install

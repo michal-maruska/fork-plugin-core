@@ -3,7 +3,7 @@
 
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../  -DFORCE_COLORED_OUTPUT=1
+cmake -DCMAKE_COLOR_DIAGNOSTICS=1 -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../  -DFORCE_COLORED_OUTPUT=1
 --debug-trycompile
 
 cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=clang++
