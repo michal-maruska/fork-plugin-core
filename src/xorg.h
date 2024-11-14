@@ -77,7 +77,9 @@ class xorg_event_publisher : public event_publisher<archived_event>
         return 0;
     }
     virtual void event(const archived_event& event) override {
-
+        // memcpy into the buffer:
+        // typecast
+        // const archived_event&
     }
 };
 
