@@ -461,10 +461,11 @@ private:
     bool transition_by_time(Time current_time) {
       check_locked();
       // confirm fork:
+#if 0
       mdb("%s%s%s state: %s, queue: %d, time: %u key: %d\n", fork_color,
           __func__, color_reset, describe_machine_state(this->state),
           internal_queue.length(), (int)current_time, suspect);
-
+#endif
       /* First, I try the simple (fork-by-one-keys).
        * If that works, -> fork! Otherwise, I try w/ 2-key forking, overlapping.
        */
@@ -626,9 +627,11 @@ private:
         change_state(new_state);
 #endif
         /* reset the machine */
+#if 0
         mdb("== Resetting the fork machine (internal %d, input %d)\n",
             internal_queue.length (),
             input_queue.length ());
+#endif
 
         change_state(st_normal);
         mDecision_time = 0; // nothing to decide
@@ -697,10 +700,12 @@ private:
             (!input_queue.empty() || !internal_queue.empty())
            ) {
             // log_queues_and_nextplugin(message)
+#if 0
             mdb("%s: next %sfrozen: internal %d, input: %d\n", __func__,
                 (environment->output_frozen()?"":"NOT "),
                 internal_queue.length(),
                 input_queue.length());
+#endif
         }
 
         // notice that instead of recursion, all the calls to `rewind_machine' are
@@ -1178,22 +1183,27 @@ private:
      * Logging ... why templated?
      */
     void log_state(const char *message) const {
+#if 0
         mdb("%s%s%s state: %s, queue: %d.  %s\n", fork_color, __func__, color_reset,
             describe_machine_state(this->state), internal_queue.length(), message);
+#endif
     }
 
     void log_queues(const char *message) const {
+#if 0
         mdb("%s: Queues: output: %d\t internal: %d\t input: %d\n", message,
             output_queue.length(), internal_queue.length(), input_queue.length());
+#endif
     }
 
     void log_state_and_event(const char* message, const key_event *ev) {
-
+#if 0
         mdb("%s%s%s state: %s, queue: %d\n", // , event: %d %s%c %s %s
             info_color,message,color_reset,
             describe_machine_state(this->state),
             internal_queue.length ()
             );
+#endif
         environment->fmt_event(pevent);
     }
 
