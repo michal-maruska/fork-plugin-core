@@ -41,11 +41,11 @@ static void dump_event(KeyCode key, KeyCode fork, bool press, Time event_time,
 using PlatformEvent = forkNS::PlatformEvent;
 
 class XorgEvent : public PlatformEvent {
+    InternalEvent event;
 public:
-    // take ownership:
-    XorgEvent(InternalEvent* event) : event(event) {};
+    // take ownership:  -- no
+    XorgEvent(InternalEvent* event) : event(*event) {};
     // so why not UniquePointer?
-    InternalEvent* event;
 };
 
 
