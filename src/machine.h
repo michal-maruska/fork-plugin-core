@@ -30,7 +30,6 @@ constexpr int MAX_KEYCODE = 256;
  *
  * and we update some state and sometimes rewrite the event
  * and output.
- * we also keep our own `key_event'.
  *
  *
  * Concepts:
@@ -46,30 +45,6 @@ class forkingMachine {
      * platformEvent to archived_event_t
      */
     typedef platformEnvironment<Keycode, Time, archived_event_t> Environment_t;
-
-    /* `machine': the dynamic `state' */
-    struct key_event {
-        // I want a static variable pointing to the Class's Environment.
-        inline static const Environment_t *env;
-
-        PlatformEvent* p_event;
-        /* if forked to (another keycode), this is the original key */
-        // makes sense?. could be environment->detail_of(pevent);
-        Keycode original_keycode = no_key;
-
-        key_event(std::unique_ptr<PlatformEvent> p) : p_event(p.release()){};
-        ~key_event() {
-            // should be nullptr
-            // bug: must call environment -> free_event()
-            // notice that currently we nullify this pointer.
-            // so virtual d-tor?
-#if 1
-            env->log("%s: %p %p\n", __func__, this, p_event);
-#endif
-            if (p_event != nullptr)
-                env->free_event(p_event);
-        }
-    };
 
 private:
     //template <typename Time>
@@ -186,7 +161,7 @@ private:
     Time mDecision_time;         /* Time to wait... so that the HEAD event in queue could decide more*/
     Time mCurrent_time;          // the last time we received from previous plugin/device
 
-    triqueue_t<key_event> tq{100}; // total capacity
+    triqueue_t<PlatformEvent> tq{100}; // total capacity
 
 public:
     /* forkActive(x) == y  means we sent downstream Keycode Y instead of X.
@@ -228,15 +203,17 @@ private:
         max_last = new_max;
     }
 
-    void save_event_log(const key_event *event) {
+    void save_event_log(const PlatformEvent& event) {
         // could I emplace it?
         // reference = last_events_log.emplace_back()
         // reference.forked = ev->forked;
+#if 0
         archived_event_t archived_event;
         environment->archive_event(archived_event, event->p_event);
         archived_event.forked = event->original_keycode; // todo: rename original_keycode
 
         last_events_log.push_back(archived_event);
+#endif
     }
 
 
@@ -829,7 +806,7 @@ private:
     }
 
     // can modify the event!
-    void relay_event(key_event *event) {
+    void relay_event(PlatformEvent& event) {
         // (ORDER) this event must be delivered before any other!
         // so no preemption of this part!  Are we re-entrant?
         // yet, the next plugin could call in here? to do what?
@@ -845,7 +822,7 @@ private:
         // bug: environment->fmt_event(ev->p_event);
         unlock();
         // we must gurantee ORDER
-        environment->relay_event(event->p_event);
+        environment->relay_event(event);
         lock();
     };
 
@@ -1088,7 +1065,7 @@ private:
             std::unique_ptr<key_event> event(output_queue.pop());
             save_event_log(event.get());
             // unlocks!
-            relay_event(event.get());
+            relay_event(event);
         }
         if (!environment->output_frozen()) {
             push_time_to_next();
@@ -1208,7 +1185,7 @@ private:
             describe_machine_state(this->state),
             internal_queue.length ()
             );
-        environment->fmt_event(ev->p_event);
+        environment->fmt_event(pevent);
     }
 
 public:
