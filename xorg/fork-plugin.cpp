@@ -229,26 +229,6 @@ set_wakeup_time(PluginInstance *plugin, Time machine_time)
 }
 
 
-static std::unique_ptr<XorgEvent>
-create_xorg_platform_event(InternalEvent *event, const bool owner)
-{
-    InternalEvent* qe;
-    if (owner) {
-        qe = event;
-    } else {
-        qe = (InternalEvent*)malloc(event->any.length);
-        if (!qe) {
-            // raise exception
-            ErrorF("%s: out-of-memory\n", __func__);
-            return NULL;
-        }
-        memcpy(qe, event, event->any.length);
-    }
-    return std::make_unique<XorgEvent>(qe);
-}
-
-
-
 /*  This is the handler for all key events.  Here we delay pushing them forward.
     it's a trampoline for the automaton.
     Should it return some Time?
@@ -279,11 +259,15 @@ ForkProcessEvent(PluginInstance* plugin, InternalEvent *event, const Bool owner)
     {
         const auto machine = plugin_machine(plugin);
         // This is C++ code:
-        std::unique_ptr<PlatformEvent> ev = create_xorg_platform_event(event, owner);
-        // bug:
-        if (!ev) // memory problems
-            goto exit_free;
-        Time next = machine->accept_event(std::move(ev));
+
+        // error: no viable conversion from 'typename std::remove_reference<unique_ptr<PlatformEvent> &>::type' (aka 'std::unique_ptr<forkNS::PlatformEvent>') to 'const PlatformEvent'
+        // _DeviceEvent
+        const XorgEvent pevent {event};
+        if (owner) {
+            free(event);
+            event = NULL;
+        }
+        Time next = machine->accept_event(pevent); // std::move(ev)
         // unlocked here now!
         set_wakeup_time(plugin, next);
     }
