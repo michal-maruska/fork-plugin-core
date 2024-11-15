@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <functional>
 
-#include "queue.h"
+#include "triqueue.h"
 #include "platform.h"
 #include "colors.h"
 #include <memory>
@@ -71,7 +71,6 @@ class forkingMachine {
         }
     };
 
-    typedef forkNS::my_queue<key_event*> list_with_tail;
 private:
     //template <typename Time>
     bool time_difference_more(Time now, Time past, Time limit_difference) {
@@ -187,13 +186,7 @@ private:
     Time mDecision_time;         /* Time to wait... so that the HEAD event in queue could decide more*/
     Time mCurrent_time;          // the last time we received from previous plugin/device
 
-    list_with_tail internal_queue;
-    /* Still undecided events: these events alone don't decide
-       how to interpret the first event on the queue.*/
-    list_with_tail input_queue;  /* Not yet processed at all. Since we wait for external
-                                  * events to resume processing (Grab is active-frozen) */
-    list_with_tail output_queue; /* We have decided, so possibly modified events (forked),
-                                  * Externals don't accept, so we keep them. */
+    triqueue_t<key_event> tq{100}; // total capacity
 
 public:
     /* forkActive(x) == y  means we sent downstream Keycode Y instead of X.
