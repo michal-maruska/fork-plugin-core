@@ -41,6 +41,8 @@ static void dump_event(KeyCode key, KeyCode fork, bool press, Time event_time,
 using PlatformEvent = forkNS::PlatformEvent;
 
 class XorgEvent : public PlatformEvent {
+    friend class XOrgEnvironment;
+private:
     InternalEvent event;
 public:
     // take ownership:  -- no
