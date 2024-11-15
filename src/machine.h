@@ -54,6 +54,41 @@ private:
         return ( (now - past) > limit_difference);
     }
 
+public:
+    // prefix with a space.
+    void mdb(const char* format...) const
+    {
+        if (config->debug) {
+            va_list argptr;
+            va_start(argptr, format);
+#if 1
+            environment->vlog(format, argptr);
+#else
+            // alloca()
+            char* new_format = (char*) malloc(strlen(format) + 2);
+            new_format[0] = ' ';
+            strcpy(new_format + 1, format);
+
+            environment->vlog(new_format, argptr);
+            free(new_format);
+#endif
+            va_end(argptr);
+
+        }
+    };
+
+    // without the leading space
+    void mdb_raw(const char* format...) const {
+        if (config->debug) {
+            va_list argptr;
+            va_start(argptr, format);
+            environment->vlog(format, argptr);
+            va_end(argptr);
+        }
+    };
+
+private:
+
     /* states of the automaton: */
     enum fork_state_t {  // states of the automaton
         st_normal,
@@ -828,38 +863,6 @@ private:
 
 
 public:
-    // prefix with a space.
-    void mdb(const char* format...) const
-    {
-        if (config->debug) {
-            va_list argptr;
-            va_start(argptr, format);
-#if 1
-            environment->vlog(format, argptr);
-#else
-            // alloca()
-            char* new_format = (char*) malloc(strlen(format) + 2);
-            new_format[0] = ' ';
-            strcpy(new_format + 1, format);
-
-            environment->vlog(new_format, argptr);
-            free(new_format);
-#endif
-            va_end(argptr);
-
-        }
-    };
-
-    // without the leading space
-    void mdb_raw(const char* format...) const {
-        if (config->debug) {
-            va_list argptr;
-            va_start(argptr, format);
-            environment->vlog(format, argptr);
-            va_end(argptr);
-        }
-    };
-
     ~forkingMachine() {};
 
     explicit forkingMachine(Environment_t* environment)
