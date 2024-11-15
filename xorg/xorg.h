@@ -182,9 +182,11 @@ public:
             ErrorF("BUG %s: %p\n", __func__, pevent);
             return;
         }
-        InternalEvent* event = static_cast<XorgEvent*>(pevent)->event;
+#if 0
+        InternalEvent& event = static_cast<XorgEvent*>(pevent)->event;
         free(event);
         static_cast<XorgEvent*>(pevent)->event = nullptr;
+#endif
     }
 
     // so this is orthogonal? platform-independent?
