@@ -123,25 +123,25 @@ public:
     return false;
   };
 
-  virtual bool ignore_event(const PlatformEvent *pevent) override {
+  virtual bool ignore_event(const PlatformEvent& pevent) override {
     return false;
   }
 
   // libinput_event_get_keyboard_event(
 #define  GET_EVENT(pevent)                                              \
-  (const_cast<libinput_event_keyboard*>(static_cast<const libinputEvent*>(pevent)->event))
+  (const_cast<libinput_event_keyboard*>(static_cast<const libinputEvent&>(pevent).event))
 
 #define GET_DEVICE(pevent) \
-  (const_cast<libinput_device*>(static_cast<const libinputEvent*>(pevent)->device))
+  (const_cast<libinput_device*>(static_cast<const libinputEvent&>(pevent).device))
 
 
-  virtual int detail_of(const PlatformEvent* pevent) override {
+  virtual int detail_of(const PlatformEvent& pevent) override {
     // struct libinput_event_keyboard *
     auto* event = GET_EVENT(pevent);
     return libinput_event_keyboard_get_key(event);
   };
 
-  virtual void rewrite_event(PlatformEvent* pevent, int code) override {
+  virtual void rewrite_event(PlatformEvent& pevent, int code) override {
     auto event = GET_EVENT(pevent);
     services->rewrite(event, code);
   }
@@ -155,22 +155,23 @@ public:
       return;
     }
 
-    auto* event = GET_EVENT(pevent);
+    auto* event = GET_EVENT(*pevent);
     free(event);
   }
 
-  virtual bool press_p(const PlatformEvent* pevent) override {
+  virtual bool press_p(const PlatformEvent& pevent) override {
     auto* event = GET_EVENT(pevent);
 
     return (libinput_event_keyboard_get_key_state(event) == LIBINPUT_KEY_STATE_PRESSED);
   }
-  virtual bool release_p(const PlatformEvent* pevent) override {
+
+  virtual bool release_p(const PlatformEvent& pevent) override {
     auto* event = GET_EVENT(pevent);
 
     return (libinput_event_keyboard_get_key_state(event) == LIBINPUT_KEY_STATE_RELEASED);
   }
 
-  virtual uint64_t time_of(const PlatformEvent* pevent) override {
+  virtual uint64_t time_of(const PlatformEvent& pevent) override {
     auto* event = GET_EVENT(pevent);
     // libinput_event_keyboard_get_time
 #if DEBUG
@@ -181,7 +182,7 @@ public:
   }
 
   // so this is orthogonal? platform-independent?
-  void archive_event(archived_event& archived_event, const PlatformEvent *pevent) override {
+  void archive_event(archived_event& archived_event, const PlatformEvent &pevent) override {
 
 #if DEBUG > 1
     auto xevent = static_cast<libinputEvent*>(pevent)->event;
@@ -196,14 +197,17 @@ public:
     archived_event.press = press_p(pevent);
   };
 
-  virtual void relay_event(PlatformEvent* &pevent) override {
-    auto* event = GET_EVENT(pevent);
+  virtual void relay_event(const PlatformEvent &pevent) override {
+    auto &li_event = const_cast<libinputEvent&>(static_cast<const libinputEvent&>(pevent));
+#if 0
     log("%s: (%p) %p, device %p\n", __func__, pevent, event, GET_DEVICE(pevent));
+#endif
 
-    services->post_event(services, GET_DEVICE(pevent), event);
-    //
-    static_cast<libinputEvent*>(pevent)->event = NULL;
-    static_cast<libinputEvent*>(pevent)->device = NULL;
+    services->post_event(services,
+                         (libinput_device*) li_event.device,
+                         (libinput_event_keyboard*) li_event.event);
+    li_event.event = NULL;
+    li_event.device = NULL;
   };
 
   virtual void push_time(uint64_t now) override {
@@ -224,7 +228,7 @@ public:
 
 
   // the idea was to return a string. but who will deallocate it?
-  virtual std::string fmt_event(const PlatformEvent *pevent) override {
+  virtual std::string fmt_event(const PlatformEvent &pevent) override {
     // return std::string("");
     log("%s: %pm\n", __func__, GET_EVENT(pevent));
 
