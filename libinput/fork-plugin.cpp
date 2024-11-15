@@ -15,14 +15,9 @@ using machineRec = forkNS::forkingMachine<int, uint64_t,
 
 namespace forkNS {
   // explicit instantiation
-template uint64_t forkingMachine<int, uint64_t, archived_event, boost::circular_buffer<archived_event>>::accept_event(std::unique_ptr<PlatformEvent> pevent);
-}
-
-
-static std::unique_ptr<libinputEvent>
-create_libinput_platform_event(const struct libinput_device *device, const struct libinput_event_keyboard *key_event)
-{
-  return std::make_unique<libinputEvent>(key_event, device);
+template uint64_t
+forkingMachine<int, uint64_t, archived_event, boost::circular_buffer<archived_event>>::accept_event(
+                                                              const PlatformEvent& pevent);
 }
 
 
@@ -36,9 +31,10 @@ void accept_event(void* user_data, const struct libinput_device *device, const s
                        libinput_event_get_type(libinput_event_keyboard_get_base_event(const_cast<libinput_event_keyboard*>(key_event))),
                        device);
 
-  std::unique_ptr<PlatformEvent> ev = create_libinput_platform_event(device, key_event);
+  // the item is pointer?
+  auto *event = new libinputEvent(key_event, device);
 
-  uint64_t time = forking_machine->accept_event(std::move(ev));
+  uint64_t time = forking_machine->accept_event(*event);
 #if 0
   if (time!=0)
     service->set_timer(time);
