@@ -42,16 +42,6 @@ template <typename Keycode, typename Time, typename archived_event_t,
 class forkingMachine {
 
     constexpr static const Keycode no_key = 0;
-private:
-    //template <typename Time>
-    bool time_difference_more(Time now, Time past, Time limit_difference) {
-        // return (now > past + limit_difference);
-        // it's supposed to be monotonic, and 0... number is always included in the type range.
-        return ( (now - past) > limit_difference);
-    }
-
-public:
-
     /* Environment_t must be able to convert from
      * platformEvent to archived_event_t
      */
@@ -83,6 +73,12 @@ public:
 
     typedef forkNS::my_queue<key_event*> list_with_tail;
 private:
+    //template <typename Time>
+    bool time_difference_more(Time now, Time past, Time limit_difference) {
+        // return (now > past + limit_difference);
+        // it's supposed to be monotonic, and 0... number is always included in the type range.
+        return ( (now - past) > limit_difference);
+    }
 
     /* states of the automaton: */
     enum fork_state_t {  // states of the automaton
