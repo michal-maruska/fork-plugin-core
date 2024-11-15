@@ -21,6 +21,12 @@ gtest_discover_tests(test-circular)
 
 add_executable(test-queue test-queue.cpp)
 target_link_libraries(test-queue GTest::gtest_main)
+
+add_executable(test-triqueue test-triqueue.cpp)
+target_link_libraries(test-triqueue GTest::gtest_main)
+gtest_discover_tests(test-triqueue)
+
+
 gtest_discover_tests(test-queue)
 
 add_executable(test-machine test-machine.cpp)
