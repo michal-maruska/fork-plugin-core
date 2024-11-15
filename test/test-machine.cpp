@@ -69,11 +69,11 @@ public:
     vprintf(format, argptr);
     va_end(argptr);
   };
-  MOCK_METHOD(std::string, fmt_event,(const PlatformEvent *event));
+  MOCK_METHOD(std::string, fmt_event,(const PlatformEvent &event));
 
-  MOCK_METHOD(void, archive_event,(archived_event& ae, const PlatformEvent* event));
+  MOCK_METHOD(void, archive_event,(archived_event& ae, const PlatformEvent& event));
   MOCK_METHOD(void, free_event,(PlatformEvent* pevent), (const));
-  MOCK_METHOD(void, rewrite_event,(PlatformEvent* pevent, KeyCode code));
+  MOCK_METHOD(void, rewrite_event,(PlatformEvent& pevent, KeyCode code));
 
   MOCK_METHOD(std::unique_ptr<forkNS::event_dumper<archived_event>>, get_event_dumper,());
 };
@@ -86,7 +86,7 @@ using fork_configuration = forkNS::ForkConfiguration<KeyCode, Time, 256>;
 // template instantiation
 namespace forkNS {
 
-template Time forkingMachine<KeyCode, Time, archived_event, last_events_t>::accept_event(std::unique_ptr<PlatformEvent> pevent);
+template Time forkingMachine<KeyCode, Time, archived_event, last_events_t>::accept_event(const PlatformEvent& pevent);
 template Time forkingMachine<KeyCode, Time, archived_event, last_events_t>::accept_time(const Time);
 
 template bool forkingMachine<KeyCode, Time, archived_event, last_events_t>::create_configs();
@@ -134,11 +134,11 @@ protected:
 
 // When using a fixture, use TEST_F(TestFixtureClassName, TestName)
 TEST_F(machineTest, AcceptEvent) {
-  auto pevent = std::make_unique<TestEvent>( 100L, 56);
+  TestEvent pevent(100L, 56);
 
   EXPECT_CALL(*environment, relay_event);
 
-  Time next = fm->accept_event(std::move(pevent));
+  Time next = fm->accept_event(pevent);
 
   // expect calls:
   // so for that EXPECT_CALL: this is necessary? as part of this test:
