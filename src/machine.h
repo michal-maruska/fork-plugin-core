@@ -97,7 +97,6 @@ public:
           mCurrent_time(0),
           config(nullptr) {
 
-        key_event::env = environment;
         environment->log("ctor: allocating last_events\n");
         last_events_log.set_capacity(max_last);
         environment->log("ctor: allocated last_events %lu (%lu\n", last_events_log.size(), max_last);
@@ -1079,8 +1078,9 @@ private:
     void flush_to_next() {
         while (!environment->output_frozen() && !tq.can_pop()) {
             std::scoped_lock lock(mLock);
-            std::unique_ptr<key_event> event(tq.pop());
-            save_event_log(event.get());
+            PlatformEvent event = tq.pop(); // copy ?
+            // fixme ... temporarily ... not pop before sending off !
+            save_event_log(event);
             // unlocks!
             relay_event(event);
         }
@@ -1198,7 +1198,7 @@ private:
 #endif
     }
 
-    void log_state_and_event(const char* message, const key_event *ev) {
+    void log_state_and_event(const char* message, const PlatformEvent & pevent) {
 #if 0
         mdb("%s%s%s state: %s, queue: %d\n", // , event: %d %s%c %s %s
             info_color,message,color_reset,
