@@ -1237,7 +1237,7 @@ public:
      *  todo: PlatformEvent is now owned ... it will be destroyed by
      * Environment.
      */
-    Time accept_event(std::unique_ptr<PlatformEvent> pevent) noexcept(false) {
+    Time accept_event(const PlatformEvent& pevent) noexcept(false) {
         {
             std::scoped_lock lock(mLock);
             // environment->fmt_event(pevent.get());
@@ -1247,11 +1247,8 @@ public:
 
             // fixme: mouse must not preempt us. But what if it does?
             // mmc: allocation:
-            auto event = std::make_unique<key_event>(std::move(pevent));
 
-            // mdb("event time: %ul\n", environment->time_of(event->p_event));
-
-            if (mCurrent_time > environment->time_of(event->p_event))
+            if (mCurrent_time > environment->time_of(pevent))
                 mdb("bug: time moved backwards!");
 #if 0
             PlatformEvent* ref = event->p_event;
@@ -1259,7 +1256,7 @@ public:
             event->p_event = ref;
             return 0;
 #endif
-            tq.push(event.release());
+            tq.push(pevent);
         }
         run_automaton(false);
 

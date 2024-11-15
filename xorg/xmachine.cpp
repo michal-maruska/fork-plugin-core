@@ -18,7 +18,7 @@ namespace forkNS {
 // explicit instantation:
 
 // public api:
-template Time forkingMachine<KeyCode, Time, archived_event, last_events_t>::accept_event(std::unique_ptr<PlatformEvent> pevent);
+template Time forkingMachine<KeyCode, Time, archived_event, last_events_t>::accept_event(const PlatformEvent& pevent);
 template Time forkingMachine<KeyCode, Time, archived_event, last_events_t>::accept_time(const Time);
 
 #if MULTIPLE_CONFIGURATIONS
