@@ -139,7 +139,8 @@ public:
     };
 
     /* certain keys might be emulating a different device. */
-    bool ignore_event(const PlatformEvent *pevent) override {
+    bool ignore_event(const PlatformEvent &pevent) override {
+        // __unused__ ?
         if (!keybd || !keybd->key) {
             // should I just assert(keybd)
             ErrorF("%s: keybd is wrong!", __func__);
@@ -153,27 +154,27 @@ public:
 
 
 
-    KeyCode detail_of(const PlatformEvent* pevent) override {
-        auto event = static_cast<const XorgEvent*>(pevent)->event;
-        return event->device_event.detail.key;
+    KeyCode detail_of(const PlatformEvent& pevent) override {
+        auto &event = static_cast<const XorgEvent&>(pevent).event;
+        return event.device_event.detail.key;
     };
 
-    virtual void rewrite_event(PlatformEvent* pevent, KeyCode code) override {
-        auto event = static_cast<XorgEvent*>(pevent)->event;
-        event->device_event.detail.key = code;
+    virtual void rewrite_event(PlatformEvent& pevent, KeyCode code) override {
+        auto& event = static_cast<XorgEvent&>(pevent).event;
+        event.device_event.detail.key = code;
     }
 
-    virtual bool press_p(const PlatformEvent* pevent) override {
-        auto event = static_cast<const XorgEvent*>(pevent)->event;
-        return (event->any.type == ET_KeyPress);
+    virtual bool press_p(const PlatformEvent& pevent) override {
+        auto& event = static_cast<const XorgEvent&>(pevent).event;
+        return (event.any.type == ET_KeyPress);
     }
-    virtual bool release_p(const PlatformEvent* pevent) override {
-        auto event = static_cast<const XorgEvent*>(pevent)->event;
-        return (event->any.type == ET_KeyRelease);
+    virtual bool release_p(const PlatformEvent& pevent) override {
+        auto& event = static_cast<const XorgEvent&>(pevent).event;
+        return (event.any.type == ET_KeyRelease);
     }
-    virtual Time time_of(const PlatformEvent* pevent) override {
-        auto event = static_cast<const XorgEvent*>(pevent)->event;
-        return event->any.time;
+    virtual Time time_of(const PlatformEvent& pevent) override {
+        auto& event = static_cast<const XorgEvent&>(pevent).event;
+        return event.any.time;
     }
 
     virtual void free_event(PlatformEvent* pevent) const override {
@@ -187,7 +188,7 @@ public:
     }
 
     // so this is orthogonal? platform-independent?
-    void archive_event(archived_event& archived_event, const PlatformEvent *pevent) override {
+    void archive_event(archived_event& archived_event, const PlatformEvent& pevent) override {
 
 #if DEBUG > 1
         auto xevent = static_cast<XorgEvent*>(pevent)->event;
@@ -229,7 +230,7 @@ public:
     }
 
     // the idea was to return a string. but who will deallocate it?
-    virtual std::string fmt_event(const PlatformEvent *pevent) override {
+    virtual std::string fmt_event(const PlatformEvent& pevent) override {
 #if 1
         const KeyCode key = detail_of(pevent);
         const bool press = press_p(pevent);
