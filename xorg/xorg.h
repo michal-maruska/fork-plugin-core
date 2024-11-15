@@ -30,7 +30,10 @@ extern "C" {
 }
 #include <string>
 
-extern void hand_over_event_to_next_plugin(std::unique_ptr<InternalEvent> event, PluginInstance* nextPlugin);
+extern void
+hand_over_event_to_next_plugin(const InternalEvent& event, PluginInstance* const nextPlugin);
+
+
 static void dump_event(KeyCode key, KeyCode fork, bool press, Time event_time,
                        XkbDescPtr xkb, XkbSrvInfoPtr xkbi, Time prev_time);
 

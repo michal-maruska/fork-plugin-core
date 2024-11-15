@@ -68,10 +68,11 @@ const char* event_names[] = {
 
 /* Push the event to the next plugin. Ownership is handed over! */
 void
-hand_over_event_to_next_plugin(std::unique_ptr<InternalEvent> event, PluginInstance* const nextPlugin)
+hand_over_event_to_next_plugin(const InternalEvent& event, PluginInstance* const nextPlugin)
 {
     assert (!plugin_frozen(nextPlugin));
-    PluginClass(nextPlugin)->ProcessEvent(nextPlugin, event.release(), TRUE);
+    PluginClass(nextPlugin)->ProcessEvent(nextPlugin,
+                                          const_cast<InternalEvent*>(&event), FALSE); // not owner
     // we always own the event (up to now)
 }
 
