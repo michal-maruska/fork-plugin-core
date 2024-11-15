@@ -87,6 +87,106 @@ public:
         }
     };
 
+    ~forkingMachine() {};
+
+    explicit forkingMachine(Environment_t* environment)
+        : environment(environment),
+          state(st_normal), suspect(0), verificator_keycode(0), suspect_time(0),
+          last_released(KEYCODE_UNUSED), last_released_time(0),
+          mDecision_time(0),
+          mCurrent_time(0),
+          config(nullptr) {
+
+        key_event::env = environment;
+        environment->log("ctor: allocating last_events\n");
+        last_events_log.set_capacity(max_last);
+        environment->log("ctor: allocated last_events %lu (%lu\n", last_events_log.size(), max_last);
+
+        environment->log("ctor: resetting forkActive\n");
+        for (auto &i: forkActive) { // unsigned char
+            i = KEYCODE_UNUSED; /* not active */
+        };
+        environment->log("ctor: end\n");
+    };
+
+    /** update the configuration */
+    int configure_global(int type, int value, bool set) {
+        std::scoped_lock lock(mLock);
+        const auto fork_configuration = this->config.get();
+
+        switch (type) {
+        case fork_configure_overlap_limit:
+            if (set)
+                fork_configuration->overlap_tolerance[0][0] = value;
+            else
+                return fork_configuration->overlap_tolerance[0][0];
+            break;
+
+        case fork_configure_total_limit:
+            if (set)
+                fork_configuration->verification_interval[0][0] = value;
+            else
+                return fork_configuration->verification_interval[0][0];
+            break;
+
+        case fork_configure_clear_interval:
+            if (set)
+                fork_configuration->clear_interval = value;
+            else
+                return fork_configuration->clear_interval;
+            break;
+
+        case fork_configure_repeat_limit:
+            if (set)
+                fork_configuration->repeat_max = value;
+            else
+                return fork_configuration->repeat_max;
+            break;
+
+        case fork_configure_repeat_consider_forks:
+            if (set)
+                fork_configuration->consider_forks_for_repeat = value;
+            return fork_configuration->consider_forks_for_repeat;
+        case fork_configure_last_events:
+            if (set)
+                set_last_events_count(value);
+            else
+                return max_last;
+            break;
+        case fork_configure_debug:
+            if (set) {
+                //  here we force, rather than using MDB !
+                mdb("fork_configure_debug set: %d -> %d\n",
+                    config->debug,
+                    value);
+                fork_configuration->debug = value;
+            } else {
+                mdb("fork_configure_debug get: %d\n",
+                    fork_configuration->debug);
+                return fork_configuration->debug; // (bool) ?True:FALSE
+            }
+            break;
+
+        case fork_server_dump_keys:
+            dump_last_events(environment->get_event_dumper().get());
+            break;
+
+            // mmc: this is special:
+        case fork_configure_switch:
+            assert(set);
+
+            mdb("fork_configure_switch: %d\n", value);
+#if MULTIPLE_CONFIGURATIONS
+            switch_config(value);
+#endif
+            break;
+
+        default:
+            mdb("%s: invalid option %d\n", __func__, value);
+        }
+        return 0;
+    }
+
 private:
 
     /* states of the automaton: */
@@ -863,109 +963,6 @@ private:
 
 
 public:
-    ~forkingMachine() {};
-
-    explicit forkingMachine(Environment_t* environment)
-        : environment(environment),
-          state(st_normal), suspect(0), verificator_keycode(0), suspect_time(0),
-          last_released(KEYCODE_UNUSED), last_released_time(0),
-          mDecision_time(0),
-          mCurrent_time(0),
-          internal_queue("internal"),
-          input_queue("input_queue"),
-          output_queue("output_queue"),
-          config(nullptr) {
-
-        key_event::env = environment;
-        environment->log("ctor: allocating last_events\n");
-        last_events_log.set_capacity(max_last);
-        environment->log("ctor: allocated last_events %lu (%lu\n", last_events_log.size(), max_last);
-
-        environment->log("ctor: resetting forkActive\n");
-        for (auto &i: forkActive) { // unsigned char
-            i = KEYCODE_UNUSED; /* not active */
-        };
-        environment->log("ctor: end\n");
-    };
-
-    /** update the configuration */
-    int configure_global(int type, int value, bool set) {
-        std::scoped_lock lock(mLock);
-        const auto fork_configuration = this->config.get();
-
-        switch (type) {
-        case fork_configure_overlap_limit:
-            if (set)
-                fork_configuration->overlap_tolerance[0][0] = value;
-            else
-                return fork_configuration->overlap_tolerance[0][0];
-            break;
-
-        case fork_configure_total_limit:
-            if (set)
-                fork_configuration->verification_interval[0][0] = value;
-            else
-                return fork_configuration->verification_interval[0][0];
-            break;
-
-        case fork_configure_clear_interval:
-            if (set)
-                fork_configuration->clear_interval = value;
-            else
-                return fork_configuration->clear_interval;
-            break;
-
-        case fork_configure_repeat_limit:
-            if (set)
-                fork_configuration->repeat_max = value;
-            else
-                return fork_configuration->repeat_max;
-            break;
-
-        case fork_configure_repeat_consider_forks:
-            if (set)
-                fork_configuration->consider_forks_for_repeat = value;
-            return fork_configuration->consider_forks_for_repeat;
-        case fork_configure_last_events:
-            if (set)
-                set_last_events_count(value);
-            else
-                return max_last;
-            break;
-        case fork_configure_debug:
-            if (set) {
-                //  here we force, rather than using MDB !
-                mdb("fork_configure_debug set: %d -> %d\n",
-                    config->debug,
-                    value);
-                fork_configuration->debug = value;
-            } else {
-                mdb("fork_configure_debug get: %d\n",
-                    fork_configuration->debug);
-                return fork_configuration->debug; // (bool) ?True:FALSE
-            }
-            break;
-
-        case fork_server_dump_keys:
-            dump_last_events(environment->get_event_dumper().get());
-            break;
-
-            // mmc: this is special:
-        case fork_configure_switch:
-            assert(set);
-
-            mdb("fork_configure_switch: %d\n", value);
-#if MULTIPLE_CONFIGURATIONS
-            switch_config(value);
-#endif
-            break;
-
-        default:
-            mdb("%s: invalid option %d\n", __func__, value);
-        }
-        return 0;
-    }
-
 /**
  * key and twin have a relationship, given by type.
  * |--------------|========\-----------\
