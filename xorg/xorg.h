@@ -207,11 +207,12 @@ public:
         archived_event.press = press_p(pevent);
     };
 
-    virtual void relay_event(PlatformEvent* &pevent) override {
-        auto event = static_cast<XorgEvent*>(pevent)->event;
+    virtual void relay_event(const PlatformEvent& pevent) override {
+        auto& event = static_cast<const XorgEvent&>(pevent).event;
         PluginInstance* nextPlugin = plugin->next;
-        hand_over_event_to_next_plugin(std::unique_ptr<InternalEvent>(event), nextPlugin);
-        pevent = nullptr;
+        // InternalEvent
+        hand_over_event_to_next_plugin(event, nextPlugin);
+        // pevent = nullptr;
     };
 
     virtual void push_time(Time now) override {
