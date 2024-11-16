@@ -57,6 +57,57 @@ private:
     }
 
 public:
+    std::unique_ptr<Environment_t> environment;
+private:
+    /* states of the automaton: */
+    enum fork_state_t {  // states of the automaton
+        st_normal,
+        st_suspect,
+        st_verify,
+        st_deactivated,
+        st_activated
+    };
+
+    /* This is how it works:
+     * We have a `state' and 3 queues:
+     *
+     *  output Q  |   internal Q    | input Q
+     *  waits for |
+     *  thaw         Oxxxxxx        |  yyyyy
+     *               ^ forked?
+     *
+     * We push at the end of input Q.  Then we pop from that Q and push on
+     * Internal where we determine for 1 event, if forked/non-forked.
+     *
+     * Then we push on the output Q. At that moment, we also restart: all
+     * from internal Q is returned/prepended to the input Q.
+     */
+    fork_state_t state;
+    // only for certain states we keep (updated):
+
+    Keycode suspect;
+    Keycode verificator_keycode;
+
+    // these are "registers"
+    Time suspect_time;           /* time of the 1st event in the queue. */
+    Time verificator_time = 0;       /* press of the `verificator' */
+
+    /* To allow AR for forkable keys:
+     * When we press a key the second time in a row, we might avoid forking:
+     * So, this is for the detector:
+     *
+     * This means I cannot do this trick w/ 2 keys, only 1 is the last/considered! */
+    Keycode last_released; // .- trick
+    Time last_released_time;
+
+    // calculated:
+    Time mDecision_time;         /* Time to wait... so that the HEAD event in queue could decide more*/
+    Time mCurrent_time;          // the last time we received from previous plugin/device
+
+    triqueue_t<PlatformEvent, Environment_t> tq{100}; // total capacity
+
+
+public:
     // prefix with a space.
     void mdb(const char* format...) const
     {
@@ -98,6 +149,8 @@ public:
           mDecision_time(0),
           mCurrent_time(0),
           config(nullptr) {
+
+        triqueue_t<PlatformEvent, Environment_t>::env = environment;
 
         environment->log("ctor: allocating last_events\n");
         last_events_log.set_capacity(max_last);
@@ -190,15 +243,6 @@ public:
 
 private:
 
-    /* states of the automaton: */
-    enum fork_state_t {  // states of the automaton
-        st_normal,
-        st_suspect,
-        st_verify,
-        st_deactivated,
-        st_activated
-    };
-
     /* How we decided for the fork */
     enum class fork_reason_t {
         reason_long,               // key pressed too long
@@ -225,7 +269,6 @@ private:
      * useless mmc!  But i want to avoid any caching it.... SMP ??*/
 
 public:
-    std::unique_ptr<Environment_t> environment;
 #if USE_LOCKING
     void stop() {
         // wait & stop
@@ -258,46 +301,6 @@ private:
     }
 
 #endif
-
-
-private:
-    /* This is how it works:
-     * We have a `state' and 3 queues:
-     *
-     *  output Q  |   internal Q    | input Q
-     *  waits for |
-     *  thaw         Oxxxxxx        |  yyyyy
-     *               ^ forked?
-     *
-     * We push at the end of input Q.  Then we pop from that Q and push on
-     * Internal where we determine for 1 event, if forked/non-forked.
-     *
-     * Then we push on the output Q. At that moment, we also restart: all
-     * from internal Q is returned/prepended to the input Q.
-     */
-    fork_state_t state;
-    // only for certain states we keep (updated):
-
-    Keycode suspect;
-    Keycode verificator_keycode;
-
-    // these are "registers"
-    Time suspect_time;           /* time of the 1st event in the queue. */
-    Time verificator_time = 0;       /* press of the `verificator' */
-
-    /* To allow AR for forkable keys:
-     * When we press a key the second time in a row, we might avoid forking:
-     * So, this is for the detector:
-     *
-     * This means I cannot do this trick w/ 2 keys, only 1 is the last/considered! */
-    Keycode last_released; // .- trick
-    Time last_released_time;
-
-    // calculated:
-    Time mDecision_time;         /* Time to wait... so that the HEAD event in queue could decide more*/
-    Time mCurrent_time;          // the last time we received from previous plugin/device
-
-    triqueue_t<PlatformEvent> tq{100}; // total capacity
 
 public:
     /* forkActive(x) == y  means we sent downstream Keycode Y instead of X.
