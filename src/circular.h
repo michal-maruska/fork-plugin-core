@@ -61,7 +61,7 @@ class circular_buffer_iterator
             : buf_(b), pos_(p) {}
 
         // Converting a non-const iterator to a const iterator
-        explicit circular_buffer_iterator
+        circular_buffer_iterator
            (const circular_buffer_iterator<T_nonconst, T_nonconst,
                                            typename T_nonconst::value_type>
             &other)
@@ -104,8 +104,10 @@ class circular_buffer_iterator
         {
             self_type tmp(*this);
             tmp.pos_ += n;
+            // copy c-tor needed
             return tmp;
         }
+
         self_type &operator+=(difference_type n)
         {
             pos_ += n;
