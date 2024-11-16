@@ -16,8 +16,10 @@ using machineRec = forkNS::forkingMachine<int, uint64_t,libinputEvent,
 namespace forkNS {
   // explicit instantiation
 template uint64_t
-forkingMachine<int, uint64_t, archived_event, boost::circular_buffer<archived_event>>::accept_event(
-                                                              const PlatformEvent& pevent);
+forkingMachine<int, uint64_t,
+               libinputEvent,
+               archived_event,
+               boost::circular_buffer<archived_event>>::accept_event(const libinputEvent& pevent);
 }
 
 

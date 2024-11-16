@@ -46,7 +46,7 @@ class forkingMachine {
     /* Environment_t must be able to convert from
      * platformEvent to archived_event_t
      */
-    typedef platformEnvironment<Keycode, Time, archived_event_t> Environment_t;
+    typedef platformEnvironment<Keycode, Time, archived_event_t, PlatformEvent> Environment_t;
 
 private:
     //template <typename Time>
