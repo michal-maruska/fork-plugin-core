@@ -1,15 +1,34 @@
 #include <gtest/gtest.h>
 
+#include <cstdlib>
+
 #include "../src/triqueue.h"
 
 
+class testEnvironment {
+public:
+  virtual void log(const char* format ...) const {
+    va_list argptr;
+#if 0
+    va_start(argptr, format);
+    // VErrorF(format, argptr);
+    va_end(argptr);
+#endif
+  }
+};
+
+testEnvironment environment;
+
 class triqueueTest : public testing::Test {
 protected:
-  triqueue_t<int> q0_{100};
+  triqueue_t<int, testEnvironment> q0_{100};
+
 };
 
 
 TEST_F(triqueueTest, IsEmptyInitially) {
+
+  triqueue_t<int, testEnvironment>::env = &environment;
 
     EXPECT_TRUE(q0_.empty());
     EXPECT_TRUE(q0_.middle_empty());
