@@ -532,7 +532,7 @@ fork_plug(void          *options,
           int		*errmin,
           void* dynamic_module)
 {
-  ErrorF("%s: %s version %d\n", __func__, FORK_PLUGIN_NAME, PLUGIN_VERSION);
+  ErrorF("%s: %s version %d, built %s\n", __func__, FORK_PLUGIN_NAME, PLUGIN_VERSION, __TIMESTAMP__);
 
   static struct _DevicePluginRec plugin_class = {
     _B(name, FORK_PLUGIN_NAME),
@@ -560,7 +560,7 @@ fork_plug(void          *options,
 static void*
 SetupProc(void* module, pointer options, int *errmaj, int *errmin)
 {
-    ErrorF("%s %p\n", __func__, module);
+    ErrorF("%s: %s %p\n", __func__, __TIMESTAMP__, module);
 
     fork_plug(NULL,NULL,NULL, module);
     // on_init();
