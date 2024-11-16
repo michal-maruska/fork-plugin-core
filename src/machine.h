@@ -980,7 +980,7 @@ private:
 
 
     // can modify the event!
-    void relay_event(PlatformEvent& event) {
+    void relay_event(const PlatformEvent& event) {
         // (ORDER) this event must be delivered before any other!
         // so no preemption of this part!  Are we re-entrant?
         // yet, the next plugin could call in here? to do what?
