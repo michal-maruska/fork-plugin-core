@@ -154,12 +154,11 @@ public:
 
 
     KeyCode detail_of(const XorgEvent& pevent) override {
-        auto &event = static_cast<const XorgEvent&>(pevent).event;
         return event.device_event.detail.key;
     };
 
     virtual void rewrite_event(XorgEvent& pevent, KeyCode code) override {
-        auto& event = static_cast<XorgEvent&>(pevent).event;
+        auto& event = pevent.event;
         event.device_event.detail.key = code;
     }
 
