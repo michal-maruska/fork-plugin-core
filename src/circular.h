@@ -18,11 +18,8 @@
 #ifndef CIRCULAR_BUFFER_H
 #define CIRCULAR_BUFFER_H
 
-#include <exception>
 #include <iterator>
 #include <memory>
-
-#include <stdexcept>
 
 #ifdef DEBUG
 #include "debug.h"
