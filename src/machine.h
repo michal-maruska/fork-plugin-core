@@ -1245,10 +1245,13 @@ public:
     Time accept_event(const PlatformEvent& pevent) noexcept(false) {
         {
             std::scoped_lock lock(mLock);
-            // environment->fmt_event(pevent.get());
+
+            environment->fmt_event(__func__, pevent);
             // mdb("%s: event time: %ul\n", __func__, );
 
-            // mdb("%s: event time: %ul\n", __func__, environment->time_of(pevent.get()));
+            mdb("%s: event %u time: %" TIME_FMT "\n", __func__,
+                environment->detail_of(pevent),
+                environment->time_of(pevent));
 
             // fixme: mouse must not preempt us. But what if it does?
             // mmc: allocation:
