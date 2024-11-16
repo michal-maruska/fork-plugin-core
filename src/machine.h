@@ -1255,12 +1255,7 @@ public:
 
             if (mCurrent_time > environment->time_of(pevent))
                 mdb("bug: time moved backwards!");
-#if 0
-            PlatformEvent* ref = event->p_event;
-            environment->relay_event(ref);
-            event->p_event = ref;
-            return 0;
-#endif
+
             tq.push(pevent);
         }
         run_automaton(false);
