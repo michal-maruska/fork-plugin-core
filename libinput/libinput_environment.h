@@ -20,10 +20,8 @@ struct archived_event
     bool press;                  /* client type? */
 };
 
-using PlatformEvent = forkNS::PlatformEvent;
 
-
-class libinputEvent : public forkNS::PlatformEvent {
+class libinputEvent {
 public:
   // private:
   // we don't own them!
@@ -110,7 +108,7 @@ public:
 
 // using Keycode int;
 
-class libinputEnvironment : public forkNS::platformEnvironment<int, uint64_t, archived_event> {
+class libinputEnvironment : public forkNS::platformEnvironment<int, uint64_t, archived_event, libinputEvent> {
 private:
   libinput_fork_services *services;
 
@@ -124,7 +122,7 @@ public:
     return false;
   };
 
-  virtual bool ignore_event(const PlatformEvent& pevent) override {
+  virtual bool ignore_event(const libinputEvent& pevent) override {
     return false;
   }
 
@@ -136,20 +134,20 @@ public:
   (const_cast<libinput_device*>(static_cast<const libinputEvent&>(pevent).device))
 
 
-  virtual int detail_of(const PlatformEvent& pevent) override {
+  virtual int detail_of(const libinputEvent& pevent) override {
     // struct libinput_event_keyboard *
     auto* event = GET_EVENT(pevent);
     return libinput_event_keyboard_get_key(event);
   };
 
-  virtual void rewrite_event(PlatformEvent& pevent, int code) override {
+  virtual void rewrite_event(libinputEvent& pevent, int code) override {
     auto event = GET_EVENT(pevent);
     services->rewrite(event, code);
   }
 
 
 
-  virtual void free_event(PlatformEvent* pevent) const override {
+  virtual void free_event(libinputEvent* pevent) const override {
     log("%s: %p\n", __func__, pevent);
     if (pevent == nullptr) {
       // ErrorF("BUG %s: %p\n", __func__, pevent);
@@ -160,19 +158,19 @@ public:
     free(event);
   }
 
-  virtual bool press_p(const PlatformEvent& pevent) override {
+  virtual bool press_p(const libinputEvent& pevent) override {
     auto* event = GET_EVENT(pevent);
 
     return (libinput_event_keyboard_get_key_state(event) == LIBINPUT_KEY_STATE_PRESSED);
   }
 
-  virtual bool release_p(const PlatformEvent& pevent) override {
+  virtual bool release_p(const libinputEvent& pevent) override {
     auto* event = GET_EVENT(pevent);
 
     return (libinput_event_keyboard_get_key_state(event) == LIBINPUT_KEY_STATE_RELEASED);
   }
 
-  virtual uint64_t time_of(const PlatformEvent& pevent) override {
+  virtual uint64_t time_of(const libinputEvent& pevent) override {
     auto* event = GET_EVENT(pevent);
     // libinput_event_keyboard_get_time
 #if DEBUG
@@ -183,7 +181,7 @@ public:
   }
 
   // so this is orthogonal? platform-independent?
-  void archive_event(archived_event& archived_event, const PlatformEvent &pevent) override {
+  void archive_event(archived_event& archived_event, const libinputEvent &pevent) override {
 
 #if DEBUG > 1
     auto xevent = static_cast<libinputEvent*>(pevent)->event;
@@ -198,7 +196,7 @@ public:
     archived_event.press = press_p(pevent);
   };
 
-  virtual void relay_event(const PlatformEvent &pevent) override {
+  virtual void relay_event(const libinputEvent &pevent) override {
     auto &li_event = const_cast<libinputEvent&>(static_cast<const libinputEvent&>(pevent));
 #if 0
     log("%s: (%p) %p, device %p\n", __func__, pevent, event, GET_DEVICE(pevent));
@@ -232,7 +230,7 @@ public:
 
 
   // the idea was to return a string. but who will deallocate it?
-  virtual std::string fmt_event(const PlatformEvent &pevent) override {
+  virtual std::string fmt_event(const libinputEvent &pevent) override {
     // return std::string("");
     log("%s: %pm\n", __func__, GET_EVENT(pevent));
 
