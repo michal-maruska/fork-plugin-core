@@ -164,11 +164,11 @@ public:
         event.device_event.detail.key = code;
     }
 
-    virtual bool press_p(const PlatformEvent& pevent) override {
+    virtual bool press_p(const PlatformEvent& pevent) {
         auto& event = static_cast<const XorgEvent&>(pevent).event;
         return (event.any.type == ET_KeyPress);
     }
-    virtual bool release_p(const PlatformEvent& pevent) override {
+    virtual bool release_p(const PlatformEvent& pevent) {
         auto& event = static_cast<const XorgEvent&>(pevent).event;
         return (event.any.type == ET_KeyRelease);
     }
