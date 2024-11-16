@@ -2,10 +2,13 @@
 
 #include "queue.h"
 
-template <typename item_t>
+template <typename item_t, typename Environment_t>
 class triqueue_t {
     // interface:
     typedef forkNS::my_queue<item_t> list_with_tail;
+
+public:
+    inline static const Environment_t *env = nullptr;
 private:
     list_with_tail internal_queue;
     /* Still undecided events: these events alone don't decide

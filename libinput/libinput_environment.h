@@ -32,6 +32,7 @@ public:
 
 public:
   libinputEvent(const libinput_event_keyboard *event, const libinput_device *device) : event(event), device(device) {};
+  ~libinputEvent() {}
 };
 
 #if 0
