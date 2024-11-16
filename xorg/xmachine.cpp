@@ -18,21 +18,21 @@ namespace forkNS {
 // explicit instantation:
 
 // public api:
-template Time forkingMachine<KeyCode, Time, archived_event, last_events_t>::accept_event(const PlatformEvent& pevent);
-template Time forkingMachine<KeyCode, Time, archived_event, last_events_t>::accept_time(const Time);
+template Time forkingMachine<KeyCode, Time, XorgEvent, archived_event, last_events_t>::accept_event(const XorgEvent& pevent);
+template Time forkingMachine<KeyCode, Time, XorgEvent, archived_event, last_events_t>::accept_time(const Time);
 
 #if MULTIPLE_CONFIGURATIONS
-template void forkingMachine<KeyCode, Time, archived_event, last_events_t>::switch_config(int);
+template void forkingMachine<KeyCode, Time, XorgEvent, archived_event, last_events_t>::switch_config(int);
 #endif
-template bool forkingMachine<KeyCode, Time, archived_event, last_events_t>::create_configs();
+template bool forkingMachine<KeyCode, Time, XorgEvent, archived_event, last_events_t>::create_configs();
 
 
-template int forkingMachine<KeyCode, Time, archived_event, last_events_t>::configure_key(int type, KeyCode key, int value, bool set);
+template int forkingMachine<KeyCode, Time, XorgEvent, archived_event, last_events_t>::configure_key(int type, KeyCode key, int value, bool set);
 
-template int forkingMachine<KeyCode, Time, archived_event, last_events_t>::configure_global(int type, int value, bool set);
+template int forkingMachine<KeyCode, Time, XorgEvent, archived_event, last_events_t>::configure_global(int type, int value, bool set);
 
-template int forkingMachine<KeyCode, Time, archived_event, last_events_t>::configure_twins(int type, KeyCode key, KeyCode twin, int value, bool set);
+template int forkingMachine<KeyCode, Time, XorgEvent, archived_event, last_events_t>::configure_twins(int type, KeyCode key, KeyCode twin, int value, bool set);
 
-template int forkingMachine<KeyCode, Time, archived_event, last_events_t>::dump_last_events_to_client(event_publisher<archived_event>* publisher, int max_requested);
+template int forkingMachine<KeyCode, Time, XorgEvent, archived_event, last_events_t>::dump_last_events_to_client(event_publisher<archived_event>* publisher, int max_requested);
 
 }

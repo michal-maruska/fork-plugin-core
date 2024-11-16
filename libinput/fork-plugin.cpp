@@ -10,7 +10,7 @@
 // but I want it c++
 
 
-using machineRec = forkNS::forkingMachine<int, uint64_t,
+using machineRec = forkNS::forkingMachine<int, uint64_t,libinputEvent,
                                           archived_event, boost::circular_buffer<archived_event>>;
 
 namespace forkNS {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "machine.h"
+#include "xorg.h"
 // KeyCode and Time:
 extern "C"
 {
@@ -21,5 +22,5 @@ extern "C"
 #include "empty_last.h"
 
 using last_events_t = empty_last_events_t<archived_event>;
-using machineRec = forkNS::forkingMachine<KeyCode, Time,
+using machineRec = forkNS::forkingMachine<KeyCode, Time, XorgEvent,
                                           archived_event, last_events_t>;

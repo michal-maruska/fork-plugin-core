@@ -46,7 +46,7 @@ private:
     InternalEvent event;
 public:
     // take ownership:  -- no
-    XorgEvent(InternalEvent* event) : event(*event) {};
+    XorgEvent(const InternalEvent* event) : event(*event) {};
     // so why not UniquePointer?
 };
 

@@ -36,7 +36,9 @@ constexpr int MAX_KEYCODE = 256;
  * archived_event_t ... contains platformEvent and "forked"
  *
  */
-template <typename Keycode, typename Time, typename archived_event_t,
+template <typename Keycode, typename Time, // these will be decltype(keycode_of(PlatformEvent))
+          typename PlatformEvent,
+          typename archived_event_t,
           typename last_events_t>
 class forkingMachine {
 
