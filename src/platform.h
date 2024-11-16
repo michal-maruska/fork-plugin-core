@@ -36,8 +36,8 @@ class platformEnvironment {
 public:
     platformEnvironment() = default;
 
-    bool press_p(const PlatformEvent& event);
-    bool release_p(const PlatformEvent& event);
+    virtual bool press_p(const PlatformEvent& event) = 0;
+    virtual bool release_p(const PlatformEvent& event) = 0;
     // fixme:
     virtual Time time_of(const PlatformEvent& event) = 0;
     virtual Keycode detail_of(const PlatformEvent& event) = 0;

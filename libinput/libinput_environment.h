@@ -158,13 +158,13 @@ public:
     free(event);
   }
 
-  virtual bool press_p(const libinputEvent& pevent) {
+  virtual bool press_p(const libinputEvent& pevent) override {
     auto* event = GET_EVENT(pevent);
 
     return (libinput_event_keyboard_get_key_state(event) == LIBINPUT_KEY_STATE_PRESSED);
   }
 
-  virtual bool release_p(const libinputEvent& pevent) {
+  virtual bool release_p(const libinputEvent& pevent) override {
     auto* event = GET_EVENT(pevent);
 
     return (libinput_event_keyboard_get_key_state(event) == LIBINPUT_KEY_STATE_RELEASED);
