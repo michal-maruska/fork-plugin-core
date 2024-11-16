@@ -38,19 +38,6 @@ static void dump_event(KeyCode key, KeyCode fork, bool press, Time event_time,
                        XkbDescPtr xkb, XkbSrvInfoPtr xkbi, Time prev_time);
 
 
-using PlatformEvent = forkNS::PlatformEvent;
-
-class XorgEvent : public PlatformEvent {
-    friend class XOrgEnvironment;
-private:
-    InternalEvent event;
-public:
-    // take ownership:  -- no
-    XorgEvent(const InternalEvent* event) : event(*event) {};
-    // so why not UniquePointer?
-};
-
-
 class xorg_event_publisher : public forkNS::event_publisher<archived_event>
 {
     private:
@@ -123,8 +110,19 @@ public:
 };
 
 
+class XorgEvent {
+    friend class XOrgEnvironment;
+private:
+    InternalEvent event;
+public:
+    // take ownership:  -- no
+    XorgEvent(const InternalEvent* event) : event(*event) {};
+    // so why not UniquePointer?
+};
 
-class XOrgEnvironment : public forkNS::platformEnvironment<KeyCode, Time, archived_event> {
+class XOrgEnvironment : public forkNS::platformEnvironment<KeyCode, Time, archived_event, XorgEvent> {
+
+    using PlatformEvent = XorgEvent;
 private:
     const DeviceIntPtr keybd; // reference
     PluginInstance* const plugin;
