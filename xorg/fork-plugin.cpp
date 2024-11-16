@@ -284,7 +284,9 @@ static Bool
 step_in_time(PluginInstance* plugin, Time now)
 {
     machineRec *machine = plugin_machine(plugin);
+#if DEBUG > 1
     machine->mdb("%s: %" TIME_FMT "\n", __func__, now);
+#endif
 
     Time next = machine->accept_time(now);
     // todo: we could push the time before the first event in internal queue!
