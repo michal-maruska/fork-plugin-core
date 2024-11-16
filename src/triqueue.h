@@ -28,7 +28,27 @@ private:
 // input_queue
 //    length  empty
 //  pop push
-//
+
+    void log_queues(const char* msg) {
+        env->log("%s: %lu %lu %lu\n", msg, output_queue.size(),
+                 internal_queue.size(), input_queue.size());
+    }
+    void dump_item(const item_t &item) {
+#if 0
+        constexpr int per_line = 50;
+        const char* as_string = (char*) &item;
+        for (int i=0; i< per_line - 1;) { // sizeof(item)
+            // hh unsigned char?
+            env->log("%hhx ", as_string[i]);
+
+            if ( 0 ==  (++i % per_line))
+                env->log("\n");
+        }
+        env->log("\n");
+#endif
+        env->fmt_event(__func__, item);
+    }
+
 public:
     triqueue_t(int capacity) : internal_queue("internal"),
                                input_queue("input_queue"),
