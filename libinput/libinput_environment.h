@@ -209,7 +209,8 @@ public:
     li_event.event = NULL;
     li_event.device = NULL;
 #endif
-    delete li_event;
+    // bug: todo:
+    // delete li_event;
   };
 
   virtual void push_time(uint64_t now) override {
