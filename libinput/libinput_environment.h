@@ -207,8 +207,11 @@ public:
     services->post_event(services,
                          (libinput_device*) li_event.device,
                          (libinput_event_keyboard*) li_event.event);
+#if 0
     li_event.event = NULL;
     li_event.device = NULL;
+#endif
+    delete li_event;
   };
 
   virtual void push_time(uint64_t now) override {
