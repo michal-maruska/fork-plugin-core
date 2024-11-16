@@ -153,8 +153,8 @@ public:
 
 
 
-    KeyCode detail_of(const XorgEvent& pevent) override {
-        return event.device_event.detail.key;
+    KeyCode detail_of(const XorgEvent& pevent) const override {
+        return pevent.event.device_event.detail.key;
     };
 
     virtual void rewrite_event(XorgEvent& pevent, KeyCode code) override {
@@ -162,15 +162,15 @@ public:
         event.device_event.detail.key = code;
     }
 
-    virtual bool press_p(const XorgEvent& pevent) override {
+    virtual bool press_p(const XorgEvent& pevent) const override {
         auto& event = static_cast<const XorgEvent&>(pevent).event;
         return (event.any.type == ET_KeyPress);
     }
-    virtual bool release_p(const XorgEvent& pevent) override {
+    virtual bool release_p(const XorgEvent& pevent) const override {
         auto& event = static_cast<const XorgEvent&>(pevent).event;
         return (event.any.type == ET_KeyRelease);
     }
-    virtual Time time_of(const XorgEvent& pevent) override {
+    virtual Time time_of(const XorgEvent& pevent) const override {
         auto& event = static_cast<const XorgEvent&>(pevent).event;
         return event.any.time;
     }
@@ -203,7 +203,7 @@ public:
         archived_event.press = press_p(pevent);
     };
 
-    virtual void relay_event(const XorgEvent& pevent) override {
+    virtual void relay_event(const XorgEvent& pevent) const override {
         auto& event = static_cast<const XorgEvent&>(pevent).event;
         PluginInstance* nextPlugin = plugin->next;
         hand_over_event_to_next_plugin(event, nextPlugin);

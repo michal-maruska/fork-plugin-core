@@ -36,21 +36,21 @@ class platformEnvironment {
 public:
     platformEnvironment() = default;
 
-    virtual bool press_p(const PlatformEvent& event) = 0;
-    virtual bool release_p(const PlatformEvent& event) = 0;
+    virtual bool press_p(const PlatformEvent& event) const = 0;
+    virtual bool release_p(const PlatformEvent& event) const = 0;
     // fixme:
-    virtual Time time_of(const PlatformEvent& event) = 0;
-    virtual Keycode detail_of(const PlatformEvent& event) = 0;
+    virtual Time time_of(const PlatformEvent& event) const = 0;
+    virtual Keycode detail_of(const PlatformEvent& event) const = 0;
 
     virtual bool ignore_event(const PlatformEvent& pevent) = 0;
 
     virtual bool output_frozen() = 0;
-    virtual void relay_event(const PlatformEvent &pevent) = 0; // very important to pass-by-ref
+    virtual void relay_event(const PlatformEvent &pevent) const = 0; // very important to pass-by-ref
     virtual void push_time(Time now) = 0;
 
     virtual void log(const char* format...) const = 0;
     virtual void vlog(const char* format, va_list argptr) const = 0;
-    virtual std::string fmt_event(const PlatformEvent& pevent) = 0;
+    virtual std::string fmt_event(const PlatformEvent& pevent) const = 0;
 
     virtual void archive_event(archived_fork_event& ae, const PlatformEvent& event) = 0;
     virtual void free_event(PlatformEvent* pevent) const = 0; // not reference?
