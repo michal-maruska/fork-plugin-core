@@ -36,8 +36,8 @@ set(sources
 # Wall
 add_compile_options("-Wall")
 add_library(fork MODULE ${sources})
-target_include_directories(fork PUBLIC AFTER PRIVATE "../src/")
-target_include_directories(fork PUBLIC AFTER PRIVATE ".")
+target_include_directories(fork AFTER PUBLIC PRIVATE "../src/")
+target_include_directories(fork AFTER PUBLIC PRIVATE ".")
 target_compile_definitions(fork PRIVATE VERSION_STRING="git-local-2")
 
 set_target_properties(fork PROPERTIES PREFIX "" # drop lib
