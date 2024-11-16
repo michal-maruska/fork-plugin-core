@@ -235,6 +235,13 @@ public:
         const bool press = press_p(pevent);
         const bool release = release_p(pevent);
 
+        log("%s(%s): %s%u %s%s\n", message, __func__,
+            info_color,
+            key,
+            (press ? "down" : (release ) ? "up" : "??"),
+            color_reset);
+        return "";
+
 #if DEBUG > 1
         log("%s: trying to resolve to keysym %d through %p\n", __func__, key, keybd);
 #endif
