@@ -121,7 +121,21 @@ public:
         log_queues(" post");
     }
     void move_to_second() {
+        log_queues(__func__);
+
+        env->log("double check\n");
+#if 0
+        const item_t& item = input_queue.pop();
+        dump_item(item);
+        internal_queue.push(item);
+#else
+        dump_item(input_queue.front());
         internal_queue.push(input_queue.pop());
+#endif
+        env->log("double check\n");
+        dump_item(internal_queue.front());
+
+        log_queues(" post");
     }
 
     // internal_queue, input_queue
