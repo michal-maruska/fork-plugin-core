@@ -122,7 +122,6 @@ public:
 
 class XOrgEnvironment : public forkNS::platformEnvironment<KeyCode, Time, archived_event, XorgEvent> {
 
-    using PlatformEvent = XorgEvent;
 private:
     const DeviceIntPtr keybd; // reference
     PluginInstance* const plugin;
@@ -139,7 +138,7 @@ public:
     };
 
     /* certain keys might be emulating a different device. */
-    bool ignore_event(const PlatformEvent &pevent) override {
+    bool ignore_event(const XorgEvent &pevent) override {
         // __unused__ ?
         if (!keybd || !keybd->key) {
             // should I just assert(keybd)
@@ -154,30 +153,30 @@ public:
 
 
 
-    KeyCode detail_of(const PlatformEvent& pevent) override {
+    KeyCode detail_of(const XorgEvent& pevent) override {
         auto &event = static_cast<const XorgEvent&>(pevent).event;
         return event.device_event.detail.key;
     };
 
-    virtual void rewrite_event(PlatformEvent& pevent, KeyCode code) override {
+    virtual void rewrite_event(XorgEvent& pevent, KeyCode code) override {
         auto& event = static_cast<XorgEvent&>(pevent).event;
         event.device_event.detail.key = code;
     }
 
-    virtual bool press_p(const PlatformEvent& pevent) override {
+    virtual bool press_p(const XorgEvent& pevent) override {
         auto& event = static_cast<const XorgEvent&>(pevent).event;
         return (event.any.type == ET_KeyPress);
     }
-    virtual bool release_p(const PlatformEvent& pevent) override {
+    virtual bool release_p(const XorgEvent& pevent) override {
         auto& event = static_cast<const XorgEvent&>(pevent).event;
         return (event.any.type == ET_KeyRelease);
     }
-    virtual Time time_of(const PlatformEvent& pevent) override {
+    virtual Time time_of(const XorgEvent& pevent) override {
         auto& event = static_cast<const XorgEvent&>(pevent).event;
         return event.any.time;
     }
 
-    virtual void free_event(PlatformEvent* pevent) const override {
+    virtual void free_event(XorgEvent* pevent) const override {
         if (pevent == nullptr) {
             ErrorF("BUG %s: %p\n", __func__, pevent);
             return;
@@ -190,7 +189,7 @@ public:
     }
 
     // so this is orthogonal? platform-independent?
-    void archive_event(archived_event& archived_event, const PlatformEvent& pevent) override {
+    void archive_event(archived_event& archived_event, const XorgEvent& pevent) override {
 
 #if DEBUG > 1
         auto xevent = static_cast<XorgEvent*>(pevent)->event;
@@ -205,7 +204,7 @@ public:
         archived_event.press = press_p(pevent);
     };
 
-    virtual void relay_event(const PlatformEvent& pevent) override {
+    virtual void relay_event(const XorgEvent& pevent) override {
         auto& event = static_cast<const XorgEvent&>(pevent).event;
         PluginInstance* nextPlugin = plugin->next;
         hand_over_event_to_next_plugin(event, nextPlugin);
@@ -231,7 +230,7 @@ public:
     }
 
     // the idea was to return a string. but who will deallocate it?
-    virtual std::string fmt_event(const PlatformEvent& pevent) override {
+    virtual std::string fmt_event(const XorgEvent& pevent) override {
 #if 1
         const KeyCode key = detail_of(pevent);
         const bool press = press_p(pevent);
