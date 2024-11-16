@@ -1229,7 +1229,7 @@ private:
             internal_queue.length ()
             );
 #endif
-        environment->fmt_event(pevent);
+        environment->fmt_event(__func__, pevent);
     }
 
 public:

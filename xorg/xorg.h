@@ -229,7 +229,7 @@ public:
     }
 
     // the idea was to return a string. but who will deallocate it?
-    virtual std::string fmt_event(const XorgEvent& pevent) override {
+    virtual std::string fmt_event(const char* message, const XorgEvent& pevent) const override {
 #if 1
         const KeyCode key = detail_of(pevent);
         const bool press = press_p(pevent);
