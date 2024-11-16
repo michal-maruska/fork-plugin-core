@@ -28,10 +28,9 @@ using testing::Mock;
 using testing::Return;
 using testing::AnyNumber;
 
-using PlatformEvent = forkNS::PlatformEvent;
 // I need Environment which can convert into archived_event
 // This is fully under control of our environment:
-class TestEvent : public PlatformEvent {
+class TestEvent {
 public:
   archived_event *event;
 
@@ -42,18 +41,19 @@ public:
 };
 
 // I want to mock this:
-class testEnvironment final : public forkNS::platformEnvironment<KeyCode, Time, archived_event> {
+class testEnvironment final : public forkNS::platformEnvironment<KeyCode, Time,
+                                                                 archived_event, TestEvent>{
 public:
   // virtual
-  MOCK_METHOD(bool, press_p,(const PlatformEvent& event));
-  MOCK_METHOD(bool, release_p,(const PlatformEvent& event));
-  MOCK_METHOD(Time, time_of,(const PlatformEvent& event));
-  MOCK_METHOD(KeyCode, detail_of,(const PlatformEvent& event));
+  MOCK_METHOD(bool, press_p,(const TestEvent& event));
+  MOCK_METHOD(bool, release_p,(const TestEvent& event));
+  MOCK_METHOD(Time, time_of,(const TestEvent& event));
+  MOCK_METHOD(KeyCode, detail_of,(const TestEvent& event));
 
-  MOCK_METHOD(bool, ignore_event,(const PlatformEvent &pevent));
+  MOCK_METHOD(bool, ignore_event,(const TestEvent &pevent));
 
   MOCK_METHOD(bool, output_frozen,());
-  MOCK_METHOD(void, relay_event,(const PlatformEvent &pevent));
+  MOCK_METHOD(void, relay_event,(const TestEvent &pevent));
   MOCK_METHOD(void, push_time,(Time now));
 
   // MOCK_METHOD(void, vlog,(const char* format, va_list argptr));
@@ -69,35 +69,35 @@ public:
     vprintf(format, argptr);
     va_end(argptr);
   };
-  MOCK_METHOD(std::string, fmt_event,(const PlatformEvent &event));
+  MOCK_METHOD(std::string, fmt_event,(const TestEvent &event));
 
-  MOCK_METHOD(void, archive_event,(archived_event& ae, const PlatformEvent& event));
-  MOCK_METHOD(void, free_event,(PlatformEvent* pevent), (const));
-  MOCK_METHOD(void, rewrite_event,(PlatformEvent& pevent, KeyCode code));
+  MOCK_METHOD(void, archive_event,(archived_event& ae, const TestEvent& event));
+  MOCK_METHOD(void, free_event,(TestEvent* pevent), (const));
+  MOCK_METHOD(void, rewrite_event,(TestEvent& pevent, KeyCode code));
 
   MOCK_METHOD(std::unique_ptr<forkNS::event_dumper<archived_event>>, get_event_dumper,());
 };
 
 
 using last_events_t = empty_last_events_t<archived_event>;
-using machineRec = forkNS::forkingMachine<KeyCode, Time, archived_event, last_events_t>;
+using machineRec = forkNS::forkingMachine<KeyCode, Time, TestEvent, archived_event, last_events_t>;
 using fork_configuration = forkNS::ForkConfiguration<KeyCode, Time, 256>;
 
 // template instantiation
 namespace forkNS {
 
-template Time forkingMachine<KeyCode, Time, archived_event, last_events_t>::accept_event(const PlatformEvent& pevent);
-template Time forkingMachine<KeyCode, Time, archived_event, last_events_t>::accept_time(const Time);
+template Time forkingMachine<KeyCode, Time, TestEvent, archived_event, last_events_t>::accept_event(const TestEvent& pevent);
+template Time forkingMachine<KeyCode, Time, TestEvent, archived_event, last_events_t>::accept_time(const Time);
 
-template bool forkingMachine<KeyCode, Time, archived_event, last_events_t>::create_configs();
+template bool forkingMachine<KeyCode, Time, TestEvent, archived_event, last_events_t>::create_configs();
 
-template int forkingMachine<KeyCode, Time, archived_event, last_events_t>::configure_key(int type, KeyCode key, int value, bool set);
+template int forkingMachine<KeyCode, Time, TestEvent, archived_event, last_events_t>::configure_key(int type, KeyCode key, int value, bool set);
 
-template int forkingMachine<KeyCode, Time, archived_event, last_events_t>::configure_global(int type, int value, bool set);
+template int forkingMachine<KeyCode, Time, TestEvent, archived_event, last_events_t>::configure_global(int type, int value, bool set);
 
-template int forkingMachine<KeyCode, Time, archived_event, last_events_t>::configure_twins(int type, KeyCode key, KeyCode twin, int value, bool set);
+template int forkingMachine<KeyCode, Time, TestEvent, archived_event, last_events_t>::configure_twins(int type, KeyCode key, KeyCode twin, int value, bool set);
 
-template int forkingMachine<KeyCode, Time, archived_event, last_events_t>::dump_last_events_to_client(forkNS::event_publisher<archived_event>* publisher, int max_requested);
+template int forkingMachine<KeyCode, Time, TestEvent, archived_event, last_events_t>::dump_last_events_to_client(forkNS::event_publisher<archived_event>* publisher, int max_requested);
 }
 // end template instantiation
 
@@ -190,7 +190,7 @@ TEST_F(machineTest, EventFreed) {
   EXPECT_CALL(*environment, push_time(a_time + next_time));
 
   EXPECT_CALL(*environment,rewrite_event)
-    .WillOnce([](PlatformEvent& pevent, KeyCode b) {
+    .WillOnce([](TestEvent& pevent, KeyCode b) {
       auto event = static_cast<TestEvent&>(pevent).event;
       event->key = b;
     });
@@ -256,7 +256,7 @@ TEST_F(machineTest, ForkBySecond) {
   EXPECT_CALL(*environment,push_time(a_time));
   EXPECT_CALL(*environment,push_time(b_time));
   EXPECT_CALL(*environment,rewrite_event)
-    .WillOnce([](PlatformEvent* pevent, KeyCode b) {
+    .WillOnce([](TestEvent* pevent, KeyCode b) {
       auto event = static_cast<TestEvent*>(pevent)->event;
       event->key = b;
     });
