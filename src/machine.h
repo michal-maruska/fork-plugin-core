@@ -1143,6 +1143,7 @@ private:
 
     // fixme: returned by the accept_* public API methods
     [[nodiscard]] Time next_decision_time() const {
+        // bug: not locked
         if ((state == st_verify)
             || (state == st_suspect))
             // we are indeed waiting:
