@@ -133,12 +133,22 @@ public:
 
     void move_to_first() {
         log_queues(__func__);
+        if (middle_empty()) {
+            env->log("%s: BUG\n", __func__);
+            return;
+        }
+
         end_output++;
         log_queues(" post");
     }
 
     void move_to_second() {
         log_queues(__func__);
+        if (third_empty()) {
+            env->log("%s: BUG\n", __func__);
+            return;
+        }
+
         end_internal++;
         log_queues(" post");
     }
