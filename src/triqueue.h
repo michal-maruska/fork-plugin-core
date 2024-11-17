@@ -31,7 +31,8 @@ public: // gdb
                  end_internal.pos_,
                  buffer.end().pos_);
 #endif
-        env->log("%s(%s): %lu %lu %lu\n", msg, __func__,
+        env->log("%s: %lu [%lu %lu %lu]\n", msg,
+                 buffer.size(),
                  end_output - buffer.begin(),
                  end_internal - end_output,
                  buffer.end() - end_internal);
