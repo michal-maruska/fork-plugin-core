@@ -1,3 +1,31 @@
+
+[1537222.531] dump_item(fmt_event): 18 down
+[1537222.531] transition_by_key: 18
+[1537222.531] time: verification_interval = 200ms elapsed so far =208ms
+[1537222.531] confirm:
+[1537222.531] rewrite_head: 0x55659c385af0
+
+[1537222.531] activate_fork the key 41-> forked to: 61. verify
+[1537222.531] move_to_first: [5 2 4]
+[1537222.531]  post: [6 1 4]
+[1537222.531]  --->normal
+
+[1537222.531] rewind_middle: [6 1 4]
+[1537222.531] post: [6 0 5]
+why?
+[1537222.531] move_to_first: [6 0 5]
+[1537222.531]  post: [7 18446744073709551615 5]
+[1537222.531] peek_third: 0x55659c386700
+
+
+* logs -- reduce
+
+[1528692.800] move_to_first(log_queues): 1 0 1
+[1528692.800]  post(log_queues): 2 18446744073709551615 1
+
+
+
+
 * avoid allocating memory
 ** keep the queus fixed-sized.... events not allocated.
 **
