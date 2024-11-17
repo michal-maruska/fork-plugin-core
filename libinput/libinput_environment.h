@@ -134,7 +134,7 @@ public:
   (const_cast<libinput_device*>(static_cast<const libinputEvent&>(pevent).device))
 
 
-  virtual int detail_of(const libinputEvent& pevent) override {
+  virtual int detail_of(const libinputEvent& pevent) const override {
     // struct libinput_event_keyboard *
     auto* event = GET_EVENT(pevent);
     return libinput_event_keyboard_get_key(event);
@@ -158,19 +158,19 @@ public:
     free(event);
   }
 
-  virtual bool press_p(const libinputEvent& pevent) override {
+  virtual bool press_p(const libinputEvent& pevent) const override {
     auto* event = GET_EVENT(pevent);
 
     return (libinput_event_keyboard_get_key_state(event) == LIBINPUT_KEY_STATE_PRESSED);
   }
 
-  virtual bool release_p(const libinputEvent& pevent) override {
+  virtual bool release_p(const libinputEvent& pevent) const override {
     auto* event = GET_EVENT(pevent);
 
     return (libinput_event_keyboard_get_key_state(event) == LIBINPUT_KEY_STATE_RELEASED);
   }
 
-  virtual uint64_t time_of(const libinputEvent& pevent) override {
+  virtual uint64_t time_of(const libinputEvent& pevent) const override {
     auto* event = GET_EVENT(pevent);
     // libinput_event_keyboard_get_time
 #if DEBUG
@@ -196,7 +196,7 @@ public:
     archived_event.press = press_p(pevent);
   };
 
-  virtual void relay_event(const libinputEvent &pevent) override {
+  virtual void relay_event(const libinputEvent &pevent) const override {
     auto &li_event = const_cast<libinputEvent&>(static_cast<const libinputEvent&>(pevent));
 #if 0
     log("%s: (%p) %p, device %p\n", __func__, pevent, event, GET_DEVICE(pevent));
@@ -231,9 +231,9 @@ public:
 
 
   // the idea was to return a string. but who will deallocate it?
-  virtual std::string fmt_event(const libinputEvent &pevent) override {
+  virtual std::string fmt_event(const char* message, const libinputEvent &pevent) const override {
     // return std::string("");
-    log("%s: %pm\n", __func__, GET_EVENT(pevent));
+    log("%s (%s): %pm\n", message, __func__, GET_EVENT(pevent));
 
     return "";
   };
