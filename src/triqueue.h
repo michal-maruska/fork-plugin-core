@@ -17,7 +17,7 @@ private:
     iterator end_output;
     iterator end_internal;
 
-
+public: // gdb
     void log_queues(const char* msg) {
         if (env == nullptr)
             return;
