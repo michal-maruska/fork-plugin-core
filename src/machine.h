@@ -813,7 +813,7 @@ private:
      */
     void transition_by_force() {
       if (state == st_normal) {
-        // so (internal_queue.empty())
+        // so (tq.middle_empty())
         return;
       }
 
@@ -934,6 +934,7 @@ private:
                 transition_by_key(event); // here crash?
             } else {
                 if (mCurrent_time && (state != st_normal)) {
+                    // !middle_empty()
                     if (transition_by_time(mCurrent_time))
                         // If this time helped to decide -> machine rewound,
                         // we have to try again, maybe the queue is not empty?.
@@ -941,6 +942,7 @@ private:
                 }
 
                 if (force_also && (state != st_normal)) {
+                    // !middle_empty()
                     transition_by_force();
                 } else {
                     break;
