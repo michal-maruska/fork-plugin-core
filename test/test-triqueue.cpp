@@ -7,7 +7,9 @@
 
 class testEnvironment {
 public:
-  virtual void log(const char* format ...) const {
+  void fmt_event(const char* message, int item) const {};
+
+  void log(const char* format ...) const {
     va_list argptr;
 #if 0
     va_start(argptr, format);
