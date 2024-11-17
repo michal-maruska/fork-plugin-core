@@ -724,7 +724,12 @@ private:
                 // bug:
                 tq.drop();
                 environment->free_event(ev->p_event);
+                // mmc:  fork again, and pass-through
 #endif
+                tq.move_to_second();
+                activate_fork(fork_reason_t::reason_force);
+                issue_event();
+
                 return;
             }
 #endif
