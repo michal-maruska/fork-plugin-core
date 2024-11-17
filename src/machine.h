@@ -828,8 +828,12 @@ private:
       /* so, the state is one of: verify, suspect or activated. */
       log_state(__func__);
 
-      // bug: it might activate multiple forks!
-      activate_fork(fork_reason_t::reason_force);
+      // fixme: only if there are in inter
+      if (!tq.middle_empty())
+          // bug: it might activate multiple forks!
+          activate_fork(fork_reason_t::reason_force);
+      else
+          mdb("%s: BUG -- state but empty\n", __func__);
     }
 
 
