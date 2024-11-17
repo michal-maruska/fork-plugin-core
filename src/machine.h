@@ -1260,7 +1260,7 @@ public:
             // mmc: allocation:
 
             if (mCurrent_time > environment->time_of(pevent))
-                mdb("bug: time moved backwards!");
+                mdb("%s: bug: time moved backwards!\n", __func__);
 
             tq.push(pevent);
         }
