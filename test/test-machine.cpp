@@ -45,15 +45,15 @@ class testEnvironment final : public forkNS::platformEnvironment<KeyCode, Time,
                                                                  archived_event, TestEvent>{
 public:
   // virtual
-  MOCK_METHOD(bool, press_p,(const TestEvent& event));
-  MOCK_METHOD(bool, release_p,(const TestEvent& event));
-  MOCK_METHOD(Time, time_of,(const TestEvent& event));
-  MOCK_METHOD(KeyCode, detail_of,(const TestEvent& event));
+  MOCK_METHOD(bool, press_p,(const TestEvent& event),(const));
+  MOCK_METHOD(bool, release_p,(const TestEvent& event), (const));
+  MOCK_METHOD(Time, time_of,(const TestEvent& event), (const));
+  MOCK_METHOD(KeyCode, detail_of,(const TestEvent& event), (const));
 
   MOCK_METHOD(bool, ignore_event,(const TestEvent &pevent));
 
   MOCK_METHOD(bool, output_frozen,());
-  MOCK_METHOD(void, relay_event,(const TestEvent &pevent));
+  MOCK_METHOD(void, relay_event,(const TestEvent &pevent), (const));
   MOCK_METHOD(void, push_time,(Time now));
 
   // MOCK_METHOD(void, vlog,(const char* format, va_list argptr));
@@ -69,7 +69,7 @@ public:
     vprintf(format, argptr);
     va_end(argptr);
   };
-  MOCK_METHOD(std::string, fmt_event,(const TestEvent &event));
+  MOCK_METHOD(std::string, fmt_event,(const char* message, const TestEvent &event), (const));
 
   MOCK_METHOD(void, archive_event,(archived_event& ae, const TestEvent& event));
   MOCK_METHOD(void, free_event,(TestEvent* pevent), (const));
