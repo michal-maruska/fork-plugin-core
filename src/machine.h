@@ -586,6 +586,7 @@ private:
              * fixme: do i do this in other machine states?
              */
 
+            tq.move_to_second();
             environment->rewrite_event(tq.rewrite_head(), forkActive[key]);
             forkActive[key] = 0;
             issue_event();
@@ -597,6 +598,7 @@ private:
                 last_released_time = environment->time_of(pevent);
             };
             // pass along the un-forkable event.
+            tq.move_to_second();
             issue_event();
         };
     }
@@ -679,11 +681,11 @@ private:
             change_state(st_suspect);
             verificator_keycode = 0;   // we _should_ take the next possible verificator
 
-            tq.move_to_first();
+            tq.move_to_second();
         } else {
             // fixme: a (repeated) press of the verificator ?
             // fixme: we pressed another key: but we should tell XKB to repeat it !
-            tq.move_to_first();
+            tq.move_to_second();
         };
     };
 
@@ -868,6 +870,8 @@ private:
 
         environment->rewrite_event(pevent, forkActive[forked_key]);
         issue_event();
+
+        rewind_machine(st_activated);
     };
 
 
@@ -1083,7 +1087,7 @@ private:
      *queue. Unlocks to be re-entrant!
      **/
     void flush_to_next() {
-        while (!environment->output_frozen() && !tq.can_pop()) {
+        while (!environment->output_frozen() && tq.can_pop()) {
             std::scoped_lock lock(mLock);
             PlatformEvent event = tq.pop(); // copy ?
             // fixme ... temporarily ... not pop before sending off !
