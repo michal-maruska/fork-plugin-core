@@ -647,10 +647,6 @@ private:
         check_locked();
 
         PlatformEvent& pevent = tq.rewrite_head();
-
-        // here or at the end?:
-        rewind_machine(st_activated);
-
         Keycode forked_key = environment->detail_of(pevent);
         // why not:
         // assert(forked_key == suspect);
