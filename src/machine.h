@@ -1273,8 +1273,11 @@ public:
         {
             std::scoped_lock lock(mLock);
             /* push the time ! */
-            if (mCurrent_time > now)
-                mdb("bug: time moved backwards!");
+            // sometimes now is 0 -- when I ungrab-keyboard from sfc.
+            if (mCurrent_time > now) {
+                mdb("%s: bug: time moved backwards!\n", __func__);
+                return next_decision_time();
+            }
             else
                 mCurrent_time = now;
         }
