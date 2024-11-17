@@ -416,7 +416,6 @@ private:
         mdb("confirm:\n");
 
         activate_fork(fork_reason);
-        issue_event();
     }
 
     // So the event proves, that the current event is not forked.
@@ -733,8 +732,6 @@ private:
 #endif
                 tq.move_to_second();
                 activate_fork(fork_reason_t::reason_force);
-                issue_event();
-
                 return;
             }
 #endif
