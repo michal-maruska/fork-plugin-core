@@ -2,16 +2,18 @@
 #pragma once
 
 #include <assert.h>
-#include <cstdarg>
 #include "config.h"
-#include <algorithm>
-#include <functional>
 
 #include "triqueue.h"
 #include "platform.h"
 #include "colors.h"
 #include <memory>
 #include <mutex>
+
+#ifndef DISABLE_STD_LIBRARY
+#include <algorithm>
+#include <functional>
+#endif
 
 #include "fork_enums.h"
 #include "fork_configuration.h"
@@ -1084,7 +1086,7 @@ public:
         };
 
         publisher->prepare(max_requested);
-
+#if DISABLE_STD_LIBRARY
         std::function<void(const archived_event_t&)> lambda =
             [publisher](const archived_event_t& ev){ publisher->event(ev); };
         // auto f = std::function<void(const archived_event&)>(bind(publisher->event(), publisher,));
@@ -1095,7 +1097,7 @@ public:
         for_each(last_events_log.begin(),
                  last_events_log.end(),
                  lambda);
-
+#endif
         mdb("sending %d events\n", max_requested);
 
         return publisher->commit();
@@ -1199,6 +1201,7 @@ public:
 
     void dump_last_events(event_dumper<archived_event_t>* dumper) const {
         std::scoped_lock lock(mLock);
+#if DISABLE_STD_LIBRARY
 #if 0
         std::function<void(const event_dumper&, const archived_event_t&)> doit0 = &event_dumper::operator();
         // lambda?
@@ -1215,6 +1218,7 @@ public:
                           last_events_log.begin() + last_events_log.size(),
                           lambda);
         }
+#endif // DISABLE_STD_LIBRARY
     }
 
 private:
