@@ -370,12 +370,16 @@ private:
     [[nodiscard]]
     static const char*
     describe_machine_state(fork_state_t state) {
+#if 0
         static char buffer[BufferLength];
-
         snprintf(buffer, BufferLength, "%s[%dm%s%s",
                  escape_sequence, 32 + state,
                  state_description[state], color_reset);
         return buffer;
+#else
+        UNUSED(state);
+        return "";
+#endif
     }
 
     // PluginInstance* mPlugin;
