@@ -65,8 +65,6 @@ class circular_buffer_iterator
 #endif
         typedef typename cbuf_type::value_type      value_type;
         typedef typename cbuf_type::size_type       size_type;
-        typedef typename cbuf_type::pointer         pointer;
-        typedef typename cbuf_type::const_pointer   const_pointer;
         typedef typename cbuf_type::reference       reference;
         typedef typename cbuf_type::const_reference const_reference;
         typedef typename cbuf_type::difference_type difference_type;
