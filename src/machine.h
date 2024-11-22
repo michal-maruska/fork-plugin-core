@@ -1104,7 +1104,7 @@ public:
         switch (type) {
         case fork_configure_key_fork: // define  key -> key2 ?
             if (set)
-                config->fork_keycode[key] = value;
+                config->fork_keycode[key] = (Keycode) value; // fixme!
             else return config->fork_keycode[key];
             break;
         case fork_configure_key_fork_repeat: // if AR?
