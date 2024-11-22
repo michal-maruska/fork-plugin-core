@@ -1,12 +1,14 @@
 #pragma once
 
-#include "vector"
+// #include "vector"
 
 
 // let's make one without any:
 template <typename event>
-// public: I need the begin(), end()
-class empty_last_events_t : public std::vector<event>
+class empty_last_events_t
+#ifndef KERNEL
+  : public std::vector<event>
+#endif
 {
 public:
     // override:
@@ -22,4 +24,10 @@ public:
     }
 
     bool full() const {return false;}
+
+#if 0
+  // public: I need the begin(), end()
+   begin()
+   end()
+#endif
 };
