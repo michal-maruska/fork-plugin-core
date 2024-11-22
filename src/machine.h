@@ -1193,6 +1193,7 @@ public:
 
         environment->log("%s\n", __func__);
 
+#ifndef KERNEL
         try {
 #if MULTIPLE_CONFIGURATIONS
             auto config_no_fork = std::unique_ptr<fork_configuration>(new fork_configuration);
@@ -1213,6 +1214,9 @@ public:
         } catch (std::bad_alloc &exc) {
             return false;
         }
+#else
+        return false;
+#endif // KERNEL
     }
 
     void dump_last_events(event_dumper<archived_event_t>* dumper) const {
