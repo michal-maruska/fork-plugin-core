@@ -8,6 +8,13 @@ namespace forkNS {
 // Keycode must be integral/numeric,  MAX_KEYCODE is limiti.
 template <typename Keycode, typename Time, int MAX_KEYCODE>
 class ForkConfiguration {
+public:
+#ifdef KERNEL
+    void* operator new(size_t size, void* p) noexcept {
+        UNREFERENCED_PARAMETER(size);
+        return p;
+    }
+#endif
 
 private:
     typedef Time keycode_parameter_matrix[MAX_KEYCODE][MAX_KEYCODE];
