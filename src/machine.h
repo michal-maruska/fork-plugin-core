@@ -222,7 +222,7 @@ public:
             break;
 
         case fork_server_dump_keys:
-            dump_last_events(environment->get_event_dumper().get());
+//            dump_last_events(environment->get_event_dumper().get());
             break;
 
             // mmc: this is special:

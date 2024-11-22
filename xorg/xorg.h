@@ -258,11 +258,12 @@ public:
         }
 #endif
     };
-
+#if 0
     virtual
     std::unique_ptr<forkNS::event_dumper<archived_event>> get_event_dumper() override {
         return std::make_unique<xorg_event_dumper>(keybd);
     }
+#endif
 
 #if 0
     virtual

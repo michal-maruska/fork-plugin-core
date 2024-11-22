@@ -7,7 +7,7 @@
  *
  */
 
-#include <memory>
+#include <stdarg.h>
 
 namespace forkNS {
 
@@ -56,7 +56,7 @@ public:
     virtual void rewrite_event(PlatformEvent& pevent, Keycode code) = 0;
 
     // factory:
-    virtual std::unique_ptr<event_dumper<archived_fork_event>> get_event_dumper() = 0;
+    // virtual std::unique_ptr<event_dumper<archived_fork_event>> get_event_dumper() = 0;
 
     virtual ~platformEnvironment() = default;
 };
