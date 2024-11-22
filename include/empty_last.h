@@ -13,7 +13,9 @@ public:
     void push_back(const event& __x) {}
 
     // emplace_back()
-    void set_capacity(const int& n) {};
+    void set_capacity(const int& n) {
+      UNREFERENCED_PARAMETER(n);
+    };
 
     size_t size() const {
         return 0;
