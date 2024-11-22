@@ -7,7 +7,6 @@
  *
  */
 
-#include <string>
 #include <memory>
 
 namespace forkNS {
@@ -50,7 +49,7 @@ public:
 
     virtual void log(const char* format...) const = 0;
     virtual void vlog(const char* format, va_list argptr) const = 0;
-    virtual std::string fmt_event(const char* message, const PlatformEvent& pevent) const = 0;
+    virtual void fmt_event(const char* message, const PlatformEvent& pevent) const = 0;
 
     virtual void archive_event(archived_fork_event& ae, const PlatformEvent& event) = 0;
     virtual void free_event(PlatformEvent* pevent) const = 0; // not reference?
