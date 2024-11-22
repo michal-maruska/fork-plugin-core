@@ -1,12 +1,24 @@
 #pragma once
 
 #include "circular.h"
+
+#ifndef KERNEL
+// std::allocator
 #include <memory>
+#else
+#include "my-memory.h"
+#endif
 
 template <typename item_t, typename Environment_t>
 class triqueue_t {
 
-    using circular_buffer_t = circular_buffer<item_t, false, std::allocator<item_t>>;
+    using circular_buffer_t = circular_buffer<item_t, false,
+#ifndef KERNEL
+                                              std::allocator<item_t>
+#else
+                                              kernelAllocator<item_t>
+#endif
+                                              >;
     using iterator = typename circular_buffer_t::iterator;
 
 public:
