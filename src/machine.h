@@ -7,10 +7,12 @@
 #include "triqueue.h"
 #include "platform.h"
 #include "colors.h"
-#include <memory>
+
 #include <mutex>
 
 #ifndef DISABLE_STD_LIBRARY
+// a couple of unique_ptr
+#include <memory>
 #include <algorithm>
 #include <functional>
 #endif
@@ -61,7 +63,11 @@ private:
     }
 
 public:
+#ifndef DISABLE_STD_LIBRARY
     std::unique_ptr<Environment_t> environment;
+#else
+    Environment_t *environment;
+#endif
 private:
     /* states of the automaton: */
     enum fork_state_t {  // states of the automaton
@@ -318,7 +324,11 @@ private:
     // this must be public:
     using fork_configuration = ForkConfiguration<Keycode, Time, MAX_KEYCODE>;
 public:
+#ifndef DISABLE_STD_LIBRARY
     std::unique_ptr<fork_configuration> config; // list<fork_configuration>
+#else
+    fork_configuration* config;
+#endif
 
 /* The Static state = configuration.
  * This is the matrix with some Time values:
@@ -547,7 +557,13 @@ private:
         assert(state == st_normal);
 
         // if this key might start a fork....
-        if (forkable_p(config.get(), key)
+        if (forkable_p(
+#ifndef DISABLE_STD_LIBRARY
+                config.get()
+#else
+                config
+#endif
+                , key)
             && environment->press_p(pevent)
             && !environment->ignore_event(pevent)) {
             /* ".-" AR-trick: by depressing/re-pressing the key rapidly, AR is invoked, not fork */
