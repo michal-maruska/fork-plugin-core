@@ -105,14 +105,14 @@ public:
                            Keycode verificator_keycode, Time verificator_time) {
         // Given the 2 keys (pressed), and `current_time'
         // todo:
-        Time verification_interval = verification_interval_of(suspect, verificator_keycode);
-        if (suspect_time + verification_interval <= current_time) {
+        Time interval = verification_interval_of(suspect, verificator_keycode);
+        if (suspect_time + interval <= current_time) {
             return 0;
         }
 
         // verify overlap
-        int overlap_tolerance = overlap_tolerance_of(suspect, verificator_keycode);
-        Time decision_point_time =  verificator_time + overlap_tolerance;
+        int tolerance = overlap_tolerance_of(suspect, verificator_keycode);
+        Time decision_point_time =  verificator_time + tolerance;
 
         if (decision_point_time <= current_time) {
             // already "parallel"
@@ -120,7 +120,7 @@ public:
         } else {
 #if 0
             mdb("time: overlay interval = %dms elapsed so far =%dms\n",
-                overlap_tolerance,
+                tolerance,
                 (int) (current_time - verificator_time));
 
             mdb("suspected = %d, verificator_keycode %d. Times: overlap %" TIME_FMT ", "
