@@ -1320,6 +1320,8 @@ public:
 
             if (mCurrent_time > environment->time_of(pevent))
                 mdb("%s: bug: time moved backwards!\n", __func__);
+            // no need:
+            mCurrent_time = 0;
 
             tq.push(pevent);
         }
