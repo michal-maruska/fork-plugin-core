@@ -50,7 +50,7 @@ public: // gdb
                  buffer.end() - end_internal);
     };
 
-    void dump_item(const item_t &item) {
+    void dump_item(const char* message, const item_t &item) {
 #if 0
         constexpr int per_line = 50;
         const char* as_string = (char*) &item;
@@ -63,7 +63,7 @@ public: // gdb
         }
         env->log("\n");
 #endif
-        env->fmt_event(__func__, item);
+        env->fmt_event(message, item);
     }
 
 public:
@@ -99,7 +99,7 @@ public:
     void push(const item_t &item) {
 #if 0
         env->log("%s: %lu\n", __func__, sizeof(item));
-        dump_item(item);
+        dump_item(__func__, item);
 #endif
         buffer.push_back(item);
 
@@ -123,7 +123,7 @@ public:
         end_internal-=1;
         end_output-=1;
 
-        dump_item(item);
+        dump_item(__func__, item);
         log_queues("post");
         return item;
     }
@@ -131,7 +131,7 @@ public:
     const item_t& peek_third() {
         const item_t& tmp = *(end_internal); // +1
         // env->log("%s: %p\n", __func__, &tmp);
-        dump_item(tmp);
+        dump_item(__func__, tmp);
         return tmp;
     }
 
