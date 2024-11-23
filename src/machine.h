@@ -1317,12 +1317,14 @@ public:
         {
             scoped_lock lock(mLock);
 
+#if 0
             environment->fmt_event(__func__, pevent);
+#else
             // mdb("%s: event time: %ul\n", __func__, );
-
             mdb("%s: event %u time: %" TIME_FMT "\n", __func__,
                 environment->detail_of(pevent),
                 environment->time_of(pevent));
+#endif
 
             // fixme: mouse must not preempt us. But what if it does?
             // mmc: allocation:
