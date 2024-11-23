@@ -52,9 +52,9 @@ private:
     static Time
     get_value_from_matrix(keycode_parameter_matrix matrix, Keycode code, Keycode verificator) {
         // code/verificator specific:
-        return (matrix[code][verificator]?:
+        return (matrix[code][verificator]? matrix[code][verificator] :
                  // default for code:
-                (matrix[code][0]?: // 0 is no_key
+                (matrix[code][0] ? matrix[code][0] : // 0 is no_key
                  // global fallback
                  matrix[0][0]));
     }
