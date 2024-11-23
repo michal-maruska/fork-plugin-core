@@ -1,7 +1,12 @@
 // (c) Michal Maruska 2003-2024
 #pragma once
 
+#ifndef KERNEL
 #include <assert.h>
+#else
+#define assert(x)
+#endif
+
 #include "config.h"
 
 #include "triqueue.h"
