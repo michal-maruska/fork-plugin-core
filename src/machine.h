@@ -67,6 +67,12 @@ public:
     std::unique_ptr<Environment_t> environment;
 #else
     Environment_t *environment;
+
+    void* operator new(size_t size, void* p) noexcept {
+        UNREFERENCED_PARAMETER(size);
+        return p;
+    }
+
 #endif
 private:
     /* states of the automaton: */
