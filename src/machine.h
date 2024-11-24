@@ -21,6 +21,8 @@ namespace forkNS {
 /* fixme: inherit from xorg! */
 constexpr int MAX_KEYCODE = 256;
 
+#define UNUSED(x)   (void)(x)
+
 /**
  * machine keeps log of `archived_event_t'
  *
@@ -346,6 +348,7 @@ private:
         // could I emplace it?
         // reference = last_events_log.emplace_back()
         // reference.forked = ev->forked;
+        UNUSED(event);
 #if 0
         archived_event_t archived_event;
         environment->archive_event(archived_event, event->p_event);
@@ -842,6 +845,8 @@ private:
 #if 0
         assert ((new_state == st_deactivated) || (new_state == st_activated));
         change_state(new_state);
+#else
+        UNUSED(new_state);
 #endif
         /* reset the machine */
 #if 0
@@ -864,6 +869,7 @@ private:
     * fixme: locking -- possibly unlocks?
     */
     void activate_fork(fork_reason_t fork_reason) {
+        UNUSED(fork_reason);
         check_locked();
 
         PlatformEvent& pevent = tq.rewrite_head();
@@ -1212,6 +1218,7 @@ private:
      * Logging ... why templated?
      */
     void log_state(const char *message) const {
+        UNUSED(message);
 #if 0
         mdb("%s%s%s state: %s, queue: %d.  %s\n", fork_color, __func__, color_reset,
             describe_machine_state(this->state), internal_queue.length(), message);
