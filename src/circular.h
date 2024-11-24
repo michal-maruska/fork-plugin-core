@@ -21,7 +21,15 @@
 #ifndef DISABLE_STD_LIBRARY
 #include <iterator>
 #endif
+
+#ifndef DISABLE_STD_LIBRARY
+// std::allocator
+// std::swap
 #include <memory>
+#else
+#include "my-memory.h"
+#endif
+
 
 #ifdef DEBUG
 #include "debug.h"
@@ -217,8 +225,14 @@ circular_buffer_iterator_t operator-
  * @version 1.00
  */
 template <typename T,
+#ifndef DISABLE_STD_LIBRARY
           bool     always_accept_data_when_full = true,
-          typename Alloc                        = std::allocator<T> >
+          typename Alloc = std::allocator<T>
+#else
+          bool     always_accept_data_when_full,
+          typename Alloc
+#endif
+          >
 class circular_buffer
 {
     public:
