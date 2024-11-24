@@ -18,7 +18,9 @@
 #ifndef CIRCULAR_BUFFER_H
 #define CIRCULAR_BUFFER_H
 
+#ifndef DISABLE_STD_LIBRARY
 #include <iterator>
+#endif
 #include <memory>
 
 #ifdef DEBUG
@@ -48,7 +50,9 @@ class circular_buffer_iterator
         typedef circular_buffer_iterator<T,T_nonconst,elem_type> self_type;
 
         typedef T                                   cbuf_type;
+#ifndef DISABLE_STD_LIBRARY
         typedef std::random_access_iterator_tag     iterator_category;
+#endif
         typedef typename cbuf_type::value_type      value_type;
         typedef typename cbuf_type::size_type       size_type;
         typedef typename cbuf_type::pointer         pointer;
@@ -246,8 +250,10 @@ class circular_buffer
         typedef circular_buffer_iterator
                 <const self_type, self_type, const value_type>
                 const_iterator;
+#ifndef DISABLE_STD_LIBRARY
         typedef std::reverse_iterator<iterator>       reverse_iterator;
         typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+#endif
 
         // Lifetime
         static constexpr int default_capacity = 100;
@@ -310,7 +316,7 @@ class circular_buffer
 
         const_iterator   begin() const { return const_iterator(this, 0); }
         const_iterator   end() const   { return const_iterator(this, size()); }
-
+#ifndef DISABLE_STD_LIBRARY
         reverse_iterator rbegin()      { return reverse_iterator(end()); }
         reverse_iterator rend()        { return reverse_iterator(begin()); }
 
@@ -322,7 +328,7 @@ class circular_buffer
         {
             return const_reverse_iterator(begin());
         }
-
+#endif
         // Size
         size_type size() const        { return contents_size_; }
         size_type capacity() const    { return array_size_; }
