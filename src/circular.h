@@ -26,8 +26,10 @@
 // std::allocator
 // std::swap
 #include <memory>
+
 #else
 #include "my-memory.h"
+#define DISABLE_SWAP 1
 #endif
 
 
@@ -298,6 +300,7 @@ class circular_buffer
         }
 #endif
 
+#ifndef DISABLE_SWAP
         template <class InputIterator>
         circular_buffer(InputIterator from, InputIterator to)
         : array_(alloc_.allocate(1)), array_size_(1),
@@ -307,11 +310,14 @@ class circular_buffer
             tmp.assign_into_reserving(from, to);
             swap(tmp);
         }
+#endif
         ~circular_buffer()
         {
             destroy_all_elements();
             alloc_.deallocate(array_, array_size_);
         }
+
+#ifndef DISABLE_SWAP
         circular_buffer &operator=(const self_type &other)
         {
             circular_buffer tmp(other);
@@ -325,6 +331,7 @@ class circular_buffer
             std::swap(tail_,          other.tail_);
             std::swap(contents_size_, other.contents_size_);
         }
+#endif
         allocator_type get_allocator() const { return alloc_; }
 
         // Iterators
@@ -354,6 +361,8 @@ class circular_buffer
         {
             return alloc_.max_size();
         }
+
+#ifndef DISABLE_SWAP
         void reserve(size_type new_size)
         {
             if (capacity() < new_size)
@@ -363,7 +372,7 @@ class circular_buffer
                 swap(tmp);
             }
         }
-
+#endif
         // Accessing
         reference       front()       {return array_[head_];}
         reference       back()        {return array_[tail_];}
@@ -503,6 +512,7 @@ class circular_buffer
         size_type       contents_size_;
 };
 
+#ifndef DISABLE_EQUAL
 template <typename T,
           bool consume_policy,
           typename Alloc>
@@ -529,5 +539,7 @@ bool operator<(const circular_buffer<T, consume_policy, Alloc> &a,
 {
     return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
 }
+#endif // DISABLE_EQUAL
+
 
 #endif
