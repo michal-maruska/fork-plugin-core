@@ -24,8 +24,19 @@ private:
     static inline int config_counter;
 #endif
 public:
-    Keycode          fork_keycode[MAX_KEYCODE];
-    bool          fork_repeatable[MAX_KEYCODE]; /* True -> if repeat, cancel possible fork. */
+  /* The Static state = configuration.
+   * This is the matrix with some Time values:
+   * using the fact, that valid Keycodes are non zero, we use
+   * the 0 column for `code's global values
+
+   * Global      xxxxxxxx unused xxxxxx
+   * key-wise   per-pair per-pair ....
+   * key-wise   per-pair per-pair ....
+   * ....
+   */
+  Keycode fork_keycode[MAX_KEYCODE];
+  bool fork_repeatable[MAX_KEYCODE]; /* True -> if repeat, cancel possible fork.
+                                      */
 
 #if VERIFICATION_MATRIX
     /* we don't consider an overlap, until this ms.

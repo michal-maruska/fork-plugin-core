@@ -362,17 +362,6 @@ public:
     fork_configuration* config;
 #endif
 
-/* The Static state = configuration.
- * This is the matrix with some Time values:
- * using the fact, that valid Keycodes are non zero, we use
- * the 0 column for `code's global values
-
- * Global      xxxxxxxx unused xxxxxx
- * key-wise   per-pair per-pair ....
- * key-wise   per-pair per-pair ....
- * ....
- */
-
 private:
     void set_last_events_count(const int new_max) {
         check_locked();
