@@ -8,9 +8,8 @@
 #include "platform.h"
 #include "colors.h"
 
-#include <mutex>
-
 #ifndef DISABLE_STD_LIBRARY
+#include <mutex>
 // a couple of unique_ptr
 #include <memory>
 #include <algorithm>
@@ -26,6 +25,18 @@ namespace forkNS {
 constexpr int MAX_KEYCODE = 256;
 
 #define UNUSED(x)   (void)(x)
+
+template <typename mutex>
+class empty_scoped_lock
+{
+public:
+    empty_scoped_lock(mutex m) {
+        UNREFERENCED_PARAMETER(m);
+    };
+
+    ~empty_scoped_lock() {}
+};
+
 
 /**
  * machine keeps log of `archived_event_t'
@@ -47,7 +58,6 @@ template <typename Keycode, typename Time, // these will be decltype(keycode_of(
           typename archived_event_t,
           typename last_events_t>
 class forkingMachine {
-
     constexpr static const Keycode no_key = 0;
     /* Environment_t must be able to convert from
      * platformEvent to archived_event_t
@@ -61,6 +71,16 @@ private:
         // it's supposed to be monotonic, and 0... number is always included in the type range.
         return ( (now - past) > limit_difference);
     }
+
+
+#ifndef DISABLE_STD_LIBRARY
+    mutable std::mutex mLock;
+    using  scoped_lock =      std::scoped_lock<std::mutex>;
+#else
+    int mLock;
+    using  scoped_lock = empty_scoped_lock<int>;
+#endif
+
 
 public:
 #ifndef DISABLE_STD_LIBRARY
@@ -181,7 +201,7 @@ public:
 
     /** update the configuration */
     int configure_global(int type, int value, bool set) {
-        std::scoped_lock lock(mLock);
+        scoped_lock lock(mLock);
         const auto fork_configuration = this->config.get();
 
         switch (type) {
@@ -277,28 +297,26 @@ private:
         "activated"
     };
 
-    // atomic?
-    // volatile mutable int
-    mutable std::mutex mLock;
     /* the mouse interrupt handler should ..... err!  `volatile'
      *
      * useless mmc!  But i want to avoid any caching it.... SMP ??*/
 
 public:
-#if USE_LOCKING
-    void stop() {
-        // wait & stop
-        std::scoped_lock wait_lock(mLock);
-    }
 
     void set_debug(int level) {
-        std::scoped_lock lock(mLock);
+        scoped_lock lock(mLock);
         config->debug = level;
         // (machine->config->debug? 0: 1);
     }
 
+    void stop() {
+        // wait & stop
+        scoped_lock wait_lock(mLock);
+    }
+
 private:
 
+#ifndef DISABLE_STD_LIBRARY
     void lock() const
     {
         mLock.lock();
@@ -309,6 +327,10 @@ private:
         mLock.unlock();
         // mdb_raw("\\__ (unlock)\n");
     }
+#else
+    void lock() const {};
+    void unlock() const {};
+#endif
     void check_locked() const {
         // assert(mLock);
     }
@@ -316,7 +338,6 @@ private:
         // assert(mLock == 0);
     }
 
-#endif
 
 public:
     /* forkActive(x) == y  means we sent downstream Keycode Y instead of X.
@@ -948,7 +969,7 @@ private:
      */
     void run_automaton(bool force_also) {
         // fixme: maybe All I need is the nextPlugin?
-        std::scoped_lock lock(mLock);
+        scoped_lock lock(mLock);
         if (environment->output_frozen() || (! tq.middle_empty() )) {
             // log_queues_and_nextplugin(message)
 #if 0
@@ -1137,7 +1158,7 @@ private:
      **/
     void flush_to_next() {
         while (!environment->output_frozen() && tq.can_pop()) {
-            std::scoped_lock lock(mLock);
+            scoped_lock lock(mLock);
             PlatformEvent event = tq.pop(); // copy ?
             // fixme ... temporarily ... not pop before sending off !
             save_event_log(event);
@@ -1195,7 +1216,7 @@ public:
         @return false if allocation  failed.
     */
     bool create_configs() {
-        std::scoped_lock lock(mLock);
+        scoped_lock lock(mLock);
 
         environment->log("%s\n", __func__);
 
@@ -1226,7 +1247,7 @@ public:
     }
 
     void dump_last_events(event_dumper<archived_event_t>* dumper) const {
-        std::scoped_lock lock(mLock);
+        scoped_lock lock(mLock);
 #if DISABLE_STD_LIBRARY
 #if 0
         std::function<void(const event_dumper&, const archived_event_t&)> doit0 = &event_dumper::operator();
@@ -1289,7 +1310,7 @@ public:
      */
     Time accept_event(const PlatformEvent& pevent) noexcept(false) {
         {
-            std::scoped_lock lock(mLock);
+            scoped_lock lock(mLock);
 
             environment->fmt_event(__func__, pevent);
             // mdb("%s: event time: %ul\n", __func__, );
@@ -1315,7 +1336,7 @@ public:
 
     Time accept_time(const Time now) {
         {
-            std::scoped_lock lock(mLock);
+            scoped_lock lock(mLock);
             /* push the time ! */
             // sometimes now is 0 -- when I ungrab-keyboard from sfc.
             if (mCurrent_time > now) {
