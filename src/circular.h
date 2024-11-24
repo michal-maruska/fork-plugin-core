@@ -263,6 +263,8 @@ class circular_buffer
           head_(1), tail_(0), contents_size_(0)
         {
         }
+
+#ifndef DISABLE_EXCEPTIONS
         circular_buffer(const circular_buffer &other)
         : array_(alloc_.allocate(other.array_size_)),
           array_size_(other.array_size_),
@@ -280,6 +282,7 @@ class circular_buffer
                 throw;
             }
         }
+#endif
 
         template <class InputIterator>
         circular_buffer(InputIterator from, InputIterator to)
@@ -406,7 +409,11 @@ class circular_buffer
         {
             if (index >= contents_size_)
             {
+#ifndef DISABLE_EXCEPTIONS
                 throw std::out_of_range(__func__);
+#else
+                return at_unchecked(0);
+#endif
             }
             return at_unchecked(index);
         }
