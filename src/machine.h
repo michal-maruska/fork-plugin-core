@@ -55,6 +55,7 @@ public:
  */
 template <typename Keycode, typename Time, // these will be decltype(keycode_of(PlatformEvent))
           typename PlatformEvent,
+          typename Environment,
           typename archived_event_t,
           typename last_events_t>
 class forkingMachine {
@@ -62,7 +63,6 @@ class forkingMachine {
     /* Environment_t must be able to convert from
      * platformEvent to archived_event_t
      */
-    typedef platformEnvironment<Keycode, Time, archived_event_t, PlatformEvent> Environment_t;
 
 private:
     //template <typename Time>
@@ -83,16 +83,16 @@ private:
 
 
 public:
+
 #ifndef DISABLE_STD_LIBRARY
-    std::unique_ptr<Environment_t> environment;
+    std::unique_ptr<Environment> environment;
 #else
-    Environment_t *environment;
+    Environment *environment;
 
     void* operator new(size_t size, void* p) noexcept {
         UNREFERENCED_PARAMETER(size);
         return p;
     }
-
 #endif
 private:
     /* states of the automaton: */
@@ -140,7 +140,7 @@ private:
     Time mDecision_time;         /* Time to wait... so that the HEAD event in queue could decide more*/
     Time mCurrent_time;          // the last time we received from previous plugin/device
 
-    triqueue_t<PlatformEvent, Environment_t> tq{100}; // total capacity
+    triqueue_t<PlatformEvent, Environment> tq{100}; // total capacity
 
 
 public:
@@ -178,7 +178,7 @@ public:
 
     ~forkingMachine() {};
 
-    explicit forkingMachine(Environment_t* environment)
+    explicit forkingMachine(Environment* environment)
         : environment(environment),
           state(st_normal), suspect(0), verificator_keycode(0), suspect_time(0),
           last_released(KEYCODE_UNUSED), last_released_time(0),
@@ -186,7 +186,7 @@ public:
           mCurrent_time(0),
           config(nullptr) {
 
-        triqueue_t<PlatformEvent, Environment_t>::env = environment;
+        triqueue_t<PlatformEvent, Environment>::env = environment;
 
         environment->log("ctor: allocating last_events\n");
         last_events_log.set_capacity(max_last);
