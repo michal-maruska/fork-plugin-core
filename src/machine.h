@@ -204,7 +204,10 @@ public:
         environment->log("ctor: end\n");
     };
 
-    /** update the configuration */
+    /** update the configuration
+     * @type the feature/parameter
+     * @value .. either parameter is set to this value if @set is 1
+     * or ... ignored  */
     int configure_global(int type, int value, bool set) {
         scoped_lock lock(mLock);
         const auto fork_configuration = 
