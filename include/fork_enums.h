@@ -23,4 +23,10 @@ enum  {
 };
 
 
+enum {
+  fork_GLOBAL_OPTION = 0,
+  fork_LOCAL_OPTION = 1,
+  fork_TWIN_OPTION = 2,
+};
+
 #endif // FORK_ENUMS_H
