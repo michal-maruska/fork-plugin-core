@@ -55,7 +55,7 @@ public:
     bool consider_forks_for_repeat = true;
 
     int debug = 1; // todo: boolean?
-    int id;
+    int id = 0;
 
     // valid?
     ForkConfiguration*   next = nullptr;
@@ -73,9 +73,11 @@ private:
     }
 
 public:
-    ForkConfiguration()
+    ForkConfiguration() :
 #if MULTIPLE_CONFIGURATIONS
-        :  id(config_counter++)
+        id(config_counter++)
+#else
+        id(0)
 #endif
     {
             // use bzero!
