@@ -358,7 +358,7 @@ private:
 public:
     /* forkActive(x) == y  means we sent downstream Keycode Y instead of X.
      * what is the meaning of:  0 and X ? */
-    Keycode          forkActive[MAX_KEYCODE];
+    Keycode          forkActive[MAX_KEYCODE] = {};
 
 private:
     last_events_t last_events_log;
