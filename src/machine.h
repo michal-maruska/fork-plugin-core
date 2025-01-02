@@ -82,7 +82,7 @@ private:
     mutable std::mutex mLock;
     using  scoped_lock =      std::scoped_lock<std::mutex>;
 #else
-    int mLock;
+    int mLock = 0;
     using  scoped_lock = empty_scoped_lock<int>;
 #endif
 
