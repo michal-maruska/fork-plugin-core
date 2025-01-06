@@ -214,7 +214,7 @@ public:
      * or ... ignored  */
     int configure_global(int type, int value, bool set) {
         scoped_lock lock(mLock);
-        const auto fork_configuration = 
+        const auto fork_configuration =
 #ifndef DISABLE_STD_LIBRARY
             this->config.get()
 #else
@@ -257,12 +257,14 @@ public:
             if (set)
                 fork_configuration->consider_forks_for_repeat = value;
             return fork_configuration->consider_forks_for_repeat;
+
         case fork_configure_last_events:
             if (set)
                 set_last_events_count(value);
             else
                 return max_last;
             break;
+
         case fork_configure_debug:
             if (set) {
                 //  here we force, rather than using MDB !
