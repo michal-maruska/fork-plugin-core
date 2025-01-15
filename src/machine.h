@@ -27,7 +27,7 @@
 namespace forkNS {
 
 /* fixme: inherit from xorg! */
-constexpr int MAX_KEYCODE = 256;
+// fixme: how to map E0 prefix? as 8th bit? or do I need more than 256?
 
 #define UNUSED(x)   (void)(x)
 
@@ -62,12 +62,16 @@ template <typename Keycode, typename Time, // these will be decltype(keycode_of(
           typename PlatformEvent,
           typename Environment,
           typename archived_event_t,
-          typename last_events_t>
+          typename last_events_t,
+          int MAX_KEYCODE = 256>
 class forkingMachine {
     constexpr static const Keycode no_key = 0;
     /* Environment_t must be able to convert from
      * platformEvent to archived_event_t
      */
+
+public: // types
+    using fork_configuration = ForkConfiguration<Keycode, Time, MAX_KEYCODE>;
 
 private:
     //template <typename Time>
@@ -364,8 +368,6 @@ private:
     last_events_t last_events_log;
     int max_last = 10; // can be updated!
 
-    // this must be public:
-    using fork_configuration = ForkConfiguration<Keycode, Time, MAX_KEYCODE>;
 public:
 #ifndef DISABLE_STD_LIBRARY
     std::unique_ptr<fork_configuration> config; // list<fork_configuration>
