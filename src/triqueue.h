@@ -33,10 +33,16 @@ private:
         triqueue_t* parent;
 
         scope_queue_logger(triqueue_t* parent, const char* msg) : parent(parent) {
+#if DEBUG
             parent->log_queues(msg);
+#else
+            UNREFERENCED_PARAMETER(msg);
+#endif
         }
         ~scope_queue_logger() {
+#if DEBUG
             parent->log_queues(" post");
+#endif
         }
     };
 
@@ -101,9 +107,8 @@ public:
     }
 
     void rewind_middle() {
-        log_queues(__func__);
+        scope_queue_logger QL(this, __func__);
         end_internal = end_output;
-        log_queues("post");
     }
 
     // modifiers:
@@ -114,8 +119,10 @@ public:
 #endif
         buffer.push_back(item);
 
+#if DEBUG
         // dump_item(input_queue.front());
         log_queues("post-push");
+#endif
 #if 0
         peek_third();
 #endif
@@ -133,15 +140,18 @@ public:
         buffer.pop_front();
         end_internal-=1;
         end_output-=1;
-
+#if DEBUG
         dump_item(__func__, item);
+#endif
         return item;
     }
 
     const item_t& peek_third() {
         const item_t& tmp = *(end_internal); // +1
         // env->log("%s: %p\n", __func__, &tmp);
+#if DEBUG
         dump_item(__func__, tmp);
+#endif
         return tmp;
     }
 
@@ -149,14 +159,18 @@ public:
     item_t& rewrite_head() {
         // fixme: not pop. peek
         item_t& tmp = *(end_output); // +1
+#if DEBUG
         env->log("%s: %p\n", __func__, &tmp);
+#endif
         return tmp;
     }
 
     void move_to_first() {
         scope_queue_logger QL(this, __func__);
         if (middle_empty()) {
+#if DEBUG
             env->log("%s: BUG\n", __func__);
+#endif
             return;
         }
 
