@@ -29,6 +29,15 @@ private:
     iterator end_output;
     iterator end_internal;
 
+    struct scope_queue_logger {
+        scope_queue_logger(const char* msg) {
+            log_queues(msg);
+        }
+        ~scope_queue_logger {
+            log_queues(" post");
+        }
+    }
+
 public: // gdb
     void log_queues(const char* msg) {
         if (env == nullptr)
@@ -115,7 +124,7 @@ public:
     }
 
     item_t pop() {
-        log_queues(__func__);
+        scope_queue_logger QL(__func__);
 
         item_t& item = buffer.front();
 
@@ -124,7 +133,6 @@ public:
         end_output-=1;
 
         dump_item(__func__, item);
-        log_queues("post");
         return item;
     }
 
@@ -144,25 +152,23 @@ public:
     }
 
     void move_to_first() {
-        log_queues(__func__);
+        scope_queue_logger QL(__func__);
         if (middle_empty()) {
             env->log("%s: BUG\n", __func__);
             return;
         }
 
         end_output++;
-        log_queues(" post");
     }
 
     void move_to_second() {
-        log_queues(__func__);
+        scope_queue_logger QL(__func__);
         if (third_empty()) {
             env->log("%s: BUG\n", __func__);
             return;
         }
 
         end_internal++;
-        log_queues(" post");
     }
 
     const item_t* first() {
