@@ -22,5 +22,6 @@ extern "C"
 #include "empty_last.h"
 
 using last_events_t = empty_last_events_t<archived_event>;
-using machineRec = forkNS::forkingMachine<KeyCode, Time, XorgEvent,
+using machineRec = forkNS::forkingMachine<KeyCode, Time,
+                                          XorgEvent, XOrgEnvironment,
                                           archived_event, last_events_t>;

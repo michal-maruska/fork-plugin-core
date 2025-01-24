@@ -10,14 +10,16 @@
 // but I want it c++
 
 
-using machineRec = forkNS::forkingMachine<int, uint64_t,libinputEvent,
-                                          archived_event, boost::circular_buffer<archived_event>>;
-
+using machineRec = forkNS::forkingMachine<int, uint64_t,
+                                          libinputEvent,
+                                          libinputEnvironment,
+                                          archived_event,
+                                          boost::circular_buffer<archived_event>>;
 namespace forkNS {
   // explicit instantiation
 template uint64_t
 forkingMachine<int, uint64_t,
-               libinputEvent,
+               libinputEvent,libinputEnvironment,
                archived_event,
                boost::circular_buffer<archived_event>>::accept_event(const libinputEvent& pevent);
 }
