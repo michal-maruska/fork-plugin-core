@@ -231,11 +231,9 @@ public:
 
 
   // the idea was to return a string. but who will deallocate it?
-  virtual std::string fmt_event(const char* message, const libinputEvent &pevent) const override {
+  virtual void fmt_event(const char* message, const libinputEvent &pevent) const override {
     // return std::string("");
     log("%s (%s): %pm\n", message, __func__, GET_EVENT(pevent));
-
-    return "";
   };
 
 #if 1

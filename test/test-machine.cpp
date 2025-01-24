@@ -69,7 +69,7 @@ public:
     vprintf(format, argptr);
     va_end(argptr);
   };
-  MOCK_METHOD(std::string, fmt_event,(const char* message, const TestEvent &event), (const));
+  MOCK_METHOD(void, fmt_event,(const char* message, const TestEvent &event), (const));
 
   MOCK_METHOD(void, archive_event,(archived_event& ae, const TestEvent& event));
   MOCK_METHOD(void, free_event,(TestEvent* pevent), (const));
