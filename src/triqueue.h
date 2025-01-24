@@ -41,7 +41,7 @@ private:
     };
 
 public: // gdb
-    void log_queues(const char* msg) {
+    void log_queues(const char* msg) { // const -> mysterious operator- miss
         if (env == nullptr)
             return;
 #if 0
