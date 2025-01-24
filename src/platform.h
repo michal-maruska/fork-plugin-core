@@ -30,7 +30,10 @@ class event_publisher {
 
 
 // fork-machine passes its parameters to this:
-template <typename Keycode, typename Time, typename archived_fork_event, typename PlatformEvent>
+template <typename Keycode,
+          typename Time,
+          typename archived_fork_event,
+          typename PlatformEvent>
 class platformEnvironment {
 public:
     platformEnvironment() = default;

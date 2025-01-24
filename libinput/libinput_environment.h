@@ -108,7 +108,10 @@ public:
 
 // using Keycode int;
 
-class libinputEnvironment : public forkNS::platformEnvironment<int, uint64_t, archived_event, libinputEvent> {
+class libinputEnvironment : public forkNS::platformEnvironment<int,
+                                                               uint64_t,
+                                                               archived_event,
+                                                               libinputEvent> {
 private:
   libinput_fork_services *services;
 
