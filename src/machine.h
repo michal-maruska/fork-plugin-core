@@ -1339,6 +1339,8 @@ public:
                 environment->press_p(pevent)?"press":"release",
                 environment->time_of(pevent));
 #endif
+// todo: if  forked (= modifier), and Press repeated -> discard. Just time.
+// if same press already in the queue?
 
             // fixme: mouse must not preempt us. But what if it does?
             // mmc: allocation:
@@ -1348,7 +1350,18 @@ public:
             // no need:
             mCurrent_time = 0;
 
-            tq.push(pevent);
+            // here:
+            if (environment->press_p(pevent)
+                && forkActive[environment->detail_of(pevent)]
+                //
+                )
+            {
+                mdb("%s: skipping this Press -- it's a forked modifier and AR!\n", __func__);
+                // environment->free_event(&pevent);
+                // return;
+            } else {
+                tq.push(pevent);
+            }
         }
         run_automaton(false);
 
