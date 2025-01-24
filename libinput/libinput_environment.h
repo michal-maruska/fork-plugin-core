@@ -236,7 +236,7 @@ public:
     log("%s (%s): %pm\n", message, __func__, GET_EVENT(pevent));
   };
 
-#if 1
+#if 0
   virtual
   std::unique_ptr<forkNS::event_dumper<archived_event>> get_event_dumper() override {
     // return nullptr;
