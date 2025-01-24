@@ -80,10 +80,10 @@ public:
 
 
 using last_events_t = empty_last_events_t<archived_event>;
-using fork_configuration = forkNS::ForkConfiguration<KeyCode, Time, 256>;
 using machineRec = forkNS::forkingMachine<KeyCode, Time,
                                           TestEvent, testEnvironment,
                                           archived_event, last_events_t>;
+using fork_configuration = machineRec::fork_configuration;
 
 // template instantiation
 namespace forkNS {
