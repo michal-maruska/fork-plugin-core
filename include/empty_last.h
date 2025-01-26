@@ -2,6 +2,9 @@
 
 // #include "vector"
 
+#ifndef UNREFERENCED_PARAMETER
+#define UNREFERENCED_PARAMETER(x)   (void)(x)
+#endif
 
 // let's make one without any:
 template <typename event>

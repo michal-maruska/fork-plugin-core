@@ -9,6 +9,11 @@
 #include "my-memory.h"
 #endif
 
+// todo: move to common
+#ifndef UNREFERENCED_PARAMETER
+#define UNREFERENCED_PARAMETER(x)   (void)(x)
+#endif
+
 template <typename item_t, typename Environment_t>
 class triqueue_t {
 
