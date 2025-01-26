@@ -204,9 +204,11 @@ public:
     };
 
     virtual void relay_event(const XorgEvent& pevent) const override {
-        auto& event = static_cast<const XorgEvent&>(pevent).event;
-        PluginInstance* nextPlugin = plugin->next;
+#if DEBUG
         fmt_event(__func__, pevent);
+#endif
+        const auto& event = pevent.event;
+        PluginInstance* nextPlugin = plugin->next;
         hand_over_event_to_next_plugin(event, nextPlugin);
     };
 
