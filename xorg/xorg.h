@@ -247,17 +247,19 @@ public:
 #if DEBUG > 1
         log("%s: trying to resolve to keysym %d through %p\n", __func__, key, keybd);
 #endif
-        if (keybd->key) {
+#if 0
+        if (keybd && keybd->key) {
             const XkbSrvInfoPtr xkbi = keybd->key->xkbInfo;
             const KeySym *sym = XkbKeySymsPtr(xkbi->desc, key);
 
             if ((!sym) || (!isalpha(*(unsigned char *) sym)))
                 sym = (KeySym *) " ";
 
-            log("%s: ", key,
+            log("%s: %s%s%s %s\n", key,
                 key_color, (char) *sym, color_reset,
                 (press ? "down" : (release ) ? "up" : "??"));
         }
+#endif
 #endif
     };
 #if 0
