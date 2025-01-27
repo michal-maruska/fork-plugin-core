@@ -3,10 +3,13 @@
 This is a filter which scans the keyboard events and detects simultaneous key-presses to reinterpret
 specific use of selected keys as modifiers, instead of their regular function.
 
+**Example**: use "a" key to activate numeric keypad on 'uio jkl m-." keys.
+
 Packaged as a plugin for X server, Weston plugin, and a Windows 10+ filter kernel driver.
 
 ## How to install?
 * Windows ...
+  [see instructions](doc/windows-client-install.md)
 
 * Linux -- patched (up-to-date) sources and Debian (Sid) packages are available:
   debian packages in [my reprepro apt repository](https://github.com/MichalMaruska/michalmaruska.github.io)
