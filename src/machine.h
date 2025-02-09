@@ -882,28 +882,23 @@ private:
         check_locked();
 
         PlatformEvent& pevent = tq.head();
-        Keycode forked_key = environment->detail_of(pevent);
-        // why not:
-        // assert(forked_key == suspect);
-
-        // todo:
-        // fixme: event->original_keycode = forked_key;
+        Keycode original_key = environment->detail_of(pevent);
 
         /* Change the keycode, but remember the original: */
-        forkActive[forked_key] = config->fork_keycode[forked_key];
+        forkActive[original_key] = config->fork_keycode[original_key];
+
         // todo: use std::format(), not hard-coded %d
-        mdb("%s the key %d-> forked to: %d. %s\n",
+        // but in kernel it's impossible
+        mdb("%s: the key %d-> forked to: %d. %s\n",
             __func__,
-            forked_key, forkActive[forked_key],
+            original_key, forkActive[original_key],
             describe_machine_state(this->state));
 
-        environment->rewrite_event(pevent, forkActive[forked_key]);
-        issue_event();
+        environment->rewrite_event(pevent, forkActive[original_key]);
 
+        issue_event();
         rewind_machine();
     };
-
-
 
     /**
      * Operations on the machine
@@ -911,11 +906,10 @@ private:
      * `self_forked' means, that i decided to NOT fork. to mark this decision
      * (for when a repeated event arrives), i fork it to its own keycode
      */
-
-    void
-    change_state(fork_state_t new_state)
+    void change_state(const fork_state_t new_state)
     {
         state = new_state;
+// #if ANSI_COLOR
         mdb(" --->%s[%dm%s%s\n", escape_sequence, 32 + new_state,
             state_description[new_state], color_reset);
     }
