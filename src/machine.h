@@ -1332,7 +1332,8 @@ public:
             /* push the time ! */
             // sometimes now is 0 -- when I ungrab-keyboard from sfc.
             if (mCurrent_time > now) {
-                mdb("%s: bug: time moved backwards!\n", __func__);
+                // unconditionally:
+                environment->log("%s: bug: time moved backwards!\n", __func__);
                 return next_decision_time();
             }
             else
