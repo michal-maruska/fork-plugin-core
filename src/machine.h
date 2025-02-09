@@ -392,7 +392,7 @@ private:
         }
     }
 
-    void save_event_log(const PlatformEvent& event) {
+    void save_event_to_log(const PlatformEvent& event) {
         // could I emplace it?
         // reference = last_events_log.emplace_back()
         // reference.forked = ev->forked;
@@ -1179,7 +1179,7 @@ private:
             scoped_lock lock(mLock);
             PlatformEvent event = tq.pop(); // copy ?
             // fixme ... temporarily ... not pop before sending off !
-            save_event_log(event);
+            save_event_to_log(event);
             // unlocks!
             relay_event(event);
         }
