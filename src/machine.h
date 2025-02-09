@@ -989,7 +989,7 @@ private:
    Returns code itself, if not forked. */
     [[nodiscard]] bool
     key_forked(Keycode code) const {
-        return (forkActive[code]);
+        return (forkActive[code] != code && forkActive[code]!= KEYCODE_UNUSED);
     }
 
 
