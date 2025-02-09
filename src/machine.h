@@ -666,7 +666,9 @@ private:
                 /* How could this happen? Auto-repeat on the lower/hw level?
                  * And that AR interval is shorter than the fork-verification */
                 if (config->fork_repeatable[key]) {
-                    mdb("The suspected key is configured to repeat, so ...\n");
+                    environment->log("The suspected key is configured to repeat, so ...\n");
+
+                    // bug!
                     forkActive[suspect] = suspect;
                     do_confirm_non_fork_by(fork_reason_t::reason_wrong); // misconfiguration?
                     return;
