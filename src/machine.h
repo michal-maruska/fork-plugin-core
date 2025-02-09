@@ -1025,6 +1025,64 @@ private:
     };
 
 
+    /**
+     * Push as many as possible from the OUTPUT queue to the next layer.
+     * Also the time.
+     * The machine is locked here.  It also does not change state. Only the 1
+     *queue. Unlocks to be re-entrant!
+     **/
+    void flush_to_next() {
+        while (!environment->output_frozen() && tq.can_pop()) {
+            scoped_lock lock(mLock);
+            PlatformEvent event = tq.pop(); // copy ?
+            // fixme ... temporarily ... not pop before sending off !
+            save_event_to_log(event);
+            // unlocks!
+            relay_event(event);
+        }
+        if (!environment->output_frozen()) {
+            push_time_to_next();
+        }
+#if 0
+        if (!tq.can_pop())
+            mdb("%s: still %d events to output\n", __func__, output_queue.length());
+#endif
+    }
+
+    void push_time_to_next() {
+        // send out time:
+
+        // interesting: after handing over, the nextPlugin might need to be refreshed.
+        // if that plugin is gone. todo!
+
+        Time now;
+        const PlatformEvent *item = tq.first();
+        if (item == nullptr) {
+            now = mCurrent_time;
+        } else {
+            now = environment->time_of(*item);
+            // in this case we might:
+            mCurrent_time = 0;
+        }
+
+        if (now) {
+            // this can thaw, freeze,?
+            environment->push_time(now);
+        }
+    }
+
+    // fixme: returned by the accept_* public API methods
+    [[nodiscard]] Time next_decision_time() const {
+        // bug: not locked
+        if ((state == st_verify)
+            || (state == st_suspect))
+            // we are indeed waiting:
+            return mDecision_time;
+        else
+            return 0;
+    }
+
+
 public:
 /**
  * key and twin have a relationship, given by type.
@@ -1119,67 +1177,6 @@ public:
 
         return publisher->commit();
     };
-
-
-
-private:
-
-    /**
-     * Push as many as possible from the OUTPUT queue to the next layer.
-     * Also the time.
-     * The machine is locked here.  It also does not change state. Only the 1
-     *queue. Unlocks to be re-entrant!
-     **/
-    void flush_to_next() {
-        while (!environment->output_frozen() && tq.can_pop()) {
-            scoped_lock lock(mLock);
-            PlatformEvent event = tq.pop(); // copy ?
-            // fixme ... temporarily ... not pop before sending off !
-            save_event_to_log(event);
-            // unlocks!
-            relay_event(event);
-        }
-        if (!environment->output_frozen()) {
-            push_time_to_next();
-        }
-#if 0
-        if (!tq.can_pop())
-            mdb("%s: still %d events to output\n", __func__, output_queue.length());
-#endif
-    }
-
-    void push_time_to_next() {
-        // send out time:
-
-        // interesting: after handing over, the nextPlugin might need to be refreshed.
-        // if that plugin is gone. todo!
-
-        Time now;
-        const PlatformEvent *item = tq.first();
-        if (item == nullptr) {
-            now = mCurrent_time;
-        } else {
-            now = environment->time_of(*item);
-            // in this case we might:
-            mCurrent_time = 0;
-        }
-
-        if (now) {
-            // this can thaw, freeze,?
-            environment->push_time(now);
-        }
-    }
-
-    // fixme: returned by the accept_* public API methods
-    [[nodiscard]] Time next_decision_time() const {
-        // bug: not locked
-        if ((state == st_verify)
-            || (state == st_suspect))
-            // we are indeed waiting:
-            return mDecision_time;
-        else
-            return 0;
-    }
 
 public:
     /** Create 2 configuration sets:
