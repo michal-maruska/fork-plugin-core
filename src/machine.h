@@ -430,8 +430,7 @@ private:
 #endif
     }
 
-    // PluginInstance* mPlugin;
-
+#if MULTIPLE_CONFIGURATIONS
     fork_configuration** find_configuration_n(int n);
 
     /**
@@ -451,6 +450,7 @@ private:
 
         run_automaton(force_also);
     };
+#endif
 
     /** Another event has been determined. So:
      * todo:  possible emit a (notification) event immediately,
