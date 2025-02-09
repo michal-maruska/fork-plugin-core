@@ -4,7 +4,6 @@ namespace forkNS {
 
 // these as template non-type parameters?
 #define KEYCODE_UNUSED 0
-#define UNUSED(x)   (void)(x)
 
 // Keycode must be integral/numeric,  MAX_KEYCODE is limiti.
 template <typename Keycode, typename Time, int MAX_KEYCODE>

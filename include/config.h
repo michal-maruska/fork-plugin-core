@@ -37,3 +37,9 @@
 #define TIME_FMT  "u"
 #define SIZE_FMT  "lu"
 
+// fixme: move in a common header
+#ifdef UNREFERENCED_PARAMETER
+#define UNUSED(x)   UNREFERENCED_PARAMETER(x)
+#else
+#define UNUSED(x)   (void)(x)
+#endif

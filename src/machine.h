@@ -1,10 +1,10 @@
 // (c) Michal Maruska 2003-2024
 #pragma once
 
-#ifndef KERNEL
-#include <assert.h>
-#else
+#ifdef KERNEL
 #define assert(x)
+#else
+#include <assert.h>
 #endif
 
 #include "config.h"
@@ -26,25 +26,9 @@
 
 namespace forkNS {
 
-/* fixme: inherit from xorg! */
-// fixme: how to map E0 prefix? as 8th bit? or do I need more than 256?
-
-#define UNUSED(x)   (void)(x)
-
-template <typename mutex>
-class empty_scoped_lock
-{
-public:
-    empty_scoped_lock(mutex m) {
-        UNREFERENCED_PARAMETER(m);
-    };
-
-    ~empty_scoped_lock() {}
-};
-
-
 /**
- * machine keeps log of `archived_event_t'
+ * Machine:
+ * ... keeps log of the most-recent `archived_event_t'
  *
  * It is invoked and itself invokes `platformEnvironment'
  * it receives `PlatformEvent' abstract class
@@ -56,43 +40,55 @@ public:
  *
  * Concepts:
  * archived_event_t ... contains platformEvent and "forked"
- *
  */
-template <typename Keycode, typename Time, // these will be decltype(keycode_of(PlatformEvent))
+
+template <typename Keycode,
+          typename Time, // these will be decltype(keycode_of(PlatformEvent))
           typename PlatformEvent,
           typename Environment,
           typename archived_event_t,
           typename last_events_t,
           int MAX_KEYCODE = 256>
+
 class forkingMachine {
     constexpr static const Keycode no_key = 0;
-    /* Environment_t must be able to convert from
-     * platformEvent to archived_event_t
+    /* Environment must be able to convert from
+     * PlatformEvent to archived_event_t
      */
 
-public: // types
+// fixme:
+// static_assert(std::is_same_v<Keycode, decltype(keycode_of(PlatformEvent()))>);
+
+// Types
+public:
     using fork_configuration = ForkConfiguration<Keycode, Time, MAX_KEYCODE>;
 
 private:
-    //template <typename Time>
-    bool time_difference_more(Time now, Time past, Time limit_difference) {
-        // return (now > past + limit_difference);
-        // it's supposed to be monotonic, and 0... number is always included in the type range.
-        return ( (now - past) > limit_difference);
-    }
-
 
 #ifndef DISABLE_STD_LIBRARY
     mutable std::mutex mLock;
-    using  scoped_lock =      std::scoped_lock<std::mutex>;
+    using  scoped_lock = std::scoped_lock<std::mutex>;
 #else
     int mLock = 0;
+
+    template <typename mutex>
+    class empty_scoped_lock
+    {
+    public:
+        empty_scoped_lock(mutex m) {
+            UNUSED(m);
+        };
+
+        ~empty_scoped_lock() {}
+    };
     using  scoped_lock = empty_scoped_lock<int>;
 #endif
 
 
+
 public:
 
+    // todo: HAVE_SMART_POINTERS
 #ifndef DISABLE_STD_LIBRARY
     std::unique_ptr<Environment> environment;
 #else
@@ -103,12 +99,14 @@ public:
         return p;
     }
 #endif
+
+
 private:
     /* states of the automaton: */
-    enum fork_state_t {  // states of the automaton
+    enum fork_state_t {
         st_normal,
-        st_suspect,
-        st_verify,
+        st_suspect,             // difference ?
+        st_verify,              // current keycode seems but...?
         st_deactivated,
         st_activated
     };
@@ -116,25 +114,27 @@ private:
     /* This is how it works:
      * We have a `state' and 3 queues:
      *
-     *  output Q  |   internal Q    | input Q
+     *  output    |   internal     | input
      *  waits for |
-     *  thaw         Oxxxxxx        |  yyyyy
+     *  thaw      |  Kxxxxxx       |  yyyyy
      *               ^ forked?
      *
-     * We push at the end of input Q.  Then we pop from that Q and push on
+     * We push at the end of input Q. Then we pop from that Q and push on
      * Internal where we determine for 1 event, if forked/non-forked.
      *
      * Then we push on the output Q. At that moment, we also restart: all
      * from internal Q is returned/prepended to the input Q.
      */
-    fork_state_t state;
-    // only for certain states we keep (updated):
 
+    // rust: enum {normal_state, suspect(suspect, verificator) ....}
+    fork_state_t state;
+
+    // only for certain states we keep (updated):
     Keycode suspect;
     Keycode verificator_keycode;
 
     // these are "registers"
-    Time suspect_time;           /* time of the 1st event in the queue. */
+    Time suspect_time;               /* time of the 1st event in the internal queue. */
     Time verificator_time = 0;       /* press of the `verificator' */
 
     /* To allow AR for forkable keys:
@@ -142,15 +142,45 @@ private:
      * So, this is for the detector:
      *
      * This means I cannot do this trick w/ 2 keys, only 1 is the last/considered! */
-    Keycode last_released; // .- trick
+    Keycode last_released;
     Time last_released_time;
 
+
     // calculated:
-    Time mDecision_time;         /* Time to wait... so that the HEAD event in queue could decide more*/
-    Time mCurrent_time;          // the last time we received from previous plugin/device
+    Time mDecision_time;        // Time to wait... so that the HEAD event in queue could decide more
+    Time mCurrent_time;         // the last time we received from previous plugin/device
+
+
+    /* How we decided for the fork */
+    enum class fork_reason_t {
+        reason_long,               // key pressed too long
+        reason_overlap,             // key press overlaps with another key
+        reason_force                // mouse-button was pressed & triggered fork.
+    };
+
+    /* used only for debugging */
+    static constexpr
+    char const * const state_description[5] = {
+        // map<fork_state_t, string>
+        "normal",
+        "suspect",
+        "verify",
+        "deactivated",
+        "activated"
+    };
+
 
     triqueue_t<PlatformEvent, Environment> tq{100}; // total capacity
 
+    // template <typename Time>
+    bool time_difference_more(Time now, Time past, Time limit_difference) {
+        // return (now > past + limit_difference);
+        // it's supposed to be monotonic, and 0... number is always included in the type range.
+        return ( (now - past) > limit_difference);
+    }
+
+    last_events_t last_events_log;
+    int max_last = 10; // can be updated!
 
 public:
     // prefix with a space.
@@ -299,30 +329,6 @@ public:
         return 0;
     }
 
-private:
-
-    /* How we decided for the fork */
-    enum class fork_reason_t {
-        reason_long,               // key pressed too long
-        reason_overlap,             // key press overlaps with another key
-        reason_force                // mouse-button was pressed & triggered fork.
-    };
-
-    /* used only for debugging */
-    static constexpr
-    char const * const state_description[5] = {
-        // map<fork_state_t, string>
-        "normal",
-        "suspect",
-        "verify",
-        "deactivated",
-        "activated"
-    };
-
-    /* the mouse interrupt handler should ..... err!  `volatile'
-     *
-     * useless mmc!  But i want to avoid any caching it.... SMP ??*/
-
 public:
 
     void set_debug(int level) {
@@ -366,9 +372,6 @@ public:
      * what is the meaning of:  0 and X ? */
     Keycode          forkActive[MAX_KEYCODE] = {};
 
-private:
-    last_events_t last_events_log;
-    int max_last = 10; // can be updated!
 
 public:
 #ifndef DISABLE_STD_LIBRARY
@@ -478,6 +481,7 @@ private:
     //  ^ suspect                ^ confirmation.
     void do_confirm_non_fork_by() {
         check_locked();
+        UNUSED(reason);
         assert(state == st_suspect || state == st_verify);
 #if 0
         std::unique_ptr<key_event> non_forked_event(internal_queue.pop());
