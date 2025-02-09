@@ -383,7 +383,7 @@ create_plugin(const DeviceIntPtr keybd, DevicePluginRec* plugin_class)
  */
 // todo: make it inline functions
 inline int subtype_n_args(int t) { return  (t & 3);}
-inline int type_subtype(int t) { return (t >> 2);}
+inline fork_configuration_t type_subtype(int t) { return (fork_configuration_t)(t >> 2);}
 
 /* Return a value requested, or 0 on error.*/
 int

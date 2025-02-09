@@ -2,7 +2,7 @@
 #define FORK_ENUMS_H
 
 /** Sub-OP-codes for the Set/Get-Configure-key request:  **/
-enum  {
+enum fork_configuration_t {
        fork_configure_last_events,
        fork_configure_overlap_limit,
        fork_configure_total_limit,
