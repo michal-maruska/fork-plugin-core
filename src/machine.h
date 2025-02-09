@@ -608,10 +608,28 @@ private:
         };
     }
 
-    /**  First (press)
-     *    v   ^     (0   <-- we are here. Input q
-     *        Second|
-     *             next @event
+    // const Keycode verificator_keycode
+    void customize_decision_time_for(const Time current_time) {
+      // verify overlap
+      Time decision_time =
+          config->verifier_decision_time(current_time,
+                                         suspect, suspect_time,
+                                         verificator_keycode, verificator_time);
+
+      // well, this is an abuse ... this should never be 0.
+      if (decision_time == NO_TIME) {
+          mdb("absurd\n"); // this means that verificator key verifies
+                         // immediately!
+      }
+
+      if (decision_time < mDecision_time)
+          mDecision_time = decision_time;
+    }
+
+    /**  the internal queue:
+     *    First (press)
+     *    v   ^
+     *        here
      */
     void apply_event_to_suspect(const PlatformEvent &pevent) {
         assert(state == st_suspect);
@@ -671,22 +689,11 @@ private:
                 // another key pressed
                 change_state(st_verify);
                 verificator_time = simulated_time;
-                verificator_keycode =
-                    key; /* if already we had one -> we are not in this state!
-                            if the verificator becomes a modifier ?? fixme:*/
-                // verify overlap
-                Time decision_time = config->verifier_decision_time(
-                    simulated_time, suspect, suspect_time, verificator_keycode,
-                    verificator_time);
+                verificator_keycode = key;
+                /* if already we had one -> we are not in this state!
+                   if the verificator becomes a modifier ?? fixme:*/
 
-                // well, this is an abuse ... this should never be 0.
-                if (decision_time == 0) {
-                    mdb("absurd\n"); // this means that verificator key verifies
-                    // immediately!
-                }
-                if (decision_time < mDecision_time)
-                    mDecision_time = decision_time;
-
+                customize_decision_time_for(simulated_time);
                 tq.move_to_second();
                 return;
             };
