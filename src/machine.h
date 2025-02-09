@@ -187,6 +187,30 @@ private:
     last_events_t last_events_log;
     int max_last = 10; // can be updated!
 
+#ifndef DISABLE_STD_LIBRARY
+    void lock() const
+    {
+        mLock.lock();
+        // mdb_raw("/--\n");
+    }
+    void unlock() const
+    {
+        mLock.unlock();
+        // mdb_raw("\\__ (unlock)\n");
+    }
+    void check_locked() const {
+        assert(mLock);
+    }
+    void check_unlocked() const {
+        assert(mLock == 0);
+    }
+#else
+    void lock() const {};
+    void unlock() const {};
+    void check_locked() const {}
+    void check_unlocked() const {}
+#endif
+
 public:
     // prefix with a space.
     void mdb(const char* format...) const
@@ -344,30 +368,6 @@ public:
     void stop() {
         // wait & stop
         scoped_lock wait_lock(mLock);
-    }
-
-private:
-
-#ifndef DISABLE_STD_LIBRARY
-    void lock() const
-    {
-        mLock.lock();
-        // mdb_raw("/--\n");
-    }
-    void unlock() const
-    {
-        mLock.unlock();
-        // mdb_raw("\\__ (unlock)\n");
-    }
-#else
-    void lock() const {};
-    void unlock() const {};
-#endif
-    void check_locked() const {
-        // assert(mLock);
-    }
-    void check_unlocked() const {
-        // assert(mLock == 0);
     }
 
 
