@@ -21,6 +21,11 @@
 #include <functional>
 #endif
 
+#ifndef KERNEL
+#include <cstdlib>
+#include <cstring>
+#endif
+
 #include "fork_enums.h"
 #include "fork_configuration.h"
 
@@ -189,16 +194,14 @@ public:
         if (config->debug) {
             va_list argptr;
             va_start(argptr, format);
-#if 1
+#ifdef KERNEL
             environment->vlog(format, argptr);
 #else
-            // alloca()
-            char* new_format = (char*) malloc(strlen(format) + 2);
+            // does MS/kernel have alloca?
+            char* new_format = (char*) alloca(strlen(format) + 2);
             new_format[0] = ' ';
             strcpy(new_format + 1, format);
-
             environment->vlog(new_format, argptr);
-            free(new_format);
 #endif
             va_end(argptr);
 
@@ -215,6 +218,7 @@ public:
         }
     };
 
+    // we don't store/own anything? or environment is unique_ptr but in kernel it's not!
     ~forkingMachine() {};
 
     explicit forkingMachine(Environment* environment)
@@ -1332,7 +1336,6 @@ public:
     Time accept_event(const PlatformEvent& pevent) noexcept(false) {
         {
             scoped_lock lock(mLock);
-
 #if 0
             environment->fmt_event(__func__, pevent);
 #else
