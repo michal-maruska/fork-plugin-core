@@ -512,6 +512,11 @@ private:
             state_description[new_state], color_reset);
     }
 
+    // only the `release'
+    void record_last_release_event(const PlatformEvent &pevent) {
+        last_released = environment->detail_of(pevent);
+        last_released_time = environment->time_of(pevent);
+    }
 
     // is mDecision_time always recalculated?
     // possibly unlocks
@@ -567,9 +572,9 @@ private:
             mdb("releasing forked key\n");
             // fixme:  we should see if the fork was `used'.
             if (config->consider_forks_for_repeat){
-                // C-f   f long becomes fork. now we wanted to repeat it....
-                last_released = environment->detail_of(pevent);
-                last_released_time = environment->time_of(pevent);
+                // C-f   f long becomes fork.
+                // now we wanted to repeat it....
+                record_last_release_event(pevent);
             } else {
                 // imagine mouse-button during the short 1st press. Then
                 // the 2nd press ..... should not relate the the 1st one.
@@ -588,9 +593,7 @@ private:
         } else {
             // non forkable, for example:
             if (environment->release_p(pevent)) {
-
-                last_released = environment->detail_of(pevent);
-                last_released_time = environment->time_of(pevent);
+                record_last_release_event(pevent);
             };
             // pass along the un-forkable event.
             tq.move_to_second();
