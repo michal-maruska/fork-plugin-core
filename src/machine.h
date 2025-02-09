@@ -635,7 +635,7 @@ private:
              */
 
             tq.move_to_second();
-            environment->rewrite_event(tq.rewrite_head(), forkActive[key]);
+            environment->rewrite_event(tq.head(), forkActive[key]);
             forkActive[key] = 0;
             issue_event();
         } else {
@@ -913,7 +913,7 @@ private:
         UNUSED(fork_reason);
         check_locked();
 
-        PlatformEvent& pevent = tq.rewrite_head();
+        PlatformEvent& pevent = tq.head();
         Keycode forked_key = environment->detail_of(pevent);
         // why not:
         // assert(forked_key == suspect);

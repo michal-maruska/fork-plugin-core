@@ -161,7 +161,7 @@ public:
     }
 
     // rewritable!
-    item_t& rewrite_head() {
+    item_t& head() {
         // fixme: not pop. peek
         item_t& tmp = *(end_output); // +1
 #if DEBUG

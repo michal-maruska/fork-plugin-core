@@ -54,7 +54,7 @@ TEST_F(triqueueTest, IsEmptyInitially) {
     EXPECT_FALSE(q0_.can_pop());
 
     const int new_value = 20;
-    q0_.rewrite_head() = new_value;
+    q0_.head() = new_value;
 
     q0_.move_to_first();
 
