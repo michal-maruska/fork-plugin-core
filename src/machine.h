@@ -473,7 +473,7 @@ private:
 
         // first we look at the time:
         if (0 == (mDecision_time = key_pressed_too_long(simulated_time))) {
-            activate_fork(fork_reason_t::reason_long);
+            activate_fork_rewind(fork_reason_t::reason_long);
             return;
         };
 
@@ -676,7 +676,7 @@ private:
         */
 
         if (0 == (mDecision_time = key_pressed_too_long(simulated_time))) {
-            activate_fork(fork_reason_t::reason_long);
+            activate_fork_rewind(fork_reason_t::reason_long);
             return;
         }
 
@@ -685,7 +685,7 @@ private:
                                                             suspect, suspect_time,
                                                             verificator_keycode, verificator_time);
         if (decision_time == 0) {
-            activate_fork(fork_reason_t::reason_overlap);
+            activate_fork_rewind(fork_reason_t::reason_overlap);
             return;
         }
 
@@ -754,7 +754,7 @@ private:
                 // mmc:  fork again, and pass-through
 #endif
                 tq.move_to_second();
-                activate_fork(fork_reason_t::reason_force);
+                activate_fork_rewind(fork_reason_t::reason_force);
                 return;
             }
 #endif
@@ -801,7 +801,7 @@ private:
       // notice, how mDecision_time is rewritten here:
       if (0 == (mDecision_time = key_pressed_too_long(current_time))) {
 
-        activate_fork(fork_reason_t::reason_long);
+        activate_fork_rewind(fork_reason_t::reason_long);
         return true;
       };
 
@@ -813,7 +813,7 @@ private:
             verificator_time);
 
         if (decision_time == 0) {
-          activate_fork(fork_reason_t::reason_overlap);
+          activate_fork_rewind(fork_reason_t::reason_overlap);
           return true;
         }
 
@@ -846,7 +846,7 @@ private:
       // fixme: only if there are in inter
       if (!tq.middle_empty())
           // bug: it might activate multiple forks!
-          activate_fork(fork_reason_t::reason_force);
+          activate_fork_rewind(fork_reason_t::reason_force);
       else
           mdb("%s: BUG -- state but empty\n", __func__);
     }
@@ -877,7 +877,7 @@ private:
     * We concluded the key is forked. "Output" it and prepare for the next one.
     * fixme: locking -- possibly unlocks?
     */
-    void activate_fork(fork_reason_t fork_reason) {
+    void activate_fork_rewind(fork_reason_t fork_reason) {
         UNUSED(fork_reason);
         check_locked();
 
