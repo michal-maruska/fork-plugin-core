@@ -87,21 +87,9 @@ using fork_configuration = machineRec::fork_configuration;
 
 // template instantiation
 namespace forkNS {
-
-template Time forkingMachine<KeyCode, Time, TestEvent, testEnvironment, archived_event, last_events_t>::accept_event(const TestEvent& pevent);
-template Time forkingMachine<KeyCode, Time, TestEvent, testEnvironment, archived_event, last_events_t>::accept_time(const Time);
-
-template bool forkingMachine<KeyCode, Time, TestEvent, testEnvironment, archived_event, last_events_t>::create_configs();
-
-template int forkingMachine<KeyCode, Time, TestEvent, testEnvironment, archived_event, last_events_t>::configure_key(int type, KeyCode key, int value, bool set);
-
-template int forkingMachine<KeyCode, Time, TestEvent, testEnvironment, archived_event, last_events_t>::configure_global(int type, int value, bool set);
-
-template int forkingMachine<KeyCode, Time, TestEvent, testEnvironment, archived_event, last_events_t>::configure_twins(int type, KeyCode key, KeyCode twin, int value, bool set);
-
-template int forkingMachine<KeyCode, Time, TestEvent, testEnvironment, archived_event, last_events_t>::dump_last_events_to_client(forkNS::event_publisher<archived_event>* publisher, int max_requested);
+  // explicit template instantiation
+  template class forkingMachine<KeyCode, Time, TestEvent, testEnvironment, archived_event, last_events_t>;
 }
-// end template instantiation
 
 
 class machineTest : public testing::Test {
