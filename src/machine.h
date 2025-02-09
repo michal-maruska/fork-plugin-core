@@ -56,7 +56,7 @@ template <typename Keycode,
           int MAX_KEYCODE = 256>
 
 class forkingMachine {
-    constexpr static const Keycode no_key = 0;
+    constexpr static const Keycode no_key = KEYCODE_UNUSED;
     /* Environment must be able to convert from
      * PlatformEvent to archived_event_t
      */
