@@ -385,12 +385,11 @@ private:
 
         if (max_last > new_max) {
             // shrink. todo! in the circular.h!
-            mdb("%s: unimplemented\n", __func__);
+            mdb("%s: shrinking unimplemented\n", __func__);
         } else {
             last_events_log.set_capacity(new_max);
+            max_last = new_max;
         }
-
-        max_last = new_max;
     }
 
     void save_event_log(const PlatformEvent& event) {
