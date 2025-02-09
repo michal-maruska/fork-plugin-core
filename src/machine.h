@@ -73,6 +73,23 @@ private:
 #ifndef DISABLE_STD_LIBRARY
     mutable std::mutex mLock;
     using  scoped_lock = std::scoped_lock<std::mutex>;
+
+    void lock() const
+    {
+        mLock.lock();
+        // mdb_raw("/--\n");
+    }
+    void unlock() const
+    {
+        mLock.unlock();
+        // mdb_raw("\\__ (unlock)\n");
+    }
+    void check_locked() const {
+        // assert(mLock.locked);
+    }
+    void check_unlocked() const {
+        // assert(mLock == 0);
+    }
 #else
     int mLock = 0;
 
@@ -87,7 +104,13 @@ private:
         ~empty_scoped_lock() {}
     };
     using  scoped_lock = empty_scoped_lock<int>;
+
+    void lock() const {};
+    void unlock() const {};
+    void check_locked() const {}
+    void check_unlocked() const {}
 #endif
+
 
 
 
@@ -186,30 +209,6 @@ private:
 
     last_events_t last_events_log;
     int max_last = 10; // can be updated!
-
-#ifndef DISABLE_STD_LIBRARY
-    void lock() const
-    {
-        mLock.lock();
-        // mdb_raw("/--\n");
-    }
-    void unlock() const
-    {
-        mLock.unlock();
-        // mdb_raw("\\__ (unlock)\n");
-    }
-    void check_locked() const {
-        assert(mLock);
-    }
-    void check_unlocked() const {
-        assert(mLock == 0);
-    }
-#else
-    void lock() const {};
-    void unlock() const {};
-    void check_locked() const {}
-    void check_unlocked() const {}
-#endif
 
 public:
     // prefix with a space.
