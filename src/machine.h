@@ -135,8 +135,6 @@ private:
         st_normal,
         st_suspect,             // difference ?
         st_verify,              // current keycode seems but...?
-        st_deactivated,
-        st_activated
     };
 
     /* This is how it works:
@@ -451,7 +449,7 @@ private:
         assert(state == st_suspect || state == st_verify);
 
         issue_event();
-        rewind_machine(st_deactivated);
+        rewind_machine();
     };
 
 
@@ -842,11 +840,6 @@ private:
         return;
       }
 
-      if (state == st_deactivated) {
-        environment->log("%s: BUG.\n", __func__);
-        return;
-      }
-
       /* so, the state is one of: verify, suspect or activated. */
       log_state(__func__);
 
@@ -862,14 +855,8 @@ private:
     /**
      * One key-event investigation finished,
      * now reset for the next one */
-    void rewind_machine(const fork_state_t new_state) {
+    void rewind_machine() {
         check_locked();
-#if 0
-        assert ((new_state == st_deactivated) || (new_state == st_activated));
-        change_state(new_state);
-#else
-        UNUSED(new_state);
-#endif
         /* reset the machine */
 #if 0
         mdb("== Resetting the fork machine (internal %d, input %d)\n",
@@ -913,7 +900,7 @@ private:
         environment->rewrite_event(pevent, forkActive[forked_key]);
         issue_event();
 
-        rewind_machine(st_activated);
+        rewind_machine();
     };
 
 
