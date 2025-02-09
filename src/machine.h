@@ -968,6 +968,8 @@ private:
                 }
             }
         }
+
+        flush_to_next();
     };
 
 
@@ -1318,8 +1320,6 @@ public:
             }
         }
         run_automaton(false);
-
-        flush_to_next();
         return next_decision_time();
     }
 
@@ -1338,7 +1338,6 @@ public:
         }
 
         run_automaton(false);
-        flush_to_next();
         return next_decision_time();
     }
 
@@ -1354,7 +1353,6 @@ public:
          * might be already released, so the head is not to be forked!
          */
         run_automaton(true);
-        flush_to_next();        // does this clash?
     }
 
 };
