@@ -445,16 +445,6 @@ private:
         // output_queue.push(ev.release());
     }
 
-    // so EVENT confirms fork of the current event, and also enters queue,
-    // which will be `immediately' relocated to the input queue.
-    void confirm_fork_and_enqueue(fork_reason_t fork_reason) {
-        /* fixme: event is the just-read event. But that is surely not the head
-           of queue (which is confirmed to fork) */
-        mdb("confirm:\n");
-
-        activate_fork(fork_reason);
-    }
-
     // So the event proves, that the current event is not forked.
     // /----internal--queue--/ event /----input event----/
     //  ^ suspect                ^ confirmation.
@@ -494,7 +484,7 @@ private:
 
         // first we look at the time:
         if (0 == (mDecision_time = key_pressed_too_long(simulated_time))) {
-            confirm_fork_and_enqueue(fork_reason_t::reason_long);
+            activate_fork(fork_reason_t::reason_long);
             return;
         };
 
@@ -697,7 +687,7 @@ private:
         */
 
         if (0 == (mDecision_time = key_pressed_too_long(simulated_time))) {
-            confirm_fork_and_enqueue(fork_reason_t::reason_long);
+            activate_fork(fork_reason_t::reason_long);
             return;
         }
 
@@ -706,7 +696,7 @@ private:
                                                             suspect, suspect_time,
                                                             verificator_keycode, verificator_time);
         if (decision_time == 0) {
-            confirm_fork_and_enqueue(fork_reason_t::reason_overlap);
+            activate_fork(fork_reason_t::reason_overlap);
             return;
         }
 
