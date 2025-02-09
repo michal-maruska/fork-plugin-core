@@ -622,12 +622,6 @@ private:
          * todo: I should repeat a bi-depressed forkable.
          */
 
-        // first we look at the time:
-        if (0 == (mDecision_time = key_pressed_too_long(simulated_time))) {
-            activate_fork_rewind(fork_reason_t::reason_long);
-            return;
-        };
-
         /* So, we now have a second key, since the duration of 1 key
          * was not enough. */
         if (environment->release_p(pevent)) {
@@ -740,11 +734,6 @@ private:
            are slow to release, when we press a specific one afterwards. So in this case fork slower!
         */
 
-        if (0 == (mDecision_time = key_pressed_too_long(simulated_time))) {
-            activate_fork_rewind(fork_reason_t::reason_long);
-            return;
-        }
-
         /* now, check the overlap of the 2 first keys */
         Time decision_time = config->verifier_decision_time(simulated_time,
                                                             suspect, suspect_time,
@@ -826,22 +815,28 @@ private:
         // `limitation':
         // A currently forked keycode cannot be (suddenly) pressed 2nd time.
         // assert(release_p(event) || (key < MAX_KEYCODE && forkActive[key] == 0));
-        switch (state) {
-        case st_normal:
+        if  (state == st_normal) {
             apply_event_to_normal(pevent);
             return;
-        case st_suspect:
-        {
+        }
+
+        // first we look at the `time':
+        const Time simulated_time = environment->time_of(pevent);
+
+        if (0 == (mDecision_time = key_pressed_too_long(simulated_time))) {
+            activate_fork_rewind(fork_reason_t::reason_long);
+            return;
+        };
+
+
+        if (state == st_suspect) {
             apply_event_to_suspect(pevent);
             return;
         }
-        case st_verify:
+        else // st_verify:
         {
             apply_event_to_verify_state(pevent);
             return;
-        }
-        default:
-            mdb("----------unexpected state---------\n");
         }
     };
 
