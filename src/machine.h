@@ -491,8 +491,10 @@ private:
 
         // todo: use std::format(), not hard-coded %d
         // but in kernel it's impossible
-        mdb("%s: the key %d-> forked to: %d. %s\n",
-            __func__,
+        mdb("%s[%dm%s%s: the key %d-> forked to: %d. %s\n",
+            escape_sequence, 32 + (int)fork_reason,
+            __func__, color_reset,
+
             original_key, forkActive[original_key],
             describe_machine_state(this->state));
 
