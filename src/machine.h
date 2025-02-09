@@ -181,7 +181,9 @@ private:
     enum class fork_reason_t {
         reason_long,               // key pressed too long
         reason_overlap,             // key press overlaps with another key
-        reason_force                // mouse-button was pressed & triggered fork.
+        reason_force,                // mouse-button was pressed & triggered fork.
+        reason_short,
+        reason_wrong,
     };
 
     /* used only for debugging */
@@ -443,7 +445,7 @@ private:
     // So the event proves, that the current event is not forked.
     // /----internal--queue--/ event /----input event----/
     //  ^ suspect                ^ confirmation.
-    void do_confirm_non_fork_by() {
+    void do_confirm_non_fork_by(fork_reason_t reason) {
         check_locked();
         UNUSED(reason);
         assert(state == st_suspect || state == st_verify);
@@ -628,7 +630,7 @@ private:
             mdb("suspect/release: suspected = %d, time diff: %d\n", suspect,
                 (int)(simulated_time - suspect_time));
             if (key == suspect) {
-                do_confirm_non_fork_by();
+                do_confirm_non_fork_by(fork_reason_t::reason_short);
                 return;
                 /* fixme:  here we confirm, that it was not a user error.....
                    bad synchro. i.e. the suspected key was just released  */
@@ -654,7 +656,7 @@ private:
                 if (config->fork_repeatable[key]) {
                     mdb("The suspected key is configured to repeat, so ...\n");
                     forkActive[suspect] = suspect;
-                    do_confirm_non_fork_by();
+                    do_confirm_non_fork_by(fork_reason_t::reason_wrong); // misconfiguration?
                     return;
                 } else {
                     // fixme: this keycode is repeating, but we still don't know what to
@@ -752,7 +754,7 @@ private:
                 (simulated_time -  suspect_time),
                 config->verification_interval_of(suspect,
                                                  verificator_keycode));
-            do_confirm_non_fork_by();
+            do_confirm_non_fork_by(fork_reason_t::reason_short);
 
         } else if ((verificator_keycode == key) && environment->release_p(pevent)) {
             // todo: maybe this is too weak.
