@@ -612,8 +612,8 @@ private:
     void apply_event_to_suspect(const PlatformEvent &pevent) {
         assert(state == st_suspect);
 
-        Time simulated_time = environment->time_of(pevent);
-        Keycode key = environment->detail_of(pevent);
+        const Time simulated_time = environment->time_of(pevent);
+        const Keycode key = environment->detail_of(pevent);
 
         /* Here, we can
          * o refuse .... if suspected/forkable is released quickly,
@@ -709,8 +709,8 @@ private:
      * We wait only for time, and for the release of the key
      */
     void apply_event_to_verify_state(const PlatformEvent &pevent) {
-        Time simulated_time = environment->time_of(pevent);
-        Keycode key = environment->detail_of(pevent);
+        const Time simulated_time = environment->time_of(pevent);
+        const Keycode key = environment->detail_of(pevent);
 
         /* We pressed a forkable key I, and another one E (which could possibly
            use the modifier). Now, either the forkable key was intended
