@@ -439,10 +439,7 @@ private:
      * ... and push the event down the pipeline, when not frozen.
      */
     void issue_event() {
-        // assert(ev->p_event != nullptr);
-        // mdb("%s: %p %p\n", __func__, ev.get(), ev->p_event);
         tq.move_to_first();
-        // output_queue.push(ev.release());
     }
 
     // So the event proves, that the current event is not forked.
@@ -452,15 +449,9 @@ private:
         check_locked();
         UNUSED(reason);
         assert(state == st_suspect || state == st_verify);
-#if 0
-        std::unique_ptr<key_event> non_forked_event(internal_queue.pop());
-        mdb("this is not a fork! %d\n",
-            environment->detail_of(non_forked_event->p_event));
-        internal_queue.push(ev.release());
-#endif
+
         issue_event();
-        rewind_machine(st_deactivated); // short-lived state. is it worth it?
-        // possibly unlocks
+        rewind_machine(st_deactivated);
     };
 
 
