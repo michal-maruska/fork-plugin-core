@@ -513,6 +513,90 @@ private:
     }
 
 
+    // is mDecision_time always recalculated?
+    // possibly unlocks
+    void apply_event_to_normal(const PlatformEvent &pevent) {
+
+        const Keycode key = environment->detail_of(pevent);
+        const Time simulated_time = environment->time_of(pevent);
+
+        assert(state == st_normal);
+
+        // if this key might start a fork....
+        if (forkable_p(
+#ifndef DISABLE_STD_LIBRARY
+                config.get()
+#else
+                config
+#endif
+                , key)
+            && environment->press_p(pevent)
+            && !environment->ignore_event(pevent)) {
+            /* ".-" AR-trick: by depressing/re-pressing the key rapidly, AR is invoked, not fork */
+#if DEBUG
+            if ( !key_forked(key) && (last_released == key )) {
+                mdb("can we invoke autorepeat? %d  upper bound %d ms\n",
+                    // mmc: config is pointing outside memory range!
+                    (int)(simulated_time - last_released_time), config->repeat_max);
+            }
+#endif
+            /* So, unless we see the .- trick, we do suspect: */
+            if (!key_forked(key) &&
+                ((last_released != key )
+                 || time_difference_more(simulated_time, last_released_time, config->repeat_max))) {
+
+                change_state(st_suspect);
+                suspect = key;
+                suspect_time = environment->time_of(pevent);
+                mDecision_time = suspect_time +
+                    config->verification_interval_of(key, 0);
+
+                tq.move_to_second();
+                return;
+            } else {
+                // .- trick: (fixme: or self-forked)
+                mdb("re-pressed very quickly\n");
+                forkActive[key] = key; // fixme: why not 0 ?
+
+                // double move:
+                tq.move_to_second();
+                issue_event();
+                return;
+            };
+        } else if (environment->release_p(pevent) && (key_forked(key))) {
+            mdb("releasing forked key\n");
+            // fixme:  we should see if the fork was `used'.
+            if (config->consider_forks_for_repeat){
+                // C-f   f long becomes fork. now we wanted to repeat it....
+                last_released = environment->detail_of(pevent);
+                last_released_time = environment->time_of(pevent);
+            } else {
+                // imagine mouse-button during the short 1st press. Then
+                // the 2nd press ..... should not relate the the 1st one.
+                last_released = no_key;
+                last_released_time = 0;
+            }
+            /* we finally release a (self-)forked key. Rewrite back the keycode.
+             *
+             * fixme: do i do this in other machine states?
+             */
+
+            tq.move_to_second();
+            environment->rewrite_event(tq.head(), forkActive[key]);
+            forkActive[key] = 0;
+            issue_event();
+        } else {
+            // non forkable, for example:
+            if (environment->release_p(pevent)) {
+
+                last_released = environment->detail_of(pevent);
+                last_released_time = environment->time_of(pevent);
+            };
+            // pass along the un-forkable event.
+            tq.move_to_second();
+            issue_event();
+        };
+    }
 
     /**  First (press)
      *    v   ^     (0   <-- we are here. Input q
@@ -604,92 +688,6 @@ private:
             };
         }
     };
-
-
-    // is mDecision_time always recalculated?
-    // possibly unlocks
-    void apply_event_to_normal(const PlatformEvent &pevent) {
-
-        const Keycode key = environment->detail_of(pevent);
-        const Time simulated_time = environment->time_of(pevent);
-
-        assert(state == st_normal);
-
-        // if this key might start a fork....
-        if (forkable_p(
-#ifndef DISABLE_STD_LIBRARY
-                config.get()
-#else
-                config
-#endif
-                , key)
-            && environment->press_p(pevent)
-            && !environment->ignore_event(pevent)) {
-            /* ".-" AR-trick: by depressing/re-pressing the key rapidly, AR is invoked, not fork */
-#if DEBUG
-            if ( !key_forked(key) && (last_released == key )) {
-                mdb("can we invoke autorepeat? %d  upper bound %d ms\n",
-                    // mmc: config is pointing outside memory range!
-                    (int)(simulated_time - last_released_time), config->repeat_max);
-            }
-#endif
-            /* So, unless we see the .- trick, we do suspect: */
-            if (!key_forked(key) &&
-                ((last_released != key )
-                 || time_difference_more(simulated_time, last_released_time, config->repeat_max))) {
-
-                change_state(st_suspect);
-                suspect = key;
-                suspect_time = environment->time_of(pevent);
-                mDecision_time = suspect_time +
-                    config->verification_interval_of(key, 0);
-
-                tq.move_to_second();
-                return;
-            } else {
-                // .- trick: (fixme: or self-forked)
-                mdb("re-pressed very quickly\n");
-                forkActive[key] = key; // fixme: why not 0 ?
-
-                // double move:
-                tq.move_to_second();
-                issue_event();
-                return;
-            };
-        } else if (environment->release_p(pevent) && (key_forked(key))) {
-            mdb("releasing forked key\n");
-            // fixme:  we should see if the fork was `used'.
-            if (config->consider_forks_for_repeat){
-                // C-f   f long becomes fork. now we wanted to repeat it....
-                last_released = environment->detail_of(pevent);
-                last_released_time = environment->time_of(pevent);
-            } else {
-                // imagine mouse-button during the short 1st press. Then
-                // the 2nd press ..... should not relate the the 1st one.
-                last_released = no_key;
-                last_released_time = 0;
-            }
-            /* we finally release a (self-)forked key. Rewrite back the keycode.
-             *
-             * fixme: do i do this in other machine states?
-             */
-
-            tq.move_to_second();
-            environment->rewrite_event(tq.head(), forkActive[key]);
-            forkActive[key] = 0;
-            issue_event();
-        } else {
-            // non forkable, for example:
-            if (environment->release_p(pevent)) {
-
-                last_released = environment->detail_of(pevent);
-                last_released_time = environment->time_of(pevent);
-            };
-            // pass along the un-forkable event.
-            tq.move_to_second();
-            issue_event();
-        };
-    }
 
     /**
      * Timeline:
