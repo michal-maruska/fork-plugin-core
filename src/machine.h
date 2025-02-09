@@ -452,6 +452,67 @@ private:
         rewind_machine();
     };
 
+    /**
+     * One key-event investigation finished,
+     * now reset for the next one */
+    void rewind_machine() {
+        check_locked();
+        /* reset the machine */
+#if 0
+        mdb("== Resetting the fork machine (internal %d, input %d)\n",
+            internal_queue.length (),
+            input_queue.length ());
+#endif
+        change_state(st_normal);
+        mDecision_time = 0; // nothing to decide
+        suspect = no_key;
+        verificator_keycode = no_key;
+
+        tq.rewind_middle();
+    }
+
+   /**
+    * We concluded the key is forked. "Output" it and prepare for the next one.
+    * fixme: locking -- possibly unlocks?
+    */
+    void activate_fork_rewind(fork_reason_t fork_reason) {
+        UNUSED(fork_reason);
+        check_locked();
+
+        PlatformEvent& pevent = tq.head();
+        Keycode original_key = environment->detail_of(pevent);
+
+        /* Change the keycode, but remember the original: */
+        forkActive[original_key] = config->fork_keycode[original_key];
+
+        // todo: use std::format(), not hard-coded %d
+        // but in kernel it's impossible
+        mdb("%s: the key %d-> forked to: %d. %s\n",
+            __func__,
+            original_key, forkActive[original_key],
+            describe_machine_state(this->state));
+
+        environment->rewrite_event(pevent, forkActive[original_key]);
+
+        issue_event();
+        rewind_machine();
+    };
+
+    /**
+     * Operations on the machine
+     * fixme: should it include the `self_forked' keys ?
+     * `self_forked' means, that i decided to NOT fork. to mark this decision
+     * (for when a repeated event arrives), i fork it to its own keycode
+     */
+    void change_state(const fork_state_t new_state)
+    {
+        state = new_state;
+// #if ANSI_COLOR
+        mdb(" --->%s[%dm%s%s\n", escape_sequence, 32 + new_state,
+            state_description[new_state], color_reset);
+    }
+
+
 
     /**  First (press)
      *    v   ^     (0   <-- we are here. Input q
@@ -849,69 +910,6 @@ private:
           activate_fork_rewind(fork_reason_t::reason_force);
       else
           mdb("%s: BUG -- state but empty\n", __func__);
-    }
-
-
-    /**
-     * One key-event investigation finished,
-     * now reset for the next one */
-    void rewind_machine() {
-        check_locked();
-        /* reset the machine */
-#if 0
-        mdb("== Resetting the fork machine (internal %d, input %d)\n",
-            internal_queue.length (),
-            input_queue.length ());
-#endif
-
-        change_state(st_normal);
-        mDecision_time = 0; // nothing to decide
-        suspect = no_key;
-        verificator_keycode = no_key;
-        tq.rewind_middle();
-    }
-
-
-
-   /**
-    * We concluded the key is forked. "Output" it and prepare for the next one.
-    * fixme: locking -- possibly unlocks?
-    */
-    void activate_fork_rewind(fork_reason_t fork_reason) {
-        UNUSED(fork_reason);
-        check_locked();
-
-        PlatformEvent& pevent = tq.head();
-        Keycode original_key = environment->detail_of(pevent);
-
-        /* Change the keycode, but remember the original: */
-        forkActive[original_key] = config->fork_keycode[original_key];
-
-        // todo: use std::format(), not hard-coded %d
-        // but in kernel it's impossible
-        mdb("%s: the key %d-> forked to: %d. %s\n",
-            __func__,
-            original_key, forkActive[original_key],
-            describe_machine_state(this->state));
-
-        environment->rewrite_event(pevent, forkActive[original_key]);
-
-        issue_event();
-        rewind_machine();
-    };
-
-    /**
-     * Operations on the machine
-     * fixme: should it include the `self_forked' keys ?
-     * `self_forked' means, that i decided to NOT fork. to mark this decision
-     * (for when a repeated event arrives), i fork it to its own keycode
-     */
-    void change_state(const fork_state_t new_state)
-    {
-        state = new_state;
-// #if ANSI_COLOR
-        mdb(" --->%s[%dm%s%s\n", escape_sequence, 32 + new_state,
-            state_description[new_state], color_reset);
     }
 
     /**
