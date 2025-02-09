@@ -211,6 +211,16 @@ private:
     int max_last = 10; // can be updated!
 
 public:
+
+    /* forkActive(x) == y  means we sent downstream Keycode Y instead of X.
+     * what is the meaning of:  0 and X ? */
+    Keycode          forkActive[MAX_KEYCODE] = {};
+#ifndef DISABLE_STD_LIBRARY
+    std::unique_ptr<fork_configuration> config; // list<fork_configuration>
+#else
+    fork_configuration* config;
+#endif
+
     // prefix with a space.
     void mdb(const char* format...) const
     {
@@ -356,8 +366,6 @@ public:
         return 0;
     }
 
-public:
-
     void set_debug(int level) {
         scoped_lock lock(mLock);
         config->debug = level;
@@ -369,19 +377,6 @@ public:
         scoped_lock wait_lock(mLock);
     }
 
-
-public:
-    /* forkActive(x) == y  means we sent downstream Keycode Y instead of X.
-     * what is the meaning of:  0 and X ? */
-    Keycode          forkActive[MAX_KEYCODE] = {};
-
-
-public:
-#ifndef DISABLE_STD_LIBRARY
-    std::unique_ptr<fork_configuration> config; // list<fork_configuration>
-#else
-    fork_configuration* config;
-#endif
 
 private:
     void set_last_events_count(const int new_max) {
