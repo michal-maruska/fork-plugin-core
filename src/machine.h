@@ -465,9 +465,11 @@ private:
             internal_queue.length (),
             input_queue.length ());
 #endif
+        // start_suspiction(keycode, time)
         change_state(st_normal);
-        mDecision_time = 0; // nothing to decide
         suspect = no_key;
+        // suspect_time =  // not necessary
+        mDecision_time = 0; // nothing to decide
         verificator_keycode = no_key;
 
         tq.rewind_middle();
