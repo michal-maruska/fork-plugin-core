@@ -530,11 +530,11 @@ private:
         // if this key might start a fork....
         if (forkable_p(
 #ifndef DISABLE_STD_LIBRARY
-                config.get()
+                config.get(),
 #else
-                config
+                config,
 #endif
-                , key)
+                key)
             && environment->press_p(pevent)
             && !environment->ignore_event(pevent)) {
             /* ".-" AR-trick: by depressing/re-pressing the key rapidly, AR is invoked, not fork */
