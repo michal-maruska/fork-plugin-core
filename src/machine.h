@@ -661,14 +661,6 @@ private:
                 return;
             };
         } else {
-            if (!environment->press_p(pevent)) { // why not release_p() ?
-                // RawPress & Device events.
-                if (!environment->release_p(pevent)) {
-                    mdb("a bizzare event scanned\n");
-                }
-                tq.move_to_second();
-                return;
-            }
             // press-event here:
             if (key == suspect) {
                 /* How could this happen? Auto-repeat on the lower/hw level?
@@ -839,6 +831,14 @@ private:
             return;
         };
 
+        // `bizzare' events:
+        if (!environment->press_p(pevent)
+            && ! environment->release_p(pevent)
+            ) {
+            mdb("a bizzare event scanned\n");
+            tq.move_to_second();
+            return;
+        }
 
         if (state == st_suspect) {
             apply_event_to_suspect(pevent);
