@@ -539,10 +539,11 @@ private:
             && !environment->ignore_event(pevent)) {
             /* ".-" AR-trick: by depressing/re-pressing the key rapidly, AR is invoked, not fork */
 #if DEBUG
-            if ( !key_forked(key) && (last_released == key )) {
-                mdb("can we invoke autorepeat? %d  upper bound %d ms\n",
+            if (!key_forked(key)
+                && (last_released == key )) {
+                mdb("can we invoke autorepeat? %" TIME_FMT ",  upper bound %d ms\n",
                     // mmc: config is pointing outside memory range!
-                    (int)(simulated_time - last_released_time), config->repeat_max);
+                    (Time)(simulated_time - last_released_time), config->repeat_max);
             }
 #endif
             /* So, unless we see the .- trick, we do suspect: */
@@ -554,7 +555,7 @@ private:
                 suspect = key;
                 suspect_time = environment->time_of(pevent);
                 mDecision_time = suspect_time +
-                    config->verification_interval_of(key, 0);
+                    config->verification_interval_of(key, KEYCODE_UNUSED);
 
                 tq.move_to_second();
                 return;
