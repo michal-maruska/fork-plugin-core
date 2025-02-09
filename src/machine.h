@@ -563,14 +563,17 @@ private:
                 // .- trick: (fixme: or self-forked)
                 mdb("re-pressed very quickly\n");
                 forkActive[key] = key; // fixme: why not 0 ?
-
+                                       // key_forked() will be true?
                 // double move:
-                tq.move_to_second();
+                // assert (tq.second.empty())
+                tq.move_to_second(); // this is first in the middle queue
+                // move to output:
                 issue_event();
                 return;
             };
         } else if (environment->release_p(pevent) && (key_forked(key))) {
             mdb("releasing forked key\n");
+
             // fixme:  we should see if the fork was `used'.
             if (config->consider_forks_for_repeat){
                 // C-f   f long becomes fork.
@@ -586,10 +589,9 @@ private:
              *
              * fixme: do i do this in other machine states?
              */
-
-            tq.move_to_second();
-            environment->rewrite_event(tq.head(), forkActive[key]);
+            environment->rewrite_event(const_cast<PlatformEvent&>(pevent), forkActive[key]);
             forkActive[key] = 0;
+            tq.move_to_second();
             issue_event();
         } else {
             // non forkable, for example:
