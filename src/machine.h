@@ -1,4 +1,4 @@
-// (c) Michal Maruska 2003-2024
+// (c) Michal Maruska 2003-2025
 #pragma once
 
 #ifdef KERNEL
@@ -56,16 +56,16 @@ template <typename Keycode,
           int MAX_KEYCODE = 256>
 
 class forkingMachine {
-    constexpr static const Keycode no_key = KEYCODE_UNUSED;
+    // fixme: constraints:
+    // static_assert(std::is_same_v<Keycode, decltype(keycode_of(PlatformEvent()))>);
     /* Environment must be able to convert from
      * PlatformEvent to archived_event_t
      */
 
-// fixme:
-// static_assert(std::is_same_v<Keycode, decltype(keycode_of(PlatformEvent()))>);
+    static constexpr Keycode no_key = KEYCODE_UNUSED;
 
-// Types
 public:
+    // Types
     using fork_configuration = ForkConfiguration<Keycode, Time, MAX_KEYCODE>;
 
 private:
@@ -113,10 +113,9 @@ private:
 
 
 
-
 public:
-
-    // todo: HAVE_SMART_POINTERS
+    // why public?
+    // todo: #ifdef HAVE_SMART_POINTERS
 #ifndef DISABLE_STD_LIBRARY
     std::unique_ptr<Environment> environment;
 #else
@@ -137,18 +136,28 @@ private:
         st_verify,              // current keycode seems but...?
     };
 
+    /* used only for debugging */
+    static constexpr char const * const state_description[3] = {
+        // map<fork_state_t, string>
+        "normal",
+        "suspect",
+        "verify",
+    };
+
+
     /* This is how it works:
      * We have a `state' and 3 queues:
      *
-     *  output    |   internal     | input
+     * Q. output  |  internal   | input
+     *  ----------+-------------+------
      *  waits for |
-     *  thaw      |  Kxxxxxx       |  yyyyy
-     *               ^ forked?
+     *  thaw      |  Kxxxxxx    | yyy
+     *               ^ forked?       ^ append
      *
      * We push at the end of input Q. Then we pop from that Q and push on
      * Internal where we determine for 1 event, if forked/non-forked.
      *
-     * Then we push on the output Q. At that moment, we also restart: all
+     * Then we push on the output queue. At that moment, we also restart: all
      * from internal Q is returned/prepended to the input Q.
      */
 
@@ -157,10 +166,9 @@ private:
 
     // only for certain states we keep (updated):
     Keycode suspect;
-    Keycode verificator_keycode;
-
-    // these are "registers"
     Time suspect_time;               /* time of the 1st event in the internal queue. */
+
+    Keycode verificator_keycode;
     Time verificator_time = 0;       /* press of the `verificator' */
 
     /* To allow AR for forkable keys:
@@ -173,8 +181,10 @@ private:
 
 
     // calculated:
-    Time mDecision_time;        // Time to wait... so that the HEAD event in queue could decide more
-    Time mCurrent_time;         // the last time we received from previous plugin/device
+    Time mDecision_time;        // Time .. when the suspected event forks.
+                                // recalculated on more context
+    Time mCurrent_time;         // the last time we received from previous
+                                // plugin/device. But only if after the last event.
 
 
     /* How we decided for the fork */
@@ -186,21 +196,9 @@ private:
         reason_wrong,
     };
 
-    /* used only for debugging */
-    static constexpr
-    char const * const state_description[5] = {
-        // map<fork_state_t, string>
-        "normal",
-        "suspect",
-        "verify",
-        "deactivated",
-        "activated"
-    };
-
 
     triqueue_t<PlatformEvent, Environment> tq{100}; // total capacity
 
-    // template <typename Time>
     bool time_difference_more(Time now, Time past, Time limit_difference) {
         // return (now > past + limit_difference);
         // it's supposed to be monotonic, and 0... number is always included in the type range.
@@ -211,10 +209,10 @@ private:
     int max_last = 10; // can be updated!
 
 public:
-
     /* forkActive(x) == y  means we sent downstream Keycode Y instead of X.
-     * what is the meaning of:  0 and X ? */
+     * what is the meaning of:  KEYCODE_UNUSED and X ? */
     Keycode          forkActive[MAX_KEYCODE] = {};
+
 #ifndef DISABLE_STD_LIBRARY
     std::unique_ptr<fork_configuration> config; // list<fork_configuration>
 #else
@@ -222,8 +220,7 @@ public:
 #endif
 
     // prefix with a space.
-    void mdb(const char* format...) const
-    {
+    void mdb(const char* format...) const {
         if (config->debug) {
             va_list argptr;
             va_start(argptr, format);
@@ -237,7 +234,6 @@ public:
             environment->vlog(new_format, argptr);
 #endif
             va_end(argptr);
-
         }
     };
 
@@ -256,7 +252,8 @@ public:
 
     explicit forkingMachine(Environment* environment)
         : environment(environment),
-          state(st_normal), suspect(0), verificator_keycode(0), suspect_time(0),
+          state(st_normal), suspect(0), suspect_time(0),
+          verificator_keycode(0),
           last_released(KEYCODE_UNUSED), last_released_time(0),
           mDecision_time(0),
           mCurrent_time(0),
