@@ -830,7 +830,7 @@ private:
         // first we look at the `time':
         const Time simulated_time = environment->time_of(pevent);
 
-        if (0 == (mDecision_time = key_pressed_too_long(simulated_time))) {
+        if (simulated_time >= mDecision_time) {
             activate_fork_rewind(fork_reason_t::reason_long);
             return;
         };
