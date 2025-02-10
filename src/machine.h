@@ -1279,7 +1279,6 @@ public:
         }
         run_automaton(false);
 
-        environment->log("%s done.\n", __func__);
         return next_decision_time();
     }
 
