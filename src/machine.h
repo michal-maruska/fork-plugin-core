@@ -434,13 +434,6 @@ private:
 // see ./no/multiple-configs.cpp
 #endif
 
-    /** Another event has been determined. So:
-     * todo:  possible emit a (notification) event immediately,
-     * ... and push the event down the pipeline, when not frozen.
-     */
-    void issue_event() {
-        tq.move_to_first();
-    }
 
     // So the event proves, that the current event is not forked.
     // /----internal--queue--/ event /----input event----/
@@ -450,7 +443,7 @@ private:
         UNUSED(reason);
         assert(state == st_suspect || state == st_verify);
 
-        issue_event();
+        tq.move_to_first();
         rewind_machine();
     };
 
@@ -500,7 +493,7 @@ private:
 
         environment->rewrite_event(pevent, forkActive[original_key]);
 
-        issue_event();
+        tq.move_to_first();
         rewind_machine();
     };
 
@@ -574,7 +567,7 @@ private:
                 // assert (tq.second.empty())
                 tq.move_to_second(); // this is first in the middle queue
                 // move to output:
-                issue_event();
+                tq.move_to_first();
                 return;
             };
         } else if (environment->release_p(pevent) && (key_forked(key))) {
@@ -598,7 +591,7 @@ private:
             environment->rewrite_event(const_cast<PlatformEvent&>(pevent), forkActive[key]);
             forkActive[key] = 0;
             tq.move_to_second();
-            issue_event();
+            tq.move_to_first();
         } else {
             // non forkable, for example:
             if (environment->release_p(pevent)) {
@@ -606,7 +599,7 @@ private:
             };
             // pass along the un-forkable event.
             tq.move_to_second();
-            issue_event();
+            tq.move_to_first();
         };
     }
 
