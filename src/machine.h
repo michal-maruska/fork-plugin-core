@@ -869,32 +869,12 @@ private:
           __func__, color_reset, describe_machine_state(this->state),
           internal_queue.length(), (int)current_time, suspect);
 #endif
-      /* First, I try the simple (fork-by-one-keys).
-       * If that works, -> fork! Otherwise, I try w/ 2-key forking, overlapping.
-       */
 
-      // notice, how mDecision_time is rewritten here:
-      if (0 == (mDecision_time = key_pressed_too_long(current_time))) {
-
-        activate_fork_rewind(fork_reason_t::reason_long);
-        return true;
+      if (current_time >= mDecision_time) {
+          activate_fork_rewind(fork_reason_t::reason_long);
+          return true;
       };
 
-      /* To test 2 keys overlap, we need the 2nd key: a verificator! */
-      if (state == st_verify) {
-        // verify overlap
-        Time decision_time = config->verifier_decision_time(
-            current_time, suspect, suspect_time, verificator_keycode,
-            verificator_time);
-
-        if (decision_time == 0) {
-          activate_fork_rewind(fork_reason_t::reason_overlap);
-          return true;
-        }
-
-        if (decision_time < mDecision_time)
-          mDecision_time = decision_time;
-      }
       // so, now we are surely in the replay_mode. All we need is to
       // get an estimate on time still needed:
 
