@@ -960,27 +960,6 @@ private:
     // todo: so Time type must allow 0 NO_TIME
     static constexpr Time NO_TIME = (Time) 0;
 
-    // return NO_TIME if the suspect key is pressed enough time to fork.
-    // or time when this will happen.
-    Time key_pressed_too_long(Time current_time) {
-        assert(state== st_verify || state == st_suspect);
-
-        // verificator_keycode
-        Time verification_interval = config->verification_interval_of(suspect, no_key);
-        // note: this can be 0 (& should be, unless)
-        // fixme: mDecision_time is caching this:
-        Time decision_time = suspect_time + verification_interval;
-
-        mdb("time: verification_interval = %dms elapsed so far =%dms\n",
-            verification_interval,
-            (int)(current_time - suspect_time));
-
-        if (decision_time <= current_time)
-            return NO_TIME;
-        else
-            return decision_time;
-    };
-
    /* Return the keycode into which CODE has forked _last_ time.
    Returns code itself, if not forked. */
     [[nodiscard]] bool
