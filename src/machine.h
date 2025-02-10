@@ -200,9 +200,9 @@ private:
     triqueue_t<PlatformEvent, Environment> tq{100}; // total capacity
 
     bool time_difference_more(Time now, Time past, Time limit_difference) {
-        // return (now > past + limit_difference);
+        return (now > past + limit_difference);
         // it's supposed to be monotonic, and 0... number is always included in the type range.
-        return ( (now - past) > limit_difference);
+        // return ( (now - past) > limit_difference);
     }
 
     last_events_t last_events_log;
