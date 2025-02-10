@@ -403,11 +403,16 @@ private:
 #endif
     }
 
-
-    static bool
-    forkable_p(const fork_configuration* config, Keycode code)
+    bool forkable_p(Keycode code)
     {
-        return (config->fork_keycode[code] != no_key);
+        const fork_configuration* pconfig =
+#ifndef DISABLE_STD_LIBRARY
+            this->config.get()
+#else
+            this->config
+#endif
+            ;
+        return (pconfig->fork_keycode[code] != no_key);
     }
 
     static constexpr int BufferLength = 200;
@@ -519,13 +524,7 @@ private:
         assert(state == st_normal);
 
         // if this key might start a fork....
-        if (forkable_p(
-#ifndef DISABLE_STD_LIBRARY
-                config.get(),
-#else
-                config,
-#endif
-                key)
+        if (forkable_p(key)
             && environment->press_p(pevent)
             && !environment->ignore_event(pevent)) {
             /* ".-" AR-trick: by depressing/re-pressing the key rapidly, AR is invoked, not fork */
