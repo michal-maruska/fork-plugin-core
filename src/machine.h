@@ -603,24 +603,6 @@ private:
         };
     }
 
-    // const Keycode verificator_keycode
-    void customize_decision_time_for(const Time current_time) {
-      // verify overlap
-      Time decision_time =
-          config->verifier_decision_time(current_time,
-                                         suspect, suspect_time,
-                                         verificator_keycode, verificator_time);
-
-      // well, this is an abuse ... this should never be 0.
-      if (decision_time == NO_TIME) {
-          mdb("absurd\n"); // this means that verificator key verifies
-                         // immediately!
-      }
-
-      if (decision_time < mDecision_time)
-          mDecision_time = decision_time;
-    }
-
     /**  the internal queue:
      *    First (press)
      *    v   ^
@@ -682,7 +664,18 @@ private:
                 /* if already we had one -> we are not in this state!
                    if the verificator becomes a modifier ?? fixme:*/
 
-                customize_decision_time_for(simulated_time);
+                // update mDecision_time:
+                // verify overlap
+                {
+                    Time decision_time =
+                        config->verifier_decision_time(suspect, suspect_time,
+                                                       verificator_keycode, verificator_time);
+
+                    if (decision_time < mDecision_time)
+                        mDecision_time = decision_time;
+
+                }
+
                 tq.move_to_second();
                 return;
             };
