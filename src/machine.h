@@ -1209,6 +1209,7 @@ public:
     Time accept_event(const PlatformEvent& pevent) noexcept(false) {
         {
             scoped_lock lock(mLock);
+            const Keycode key = environment->detail_of(pevent);
 #if 0
             environment->fmt_event(__func__, pevent);
 #else
@@ -1225,17 +1226,21 @@ public:
             // fixme: mouse must not preempt us. But what if it does?
             // mmc: allocation:
 
-            if (mCurrent_time > environment->time_of(pevent))
+            if (mCurrent_time > environment->time_of(pevent)) {
                 mdb("%s: bug: time moved backwards!\n", __func__);
+            }
+
             // no need:
             mCurrent_time = 0;
 
+            if (key > MAX_KEYCODE) {
+                mdb("%s: out-of-bound event %d\n", __func__);
+                return 0;
+            }
+
             // here:
             if (environment->press_p(pevent)
-                && key_forked(environment->detail_of(pevent))
-                // forkActive[environment->detail_of(pevent)]
-                //
-                )
+                && key_forked(key))
             {
                 mdb("%s: skipping this Press -- it's a forked modifier and AR!\n", __func__);
                 // environment->free_event(&pevent);
