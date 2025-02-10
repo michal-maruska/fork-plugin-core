@@ -126,30 +126,28 @@ public:
     }
 
 
-    /** return 0 if enough, otherwise the time when it will be enough/proving a fork.
-     * dangerous to name it current_time, like the member variable!
+    /**
+     * return when verificator will trigger fork of suspect.
      */
-    Time
-    verifier_decision_time(Time current_time,
-                           Keycode suspect, Time suspect_time,
-                           Keycode verificator_keycode, Time verificator_time) {
-        // Given the 2 keys (pressed), and `current_time'
-        // todo:
+    Time verifier_decision_time(Keycode suspect, Time suspect_time,
+                                Keycode verificator_keycode, Time verificator_time) {
+
+        // S----V.......X
+        //  ^^^^^^^^^    this time: So V can shorted what S has as default verification_interval
+        //
         Time interval = verification_interval_of(suspect, verificator_keycode);
-        if (suspect_time + interval <= current_time) {
-            return 0;
-        }
+        Time min = suspect_time + interval;
+
+        // (---------<------->
+        //           verfification
+        // (----<---)---->
+        //      tolerance
 
         // verify overlap
-        int tolerance = overlap_tolerance_of(suspect, verificator_keycode);
-        Time decision_point_time =  verificator_time + tolerance;
-
-        if (decision_point_time <= current_time) {
-            // already "parallel"
-            return 0;
-        } else {
+        Time tolerance = overlap_tolerance_of(suspect, verificator_keycode);
+        Time decision_point_time = verificator_time + tolerance;
 #if 0
-            mdb("time: overlay interval = %dms elapsed so far =%dms\n",
+        mdb("time: overlay interval = %dms elapsed so far =%dms\n",
                 tolerance,
                 (int) (current_time - verificator_time));
 
@@ -158,8 +156,7 @@ public:
                 current_time - verificator_time,
                 decision_point_time - current_time);
 #endif
-            return decision_point_time;
-        }
+        return min(decision_point_time, min);
     }
 
 };
