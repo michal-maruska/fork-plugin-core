@@ -453,18 +453,13 @@ private:
     void rewind_machine() {
         check_locked();
         /* reset the machine */
-#if 0
-        mdb("== Resetting the fork machine (internal %d, input %d)\n",
-            internal_queue.length (),
-            input_queue.length ());
-#endif
-        // start_suspiction(keycode, time)
         change_state(st_normal);
         suspect = no_key;
         // suspect_time =  // not necessary
         mDecision_time = 0; // nothing to decide
         verificator_keycode = no_key;
 
+        log_queues("after rewind");
         tq.rewind_middle();
     }
 
@@ -1189,11 +1184,8 @@ private:
 #endif
     }
 
-    void log_queues(const char *message) const {
-#if 0
-        mdb("%s: Queues: output: %d\t internal: %d\t input: %d\n", message,
-            output_queue.length(), internal_queue.length(), input_queue.length());
-#endif
+    void log_queues(const char *message) { // const
+        tq.log_queues(message);
     }
 
     void log_state_and_event(const char* message, const PlatformEvent & pevent) {
