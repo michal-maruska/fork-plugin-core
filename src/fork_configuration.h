@@ -114,8 +114,7 @@ public:
 #endif
     }
 
-    Time
-    overlap_tolerance_of(Keycode code, Keycode verificator) {
+    Time overlap_tolerance_of(Keycode code, Keycode verificator) {
 #if VERIFICATION_MATRIX
         return get_value_from_matrix(this->overlap_tolerance, code, verificator);
 #else
