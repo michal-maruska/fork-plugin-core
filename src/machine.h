@@ -727,19 +727,6 @@ private:
            are slow to release, when we press a specific one afterwards. So in this case fork slower!
         */
 
-        /* now, check the overlap of the 2 first keys */
-        Time decision_time = config->verifier_decision_time(simulated_time,
-                                                            suspect, suspect_time,
-                                                            verificator_keycode, verificator_time);
-        if (decision_time == 0) {
-            activate_fork_rewind(fork_reason_t::reason_overlap);
-            return;
-        }
-
-        // how is this possible?
-        if (decision_time < mDecision_time)
-            mDecision_time = decision_time;
-
         if ((key == suspect) && environment->release_p(pevent)){ // fixme: is release_p(event) useless?
             mdb("fork-key released on time: %" TIME_FMT "ms is a tolerated error (< %lu)\n",
                 (simulated_time -  suspect_time),
