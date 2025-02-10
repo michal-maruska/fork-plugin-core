@@ -856,6 +856,10 @@ private:
           __func__, color_reset, describe_machine_state(this->state),
           internal_queue.length(), (int)current_time, suspect);
 #endif
+      if (state == st_normal) {
+          environment->log("Bug %s -- but state NORMAL\n", __func__);
+          return false;
+      }
 
       if (current_time >= mDecision_time) {
           activate_fork_rewind(fork_reason_t::reason_long);
