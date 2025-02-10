@@ -473,6 +473,11 @@ private:
         UNUSED(fork_reason);
         check_locked();
 
+        // assert()
+        if (tq.middle_empty()) {
+            environment->log("Bug %s -- empty queue\n", __func__);
+            return;
+        }
         PlatformEvent& pevent = tq.head();
         Keycode original_key = environment->detail_of(pevent);
 
