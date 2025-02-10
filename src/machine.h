@@ -933,6 +933,8 @@ private:
                 }
             }
         }
+
+        log_queues("Before flushing:");
         // unlocked now, why?
         flush_to_next();
     };
