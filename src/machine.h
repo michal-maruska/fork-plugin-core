@@ -562,7 +562,7 @@ private:
             } else {
                 // .- trick: (fixme: or self-forked)
                 mdb("re-pressed very quickly\n");
-                forkActive[key] = key; // fixme: why not 0 ?
+                forkActive[key] = no_key; // fixme: why not 0 ?
                                        // key_forked() will be true?
                 // double move:
                 // assert (tq.second.empty())
@@ -1298,7 +1298,8 @@ public:
 
             // here:
             if (environment->press_p(pevent)
-                && forkActive[environment->detail_of(pevent)]
+                && key_forked(environment->detail_of(pevent))
+                // forkActive[environment->detail_of(pevent)]
                 //
                 )
             {
