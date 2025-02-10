@@ -567,7 +567,11 @@ private:
                 forkActive[key] = key;
 
                 // double move:
-                // assert (tq.second.empty())
+                if (! tq.middle_empty()) {
+                    environment->log("Bug! 2nd is not empty!\n");
+                }
+                assert(tq.middle_empty());
+
                 tq.move_to_second(); // this is first in the middle queue
                 // move to output:
                 tq.move_to_first();
