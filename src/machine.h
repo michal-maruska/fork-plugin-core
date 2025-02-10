@@ -571,6 +571,7 @@ private:
                 tq.move_to_second(); // this is first in the middle queue
                 // move to output:
                 tq.move_to_first();
+                log_queues("after kicking off AR of forkable key");
                 return;
             };
         } else if (environment->release_p(pevent) && forkActive[key] != no_key) {
@@ -1262,6 +1263,8 @@ public:
             }
         }
         run_automaton(false);
+
+        environment->log("%s done.\n", __func__);
         return next_decision_time();
     }
 
