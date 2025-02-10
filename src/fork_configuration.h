@@ -136,7 +136,7 @@ public:
         //  ^^^^^^^^^    this time: So V can shorted what S has as default verification_interval
         //
         Time interval = verification_interval_of(suspect, verificator_keycode);
-        Time min = suspect_time + interval;
+        Time oneKey = suspect_time + interval;
 
         // (---------<------->
         //           verfification
@@ -151,12 +151,12 @@ public:
                 tolerance,
                 (int) (current_time - verificator_time));
 
-            mdb("suspected = %d, verificator_keycode %d. Times: overlap %" TIME_FMT ", "
-                "still needed: %" TIME_FMT " (ms)\n", suspect, verificator_keycode,
-                current_time - verificator_time,
-                decision_point_time - current_time);
+        mdb("suspected = %d, verificator_keycode %d. Times: overlap %" TIME_FMT ", "
+            "still needed: %" TIME_FMT " (ms)\n", suspect, verificator_keycode,
+            current_time - verificator_time,
+            decision_point_time - current_time);
 #endif
-        return min(decision_point_time, min);
+        return (decision_point_time < oneKey)?decision_point_time : oneKey;
     }
 
 };
