@@ -595,15 +595,16 @@ private:
             } else {
                 // imagine mouse-button during the short 1st press. Then
                 // the 2nd press ..... should not relate the the 1st one.
+                // record_last_event(no_key_event)
                 last_released = no_key;
                 last_released_time = 0;
             }
             /* we finally release a (self-)forked key. Rewrite back the keycode.
-             *
+             *  bug: not true!
              * fixme: do i do this in other machine states?
              */
             environment->rewrite_event(const_cast<PlatformEvent&>(pevent), forkActive[key]);
-            forkActive[key] = 0;
+            forkActive[key] = no_key;
             tq.move_to_second();
             tq.move_to_first();
         } else {
