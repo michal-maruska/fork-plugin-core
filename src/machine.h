@@ -551,7 +551,7 @@ private:
                 if (last_released == key)
                     environment->log("restarting the same re-pressed  -- not quickly\n");
 
-
+                // so this state has following items:
                 change_state(st_suspect);
                 suspect = key;
                 suspect_time = environment->time_of(pevent);
