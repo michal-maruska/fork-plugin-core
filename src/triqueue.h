@@ -143,8 +143,10 @@ public:
         item_t& item = buffer.front();
 
         buffer.pop_front();
-        end_internal-=1;
+        // buffer.increment_head();
+        // these are relative? yes. indices.
         end_output-=1;
+        end_internal-=1;
 #if DEBUG
         dump_item(__func__, item);
 #endif
