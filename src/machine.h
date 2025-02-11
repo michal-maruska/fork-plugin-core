@@ -537,9 +537,20 @@ private:
             }
 #endif
             /* So, unless we see the .- trick, we do suspect: */
-            if (!key_forked(key) &&
-                ((last_released != key )
-                 || time_difference_more(simulated_time, last_released_time, config->repeat_max))) {
+            if (!key_forked(key)
+                && ((last_released != key )
+                    || time_difference_more(simulated_time, last_released_time, config->repeat_max))) {
+
+                if (forkActive[key] == key) {
+                    // it's AR .- now
+                    tq.move_to_second();
+                    tq.move_to_first();
+                    return;
+                }
+
+                if (last_released == key)
+                    environment->log("restarting the same re-pressed  -- not quickly\n");
+
 
                 change_state(st_suspect);
                 suspect = key;
@@ -551,9 +562,10 @@ private:
                 return;
             } else {
                 // .- trick: (fixme: or self-forked)
-                mdb("re-pressed very quickly\n");
-                forkActive[key] = no_key; // fixme: why not 0 ?
-                                       // key_forked() will be true?
+                mdb("re-pressed very quickly %d\n", key);
+
+                forkActive[key] = key;
+
                 // double move:
                 // assert (tq.second.empty())
                 tq.move_to_second(); // this is first in the middle queue
@@ -561,7 +573,8 @@ private:
                 tq.move_to_first();
                 return;
             };
-        } else if (environment->release_p(pevent) && (key_forked(key))) {
+        } else if (environment->release_p(pevent) && forkActive[key] != no_key) {
+            // fixme: but this does not happen when suspecting it?
             mdb("releasing forked key\n");
 
             // fixme:  we should see if the fork was `used'.
