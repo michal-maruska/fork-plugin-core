@@ -964,11 +964,12 @@ private:
     void flush_to_next() {
         while (!environment->output_frozen() && tq.can_pop()) {
             scoped_lock lock(mLock);
-            PlatformEvent event = tq.pop(); // copy ?
+            const PlatformEvent& event = tq.head(); // copy ?
             // fixme ... temporarily ... not pop before sending off !
             save_event_to_log(event);
             // unlocks!
             relay_event(event);
+            tq.pop();
         }
         if (!environment->output_frozen()) {
             push_time_to_next();
