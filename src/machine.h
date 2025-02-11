@@ -881,16 +881,15 @@ private:
         // fixme: maybe All I need is the nextPlugin?
         {
             scoped_lock lock(mLock);
+#if 0
             if (environment->output_frozen() || (! tq.middle_empty() )) {
                 // log_queues_and_nextplugin(message)
-#if 0
                 mdb("%s: next %sfrozen: internal %d, input: %d\n", __func__,
                     (environment->output_frozen()?"":"NOT "),
                     internal_queue.length(),
                     input_queue.length());
-#endif
             }
-
+#endif
             // notice that instead of recursion, all the calls to `rewind_machine' are
             // followed by return to this cycle!
             while (! environment->output_frozen()) {
