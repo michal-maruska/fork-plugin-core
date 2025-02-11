@@ -162,8 +162,9 @@ public:
 
     // rewritable!
     item_t& head() {
+        // why?
         // fixme: not pop. peek
-        item_t& tmp = *(end_output); // +1
+        item_t& tmp = buffer.front(); // *(end_output);
 #if DEBUG
         env->log("%s: %p\n", __func__, &tmp);
 #endif
