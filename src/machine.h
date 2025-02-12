@@ -122,7 +122,7 @@ public:
     Environment *environment;
 
     void* operator new(size_t size, void* p) noexcept {
-        UNREFERENCED_PARAMETER(size);
+        UNUSED(size);
         return p;
     }
 #endif
