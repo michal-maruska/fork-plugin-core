@@ -19,60 +19,80 @@ public:
   }
 };
 
-testEnvironment environment;
 
 class triqueueTest : public testing::Test {
 protected:
+  testEnvironment environment;
   triqueue_t<int, testEnvironment> q0_{100};
 
+  void SetUp ()
+  {
+    // static variable:
+    triqueue_t<int, testEnvironment>::env = &environment;
+  }
 };
+
 
 
 TEST_F(triqueueTest, IsEmptyInitially) {
 
-  triqueue_t<int, testEnvironment>::env = &environment;
-
-    EXPECT_TRUE(q0_.empty());
-    EXPECT_TRUE(q0_.middle_empty());
-    EXPECT_TRUE(q0_.third_empty());
+  EXPECT_TRUE(q0_.empty());
+  EXPECT_TRUE(q0_.middle_empty());
+  EXPECT_TRUE(q0_.third_empty());
   // EXPECT_EQ(q0_.length(), 0);
-    EXPECT_FALSE(q0_.can_pop());
+  EXPECT_FALSE(q0_.can_pop());
+}
 
-    q0_.push(50);
-    EXPECT_FALSE(q0_.empty());
-    EXPECT_FALSE(q0_.middle_empty());
-    EXPECT_FALSE(q0_.third_empty());
-    EXPECT_FALSE(q0_.can_pop());
+TEST_F(triqueueTest, Push) {
 
-    EXPECT_EQ(*q0_.first(), 50);
+  q0_.push(50); // goes in the the 3rd
+  EXPECT_FALSE(q0_.empty());
+  // ??
+  EXPECT_TRUE(q0_.middle_empty());
+  //
+  EXPECT_FALSE(q0_.third_empty());
+  EXPECT_FALSE(q0_.can_pop());
 
-
-    q0_.move_to_second();
-    EXPECT_FALSE(q0_.empty());
-    EXPECT_FALSE(q0_.middle_empty());
-    EXPECT_TRUE(q0_.third_empty());
-    EXPECT_FALSE(q0_.can_pop());
-
-    const int new_value = 20;
-    q0_.head() = new_value;
-
-    q0_.move_to_first();
-
-    EXPECT_FALSE(q0_.empty());
-    EXPECT_TRUE(q0_.middle_empty());
-    EXPECT_TRUE(q0_.third_empty());
-
-    EXPECT_TRUE(q0_.can_pop());
-
-    EXPECT_EQ(*q0_.first(), new_value);
-
-    EXPECT_EQ(q0_.pop(), new_value);
-    EXPECT_FALSE(q0_.can_pop());
-    EXPECT_TRUE(q0_.empty());
-    EXPECT_TRUE(q0_.middle_empty());
-    EXPECT_TRUE(q0_.third_empty());
-
-    EXPECT_EQ(q0_.first(), nullptr);
+  EXPECT_EQ(*q0_.first(), 50);
 }
 
 
+TEST_F(triqueueTest, Push_And_Move) {
+  q0_.push(50);
+
+  q0_.move_to_second();
+  EXPECT_FALSE(q0_.empty());
+  EXPECT_FALSE(q0_.middle_empty());
+  EXPECT_TRUE(q0_.third_empty());
+  EXPECT_FALSE(q0_.can_pop());
+
+}
+
+TEST_F(triqueueTest, Push_And_overwrite_move) {
+  q0_.push(50);
+  q0_.move_to_second();
+
+  // overwrite?
+  const int new_value = 20;
+  q0_.head() = new_value;
+
+  q0_.move_to_first();
+
+  // only first has values  (x)()()
+  EXPECT_FALSE(q0_.empty());
+  EXPECT_TRUE(q0_.middle_empty());
+  EXPECT_TRUE(q0_.third_empty());
+  EXPECT_TRUE(q0_.can_pop());
+
+  // the values is overwritten:
+  EXPECT_EQ(*q0_.first(), new_value);
+
+  // pop:
+  EXPECT_EQ(q0_.pop(), new_value);
+  EXPECT_FALSE(q0_.can_pop());
+  EXPECT_TRUE(q0_.empty());
+  EXPECT_TRUE(q0_.middle_empty());
+  EXPECT_TRUE(q0_.third_empty());
+
+  EXPECT_EQ(q0_.first(), nullptr);
+}
