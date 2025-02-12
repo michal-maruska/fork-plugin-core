@@ -1,38 +1,48 @@
 #!/usr/bin/bash
 
-gitdir=$(git rev-parse --show-toplevel)
+set -eu
+# Do the builds & run tests. On Linux.
+# Runs inside the .git directory where THIS script is located.
+
+gitdir=$(cd $(dirname $0); git rev-parse --show-toplevel)
 
 build_run_tests()
 {
+    # invoked where?
     ninja -v
-    find -name \*.gcda -exec rm -r {}
-    cd tests; ctest
+    find -name \*.gcda -exec rm -r '{}' \;
+    cd test; ctest
 }
 
 
 
 (
-mkdir ${dir:=build.gcc}
-pushd $dir
-cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=clang++
-
-build_run_tests
-popd
-) || :
+    set -eu
+    cd $gitdir
+    mkdir ${dir:=build.gcc}
+    pushd $dir
+    cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=g++
+    build_run_tests
+    popd
+)
 
 
 (
-mkdir ${dir:=build.clang}
-cd $dir
-cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=clang++
+    cd $gitdir
+    mkdir ${dir:=build.clang}
+    cd $dir
+    cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=clang++
 
-build_run_tests
+    build_run_tests
 
-rm -f **/*gcda
-) || :
+    rm -f **/*gcda
+)
 
 
-
-# cmake install --install . --prefix tmp -v
-DESTDIR=/home/michal/repo/fork/fork-plugin/build.1/tmp   cmake  --install .   -v
-DESTDIR=/home/michal/repo/fork/fork-plugin/build.1/tmp ninja -v install
+( cd $gitdir
+  tmpdir=$gitdir/tmp
+  # cmake install --install . --prefix tmp -v
+  pushd build.gcc
+  DESTDIR=$tmpdir cmake --install .   -v
+  DESTDIR=$tmpdir ninja -v install
+)
