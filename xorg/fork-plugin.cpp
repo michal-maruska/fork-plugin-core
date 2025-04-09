@@ -326,6 +326,7 @@ fork_thaw_notify(PluginInstance* plugin, Time now)
     }
 }
 
+#define FORCE_BY_MOUSE 1
 
 /* For now this is called too many times, for different events.! */
 static void
@@ -336,7 +337,9 @@ mouse_call_back(CallbackListPtr *, PluginInstance* plugin,
     if (event->any.type == ET_Motion) {
 
         machineRec *machine = plugin_machine(plugin);
-        machine->accept_confirmation();
+        if (FORCE_BY_MOUSE) {
+            machine->accept_confirmation();
+        }
     }
 }
 
@@ -372,7 +375,9 @@ create_plugin(const DeviceIntPtr keybd, DevicePluginRec* plugin_class)
     ErrorF("%s:keybd: coreEvents %d, size %zd %zd\n", __func__, keybd->coreEvents, sizeof(Atom), sizeof(CARD32));
     ErrorF("%s:@%s returning %d\n", __func__, keybd->name, Success);
 
+#if FORCE_BY_MOUSE
     AddCallback(&DeviceEventCallback, reinterpret_cast<CallbackProcPtr>(mouse_call_back), (void*) plugin);
+#endif
 
     plugin_class->ref_count++;
     return plugin;
