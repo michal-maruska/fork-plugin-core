@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 # /usr/share/cmake-3.30/Modules/FindPkgConfig.cmake
 # set(PKG_CONFIG_EXECUTABLE "$ENV{PKG_CONFIG}" CACHE FILEPATH "pkg-config executable")
 # mark_as_advanced(PKG_CONFIG_EXECUTABLE)
-find_package(PkgConfig)
+find_package(PkgConfig REQUIRED)
 
 # This results in "Cmake Debug Log:" during the cmake --configure run
 set(CMAKE_DEBUG_TARGET_PROPERTIES

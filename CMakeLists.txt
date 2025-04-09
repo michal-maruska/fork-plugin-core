@@ -34,9 +34,10 @@ include(./CodeCoverage.cmake)
 
 # configure_file(CMake/config.h.in ${PROJECT_BINARY_DIR}/include/config.h)
 
-find_package(PkgConfig)
+find_package(PkgConfig REQUIRED)
 
 pkg_search_module(xorg-server
+  REQUIRED
   IMPORTED_TARGET GLOBAL
   xorg-server
 )
@@ -48,6 +49,7 @@ else()
 endif()
 
 pkg_search_module(libinput
+  REQUIRED
   IMPORTED_TARGET GLOBAL
   libinput
 )
