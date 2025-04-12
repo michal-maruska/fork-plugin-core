@@ -478,9 +478,9 @@ private:
             environment->log("Bug %s -- empty queue\n", __func__);
             return;
         }
-        PlatformEvent& pevent = tq.head();
-        Keycode original_key = environment->detail_of(pevent);
 
+        PlatformEvent& pevent = tq.peek_middle();
+        Keycode original_key = environment->detail_of(pevent);
         /* Change the keycode, but remember the original: */
         forkActive[original_key] = config->fork_keycode[original_key];
 

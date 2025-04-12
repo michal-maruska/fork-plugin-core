@@ -162,6 +162,15 @@ public:
         return tmp;
     }
 
+    item_t& peek_middle() {
+        item_t& tmp = *(end_output);
+#if DEBUG
+        env->log("%s: %p\n", __func__, &tmp);
+#endif
+        return tmp;
+    }
+
+
     // rewritable!
     item_t& head() {
         // why?
