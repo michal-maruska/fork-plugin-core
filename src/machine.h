@@ -994,8 +994,9 @@ private:
             // fixme ... temporarily ... not pop before sending off !
             save_event_to_log(event);
             // unlocks!
-            relay_event(event);
+            // todo: should extract the platformEvent, then pop, and deliver.
             tq.pop();
+            relay_event(event);
         }
         if (!environment->output_frozen()) {
             push_time_to_next();
