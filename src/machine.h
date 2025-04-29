@@ -62,6 +62,8 @@ template <typename Keycode,
 class forkingMachine {
     /** constants: */
     static constexpr Keycode no_key = KEYCODE_UNUSED;
+    // todo: so Time type must allow 0 NO_TIME
+    static constexpr Time NO_TIME = (Time) 0;
 
 public:
     // Types
@@ -948,9 +950,6 @@ private:
         flush_to_next();
     };
 
-
-    // todo: so Time type must allow 0 NO_TIME
-    static constexpr Time NO_TIME = (Time) 0;
 
    /* Return the keycode into which CODE has forked _last_ time.
    Returns code itself, if not forked. */
