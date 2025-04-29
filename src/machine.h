@@ -54,14 +54,13 @@ template <typename Keycode,
           typename archived_event_t,
           typename last_events_t,
           int MAX_KEYCODE = 256>
-
-class forkingMachine {
-    // fixme: constraints:
+    // fixme: constraints on the types:
     // static_assert(std::is_same_v<Keycode, decltype(keycode_of(PlatformEvent()))>);
     /* Environment must be able to convert from
      * PlatformEvent to archived_event_t
      */
-
+class forkingMachine {
+    /** constants: */
     static constexpr Keycode no_key = KEYCODE_UNUSED;
 
 public:
