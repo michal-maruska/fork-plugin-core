@@ -462,8 +462,8 @@ private:
         mDecision_time = 0; // nothing to decide
         verificator_keycode = no_key;
 
-        log_queues("after rewind");
         tq.rewind_middle();
+        log_queues("after rewind");
     }
 
    /**
