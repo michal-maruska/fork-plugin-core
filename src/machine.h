@@ -130,11 +130,11 @@ public:
 
 
 private:
-    /* states of the automaton: */
+    /* decision states for one key: */
     enum fork_state_t {
         st_normal,
-        st_suspect,             // difference ?
-        st_verify,              // current keycode seems but...?
+        st_suspect,
+        st_verify,      // we suspect, but also have another `particular' key.
     };
 
     /* used only for debugging */
