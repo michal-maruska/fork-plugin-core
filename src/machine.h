@@ -249,7 +249,7 @@ public:
     };
 
     // we don't store/own anything? or environment is unique_ptr but in kernel it's not!
-    ~forkingMachine() {};
+    ~forkingMachine() = default;
 
     explicit forkingMachine(Environment* environment)
         : environment(environment),
