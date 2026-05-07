@@ -1,0 +1,15 @@
+* running a new X server
+export DISPLAY=:1
+sudo Xorg :1 & sleep 3; rxvt &
+
+sudo Xorg :1 & sleep 3; xrandr --output DP-1 --same-as eDP-1 ; rxvt &
+
+or ssh:
+
+gdb ....
+
+
+
+* reload on the current one:
+xplugin -fork && xplugin fork && xkb-configure
+forkto -d 1 </dev/null
