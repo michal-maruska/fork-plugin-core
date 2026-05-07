@@ -1,5 +1,16 @@
 #!/usr/bin/bash
 
+# needs:
+# ai libclang-rt-21-dev
+# ai clang
+
+# useless:
+# ai libc++-21-dev
+# ai libc++abi-21-dev
+# ai libc++1
+
+
+
 set -eu
 # Do the builds & run tests. On Linux.
 # Runs inside the .git directory where THIS script is located.
