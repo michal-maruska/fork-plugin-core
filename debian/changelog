@@ -1,3 +1,282 @@
+fork-plugin (3.1.0) unstable; urgency=medium
+
+  * document how I ported to Weston/libinput
+  * libinput: hardcode my fork configuration, copied form xorg
+  * under once more max/min
+  * docs: update the migration
+  * doc: fix some gleaming spelling mistakes
+  * docs: more old + windows
+  * doc: more windows troubleshooting
+  * bugfix: to avoid duplicate free
+  * doc (porting-to-weston): add links
+  * libinput: keep the configuration in vector, not map
+  * xorg: plan for the event-publishing to Response buffer
+  * commens
+  * doc (windows.md): more links & notes
+  * test: clean up
+  * comment: typedef public?
+  * comments & verbosity
+  * cmake:
+  * libinput: verbose
+  * doc & ci script
+  * cmake: reorganize separate xorg, private debug.h
+  * test: avoid X-related code
+  * clean up cmake
+  * use include for the common colors.h and config.h
+  * move fork_configuration to forkNS namespace
+  * use forkNS:: namespace for the "platform" classes
+  * test: adapt
+  * Explain why we have 2 approaches to the template instantiation:
+  * improve the time comparison to stay in unsigned
+  * move into machine.h
+  * missing assert include
+  * put time_difference_more inside class
+  * last_events_t is now a template parameter
+  * avoid strlen during mdb
+  * doc: BUILD
+  * cmake/clang: stop after 2 errors
+  * platformEnvironment: use const references, not pointers
+  * move down time_difference_more
+  * drop obsolete?
+  * triqueue: new abstraction
+  * replace 3 queues with triqueue_t -- OWNER of the events
+  * No key_event define by forkingMachine
+  * move mdb() before c-tor, disable strlen()
+  * move up  dtor, ctor, configure*()
+  * move transition_by_force()
+  * replace queues_non_empty, queue_front_time with triqueue_t
+  * activate_fork() -- use triqueue.rewrite_head
+  * activate_fork() -- use triqueue.rewrite_head
+  * disable logs -- of queues
+  * rewrite flush_to_next()
+  * No key_event define by forkingMachine
+  * issue_event()
+  * accept_event adapt
+  * Move & use const-ref & no queues: confirm_*fork* apply_event* .....
+  * machine: fix bugs in using the triqueue -- apply_event_to_normal() & apply_event_to_verify_state
+  * Use triqueue api (not 3queues): rewind_machine, run_automaton
+  * no plan for Auto-Repeat
+  * handle autorepeat of currently forked keys
+  * accept_event: const-ref and ownership to the triqueue
+  * xorg: hand_over_event_to_next_plugin ... InternalEvent&
+  * xorg: adapt to the platform signature -- reference
+  * xorg: free_event ???
+  * XOrgEnvironment is InternalEvent, now pointer
+  * xorg: friend with
+  * xorg: relay_event adapt & use new hand_over_event_to_next_plugin()
+  * xorg: create_xorg_platform_event now simply passes as value
+  * test: drop depencency on xorg
+  * new test-triqueue
+  * test-triqueue
+  * test-machine: adapt to new method signatures, and event
+  * test-machine: partially adapt but disable
+  * libinput: adapt to signatures
+  * libinput: accept_event() with new type -- libinputEvent fixme!
+  * triqueue: have access to Environment (to log)
+  * dump_item & log_queues
+  * log around ops
+  * move_to_second: verbose & alternative ops
+  * PlatformEvent type another Template parameter
+  * machine: move attributes to top -- so ctor can count on the order
+  * libinput/libinput_environment broken delete
+  * platformEnvironment takes PlatformEvent as template parameter
+  * libinput: create the machine with libinputEvent parameter
+  * libinput: There is no PlatformEvent -- libinputEvent no inheritance
+  * libinput: no free yet
+  * xorg: There is no PlatformEvent, but the environment in sync
+  * test: there is no PlatformEvent, but machine needs he event type
+  * test-triqueue: provide a environment class with the log method
+  * try to avoid virtual fctions.
+  * Revert "try to avoid virtual fctions."
+  * machine: relay_event in fact const-ref
+  * xorg/fork-plugin.cpp: stack allocate in between
+  * xorg: no PlatformEvent cleanup
+  * cmake: wrong order of AFTER keyword?
+  * drop dead code?
+  * timestamp of the build
+  * resurrect circular
+  * drop DB cicr
+  * drop unused headers
+  * it seems we need to use implicitly  copy-ctor for function returns
+  * xorg: drop useless static_cast
+  * mark some methods as const -- why?
+  * changed fmt_event to take msg
+  * fmt_event: color log
+  * relay_event: fmt_event
+  * use circular buffer instead of the 3 queues
+  * log_queues: public, usable by gdb
+  * verbosity
+  * reduce verbosity -- time
+  * log_queues observe the buffer lenght
+  * careful for possible bug
+  * activate_fork already does the issue_event.
+  * triqueue: move_ ops check if reasonable
+  * accept_time: should be guaranteed by the plugin --
+  * comment on the preconditions
+  * distinguish the 2 "time moved backwards" errors
+  * next_decision_time: not locked -- bad
+  * bug logs
+  * circular: avoid iterator header file and the types
+  * circular: disable exceptions if DISABLE_EXCEPTIONS
+  * libinput: adapt -- const, fmt_event
+  * test: adapt -- const, fmt_event
+  * test: adapt -- fmt_event
+  * drop queue.h
+  * platform.h: change fmt_ and avoid <string>
+  * xorg.h: change fmt_ to drop  use of std::string
+  * platform.h: disable what needs uniq_ptr -- fixme
+  * mark UNUSED
+  * machine: drop snprintf()
+  * machine: avoid function/algorithm
+  * machine.h(KERNEL): no uniq_ptr: configs, environment
+  * machine (kernel): no create_configs with try {}
+  * circular/Kernel: support DISABLE_STD_LIBRARY -- std::allocator
+  * circular: disable swap and comparison (of alloc)
+  * circular drop 2 allocator types
+  * Add testing Windows target, emulatate necessary Apis
+  * my-memory: Implement kernelAllocator for Window kernel API
+  * triqueue_t use allocator for KERNEL
+  * add win-environment.h: env & event types
+  * win: implement vlog/log
+  * win: fmt_event
+  * win: verbose rewrite_event
+  * win-env: new operator?
+  * new for machine + fix DISABLE_STD_LIBRARY use
+  * machine: mutex and scoped_lock for KERNEL
+  * empty_last: hide vector for KERNEL
+  * explicit convert int -> keycode
+  * configuration for kernel
+  * win-environment: try to provide delete
+  * provide Environment as a template parameter
+  * win-environment: avoid virtual
+  * win: new for archived_event
+  * rename verification_interval for clarity
+  * win does not support ?:
+  * assert not linked in
+  * win-env: keep the device handle
+  * win: invoke pass_event()
+  * triqueue: dump_item with a message
+  * accept_event: reduce duplicate verbosity
+  * win: relay verbosely
+  * reduce the configuration
+  * fork-onfiguration: move comments
+  * reset mCurrent_time on next key
+  * docs: win alloc-text
+  * machine: fix for the configuration if no VERIFICATION_MATRIX
+  * machine: config for DISABLE_STD_LIBRARY
+  * machine: doc the parameters of configure_global
+  * enums for the fork commands
+  * fork_configuration: always init id
+  * init forkActive[]
+  * init mlock to 0
+  * machine: MAX_KEYCODE as template parameter, configuration derived
+  * scope_queue_logger
+  * fmt_event
+  * xorg, libinput, test: env as templ param
+  * test: env as templ param
+  * cmake: drop test-queue
+  * libinptu: event_dumper not part of
+  * reformat
+  * configuration from the machine!
+  * scope_queue_logger
+  * triqueue: log_ not const!!
+  * machine spaces?
+  * triqueue: reduce logging
+  * machine: accept -- logging
+  * skip AR press
+  * xorg: relay_event reduce logging
+  * xorg: disable keysym resolution -- crash
+  * UNREFERENCED_PARAMETER for others
+  * doc/ BUILD with ninja & install
+  * convert to README.md
+  * readme: link to specific instructions
+  * use explicit instantiation of the template class
+  * use the explicit class template instantiation
+  * reshuffle, UNUSED()
+  * use alloca for format change in printf
+  * fork_configuration_t: use the enum in the APIs
+  * assert_lock & move
+  * mutex
+  * join more public: sections
+  * set_last_events_count()
+  * rename save_event_to_log
+  * replay_events: obsolete, private used from configurations?
+  * drop them
+  * rename rewrite_head()
+  * drop confirm_fork_and_enqueue, use directly activate_fork
+  * clean up issue_event and do_confirm_non_fork_by()
+  * drop 2 states, rewind_machine()
+  * activate_fork: clean up?
+  * rename activate_fork_rewind()
+  * move low-level ops to top
+  * move apply_event_to_normal before other apply_event_to_STATE
+  * formalize record_last_release_event()
+  * duplicate concept? no_key = KEYCODE_UNUSED
+  * get config -- smart-pointer vs kernel raw pointer
+  * normal: ar
+  * rewrite before moving to internal
+  * const local vars
+  * change key_forked() ?
+  * more care with forkActive & self value
+  * key_pressed_too_long should use mDecision_time
+  * move the check-for-duration from apply_event_to_suspect/verify()
+  * use reason for do_confirm_non_fork_by() too
+  * start_suspiction ?
+  * customize_decision_time_for()
+  * skip over bizzare events in one place
+  * always log ... buggy AR of forked key?
+  * join private:
+  * run_automaton invokes flush_to_next
+  * run_automaton -- must unlock!
+  * don't use mdb for warnings
+  * colorize the trace of forking
+  * transition_by_time: trust mDecision_time
+  * transition_by_key: trust mDecision_time
+  * drop key_pressed_too_long()
+  * drop issue_event()
+  * fork_configuration.h: style
+  * verifier_decision_time -- no currentTime, just 1 time
+  * inline customize_decision_time_for()
+  * in apply_event_to_verify_state() don't recompute mDecision_time
+  * log_queues, albeit not const
+  * avoid min()
+  * machine clean up comments, reorder
+  * triqueue: improve head()
+  * flush_to_next: use before d-tor
+  * Move the platform #ifdef into forkable_p()
+  * accept_event -- protect agains out-of-bounds
+  * improve
+  * Fix the AR of forkables: indeed forkActive[key] == key has meaning
+  * verbose on AR & finished accept_event
+  * comment
+  * change time_difference_more()
+  * assert during the double-hop
+  * show the queue before flushing
+  * activate_fork_rewind -- double-check
+  * transition_by_time: double-check
+  * drop verbose  done.
+  * clean
+  * pop() invokes destroy! comments
+  * update ci script
+  * test: update test-triqueue
+  * UNUSED
+  * doc: weston
+  * readme -- mention home-row & timing, improve linux wording
+  * a simple way to avoid mouse-force
+  * mark as REQUIRED -- pkg-config & dev packages for libinput, xorg
+  * implement peek_middle and use it correctly
+  * xorg: simplify the condition to log wakeup time
+  * machine: template reformulate constraints comment
+  * machine: move NO_TIME definition
+  * machine: fork_state_t: comments
+  * machine: dtor default
+  * machine: log after rewind indeed after
+  * machine: flush_to_next() beware of thaw_ reentrancy
+  * other docs
+  * ci/run -- add build dependencies
+
+ -- Michal Maruska <mmaruska@gmail.com>  Thu, 07 May 2026 05:21:20 +0200
+
 fork-plugin (3.0.1) unstable; urgency=medium
 
   * use time in milliseconds, not microsecond!
