@@ -374,6 +374,7 @@ create_plugin(const DeviceIntPtr keybd, DevicePluginRec* plugin_class)
     ErrorF("%s:@%s returning %d\n", __func__, keybd->name, Success);
 
 #if FORCE_BY_MOUSE
+    ErrorF("%s: registering for mouse too.\n", __func__);
     AddCallback(&DeviceEventCallback, reinterpret_cast<CallbackProcPtr>(mouse_call_back), (void*) plugin);
 #endif
 
