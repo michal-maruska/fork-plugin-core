@@ -1,3 +1,11 @@
+fork-plugin (3.1.1) unstable; urgency=medium
+
+  * info on mouse callback
+  * create_plugin: log different
+  * ci: build on github, in my organization
+
+ -- Michal Maruska <mmaruska@gmail.com>  Fri, 15 May 2026 23:19:53 +0200
+
 fork-plugin (3.1.0) unstable; urgency=medium
 
   * document how I ported to Weston/libinput
