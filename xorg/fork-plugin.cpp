@@ -369,10 +369,14 @@ create_plugin(const DeviceIntPtr keybd, DevicePluginRec* plugin_class)
 
     plugin->data = static_cast<void *>(forking_machine);
 
-    ErrorF("%s:keybd: next %p private %p on: %d\n", __func__, keybd->next, keybd->cpublic.devicePrivate, keybd->cpublic.on);
-    ErrorF("%s:keybd: coreEvents %d, size %zd %zd\n", __func__, keybd->coreEvents, sizeof(Atom), sizeof(CARD32));
-    ErrorF("%s:@%s returning %d\n", __func__, keybd->name, Success);
-
+    ErrorF("%s: keybd: next %p private %p on: %d\n", __func__, keybd->next,
+           keybd->cpublic.devicePrivate, keybd->cpublic.on);
+    // should be
+    // compile_assert(sizeof(Atom) == sizeof(CARD32));
+    ErrorF("%s:keybd: coreEvents %d, compile check: size %zd %zd\n", __func__,
+           keybd->coreEvents,
+           sizeof(Atom), sizeof(CARD32));
+    // ErrorF("%s:@%s returning value %d\n", __func__, keybd->name, Success);
 #if FORCE_BY_MOUSE
     ErrorF("%s: registering for mouse too.\n", __func__);
     AddCallback(&DeviceEventCallback, reinterpret_cast<CallbackProcPtr>(mouse_call_back), (void*) plugin);
