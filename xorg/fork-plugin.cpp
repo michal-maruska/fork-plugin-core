@@ -70,7 +70,7 @@ const char* event_names[] = {
 void
 hand_over_event_to_next_plugin(const InternalEvent& event, PluginInstance* const nextPlugin)
 {
-    assert (!plugin_frozen(nextPlugin));
+    assert(!plugin_frozen(nextPlugin));
     PluginClass(nextPlugin)->ProcessEvent(nextPlugin,
                                           const_cast<InternalEvent*>(&event), FALSE); // not owner
     // we always own the event (up to now)
@@ -353,7 +353,7 @@ create_plugin(const DeviceIntPtr keybd, DevicePluginRec* plugin_class)
 {
     DB("%s @%p\n", __func__, static_cast<void *>(keybd->name));
 
-    assert (strcmp(plugin_class->name, FORK_PLUGIN_NAME) == 0);
+    assert(strcmp(plugin_class->name, FORK_PLUGIN_NAME) == 0);
     PluginInstance* plugin = (PluginInstance*) malloc(sizeof(PluginInstance));
     plugin->pclass = plugin_class;
     plugin->device = keybd;
@@ -397,7 +397,7 @@ inline fork_configuration_t type_subtype(int t) { return (fork_configuration_t)(
 int
 machine_configure_get(PluginInstance* plugin, int values[5], int return_config[3])
 {
-   assert (strcmp (PLUGIN_NAME(plugin), FORK_PLUGIN_NAME) == 0);
+   assert(strcmp (PLUGIN_NAME(plugin), FORK_PLUGIN_NAME) == 0);
 
    machineRec *machine = plugin_machine(plugin);
 
@@ -438,7 +438,7 @@ machine_configure_get(PluginInstance* plugin, int values[5], int return_config[3
 int
 machine_configure(PluginInstance* plugin, int values[5])
 {
-    assert (strcmp (PLUGIN_NAME(plugin), FORK_PLUGIN_NAME) == 0);
+    assert(strcmp(PLUGIN_NAME(plugin), FORK_PLUGIN_NAME) == 0);
 
     machineRec *machine = plugin_machine(plugin);
 
