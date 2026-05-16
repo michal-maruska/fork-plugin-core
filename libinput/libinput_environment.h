@@ -94,7 +94,7 @@ public:
 #endif
     };
 
-    virtual ~libinput_event_dumper() {};
+    virtual ~libinput_event_dumper() override {};
 
 
     explicit libinput_event_dumper() :
@@ -118,7 +118,7 @@ private:
 public:
   explicit libinputEnvironment(libinput_fork_services* services) : services(services) {};
 
-  virtual ~libinputEnvironment() = default;
+  virtual ~libinputEnvironment() override = default;
 
 
   virtual bool output_frozen() override {
