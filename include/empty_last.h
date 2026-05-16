@@ -15,18 +15,34 @@ class empty_last_events_t
 {
 public:
     // override:
-    void push_back(const event& __x) {}
+    void push_back(const event& __x)
+#ifndef KERNEL
+      override
+#endif
+        {}
 
     // emplace_back()
-    void set_capacity(const int& n) {
-      UNREFERENCED_PARAMETER(n);
-    };
+    void set_capacity(const int& n)
+#ifndef KERNEL
+      override
+#endif
+        {
+          UNREFERENCED_PARAMETER(n);
+        };
 
-    size_t size() const {
-        return 0;
-    }
+    size_t size() const
+#ifndef KERNEL
+      override
+#endif
+  {
+    return 0;
+  }
 
-    bool full() const {return false;}
+    bool full() const
+#ifndef KERNEL
+      override
+#endif
+        { return false;}
 
 #if 0
   // public: I need the begin(), end()
