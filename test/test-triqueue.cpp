@@ -25,8 +25,7 @@ protected:
   testEnvironment environment;
   triqueue_t<int, testEnvironment> q0_{100};
 
-  void SetUp ()
-  {
+  void SetUp () override {
     // static variable:
     triqueue_t<int, testEnvironment>::env = &environment;
   }
