@@ -68,7 +68,7 @@ public:
   void operator() (const int& item) {
     std::cerr << item << " " // std::endl
               << ++count << " "
-              << (void*) this
+              << static_cast<void*>(this)
               << std::endl;
   }
 };
