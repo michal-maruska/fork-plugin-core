@@ -72,6 +72,7 @@ public: // gdb
                  buffer.end() - end_internal);
     };
 
+#if DEBUG
     void dump_item(const char* message, const item_t &item) {
 #if 0
         constexpr int per_line = 50;
@@ -87,6 +88,7 @@ public: // gdb
 #endif
         env->fmt_event(message, item);
     }
+#endif
 
 public:
         explicit triqueue_t(int capacity) : buffer(circular_buffer_t(capacity)),
