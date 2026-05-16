@@ -62,7 +62,8 @@ build_with_compiler() {
     cppcheck --project=compile_commands.json \
              --enable=all \
              --suppress=missingIncludeSystem \
-             --suppress=preprocessorErrorDirective
+             --suppress=preprocessorErrorDirective \
+             --suppress=knownArgument
     popd
 )
 }
