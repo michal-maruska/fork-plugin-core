@@ -477,7 +477,8 @@ class circular_buffer
             }
         }
 
-    // dynamically grow the array
+#ifndef DISABLE_SWAP
+        // dynamically grow the array
         template <typename f_iter>
         void assign_into_reserving(f_iter from, f_iter to)
         {
@@ -492,6 +493,7 @@ class circular_buffer
                 ++from;
             }
         }
+#endif
 
         void destroy_all_elements()
         {
