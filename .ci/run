@@ -53,7 +53,7 @@ build_with_compiler() {
     cd $gitdir
     mkdir -p ${dir:=$BUILD_DIR/$compiler}
     pushd $dir
-    cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=$compiler
+    cmake -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=$compiler
     build_run_tests
     popd
 )
