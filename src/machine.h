@@ -221,18 +221,18 @@ public:
 #endif
 
     // prefix with a space.
-    void mdb(const char* format...) const {
+    void mdb(const char* fmt...) const {
         if (config->debug) {
             va_list argptr;
-            va_start(argptr, format);
+            va_start(argptr, fmt);
 #ifdef KERNEL
-            environment->vlog(format, argptr);
+            environment->vlog(fmt, argptr);
 #else
             // does MS/kernel have alloca?
-            char* new_format = (char*) alloca(strlen(format) + 2);
-            new_format[0] = ' ';
-            strcpy(new_format + 1, format);
-            environment->vlog(new_format, argptr);
+            char buf[strlen(fmt) + 2];  // VLA, +1 for space, +1 for \0
+            buf[0] = ' ';
+            strcpy(buf + 1, fmt);
+            environment->vlog(buf, argptr);
 #endif
             va_end(argptr);
         }
