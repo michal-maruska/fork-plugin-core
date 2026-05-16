@@ -3,6 +3,7 @@
 #include <libinput.h>
 #include <memory>
 #include <vector>
+#include "config.h"
 #include "machine.h"
 #include "libinput_environment.h"
 #include <boost/circular_buffer.hpp>
@@ -51,6 +52,7 @@ accept_time(void* user_data, struct libinput_device *device, uint64_t time) {
   machineRec* forking_machine = static_cast<machineRec*>(user_data);
 
   uint64_t next_time = forking_machine->accept_time(time);
+  UNUSED(next_time);
 };
 
 extern "C" {

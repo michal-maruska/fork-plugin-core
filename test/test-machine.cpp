@@ -1,3 +1,4 @@
+#include <config.h>
 #include <gtest/gtest.h>
 
 #include "fork_enums.h"
@@ -129,7 +130,7 @@ TEST_F(machineTest, AcceptEvent) {
   EXPECT_CALL(*environment, relay_event);
 
   Time next = fm->accept_event(pevent);
-
+  UNUSED(next);
   // expect calls:
   // so for that EXPECT_CALL: this is necessary? as part of this test:
   Mock::VerifyAndClearExpectations(environment);
