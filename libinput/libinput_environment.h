@@ -116,7 +116,7 @@ private:
   libinput_fork_services *services;
 
 public:
-  libinputEnvironment(libinput_fork_services* services) : services(services) {};
+  explicit libinputEnvironment(libinput_fork_services* services) : services(services) {};
 
   virtual ~libinputEnvironment() = default;
 
