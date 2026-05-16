@@ -85,10 +85,10 @@ private:
         mLock.unlock();
         // mdb_raw("\\__ (unlock)\n");
     }
-    void check_locked() const {
+    static void check_locked() {
         // assert(mLock.locked);
     }
-    void check_unlocked() const {
+    static void check_unlocked() {
         // assert(mLock == 0);
     }
 #else
@@ -200,7 +200,7 @@ private:
 
     triqueue_t<PlatformEvent, Environment> tq{100}; // total capacity
 
-    bool time_difference_more(Time now, Time past, Time limit_difference) {
+    static bool time_difference_more(Time now, Time past, Time limit_difference) {
         return (now > past + limit_difference);
         // it's supposed to be monotonic, and 0... number is always included in the type range.
         // return ( (now - past) > limit_difference);
