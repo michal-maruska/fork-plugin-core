@@ -12,44 +12,61 @@
 
 
 set -eu
+
 # Do the builds & run tests. On Linux.
 # Runs inside the .git directory where THIS script is located.
 
 gitdir=$(cd $(dirname $0); git rev-parse --show-toplevel)
+INVOKE_INSTALL=no
+# $gitdir/
+BUILD_DIR=build
+# 2 levels
+
+while getopts :i OPT; do
+    case $OPT in
+        i|+i)
+            INVOKE_INSTALL=yes
+            ;;
+        *)
+            echo "usage: ${0##*/} [+-i] [--] ARGS..."
+            exit 2
+    esac
+done
+shift $(( OPTIND - 1 ))
+OPTIND=1
+
 
 build_run_tests()
 {
     # invoked where?
     ninja -v
+    # coverage?
     find -name \*.gcda -exec rm -r '{}' \;
     cd test; ctest
 }
 
 
-
+build_with_compiler() {
+    local compiler=$1
 (
     set -eu
     cd $gitdir
-    mkdir ${dir:=build.gcc}
+    mkdir -p ${dir:=$BUILD_DIR/$compiler}
     pushd $dir
-    cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=g++
+    cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=$compiler
     build_run_tests
     popd
 )
+}
+
+build_with_compiler g++
+build_with_compiler clang++
+# fixme:
+rm -f $dir/$BUILD_DIR/clang++/**/*gcda
 
 
-(
-    cd $gitdir
-    mkdir ${dir:=build.clang}
-    cd $dir
-    cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=clang++
-
-    build_run_tests
-
-    rm -f **/*gcda
-)
-
-
+if [[ $INVOKE_INSTALL == yes ]]
+then
 ( cd $gitdir
   tmpdir=$gitdir/tmp
   # cmake install --install . --prefix tmp -v
@@ -57,3 +74,4 @@ build_run_tests()
   DESTDIR=$tmpdir cmake --install .   -v
   DESTDIR=$tmpdir ninja -v install
 )
+fi
