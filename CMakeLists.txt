@@ -8,6 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 include_directories(include/)
 
+message(WARNING "######## test color output")
+
 # option(WITH_LIBINPUT "Build plugin for libinput." ON)
 # option(WITH_XORG "Build plugin for Xorg server" ON)
 # /usr/share/cmake-3.30/Modules/CMakeDependentOption.cmake
