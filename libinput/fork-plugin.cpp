@@ -37,9 +37,11 @@ void accept_event(void* user_data, const struct libinput_device *device, const s
                        device);
 
   // the item is pointer?
-  auto *event = new libinputEvent(key_event, device);
+  libinputEvent *event = new libinputEvent(key_event, device);
 
-  uint64_t time = forking_machine->accept_event(*event);
+  uint64_t time = forking_machine->accept_event(*event); // const_cast<libinputEvent*>()
+  UNUSED(time);
+  delete  event;
 #if 0
   if (time!=0)
     service->set_timer(time);
