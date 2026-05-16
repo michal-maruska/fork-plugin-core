@@ -444,8 +444,8 @@ machine_configure(PluginInstance* plugin, int values[5])
 
     int type = values[0];
     machine->mdb("%s: %d operands, command %d: %d %d %d\n",
-                 __func__,
-                 subtype_n_args(type), type_subtype(type),
+                 __func__, subtype_n_args(type),
+                 type_subtype(type),
                  values[1], values[2],values[3]);
 
     switch (subtype_n_args(type)) {
