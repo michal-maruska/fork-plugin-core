@@ -7,7 +7,7 @@
 
 class testEnvironment {
 public:
-  void fmt_event(const char* message, int item) const {};
+  static void fmt_event(const char* message, int item) {};
 
   void log(const char* format ...) const {
     va_list argptr;
