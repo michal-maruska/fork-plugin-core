@@ -75,12 +75,12 @@ private:
     mutable std::mutex mLock;
     using  scoped_lock = std::scoped_lock<std::mutex>;
 
-    void lock() const
+    void do_lock() const
     {
         mLock.lock();
         // mdb_raw("/--\n");
     }
-    void unlock() const
+    void do_unlock() const
     {
         mLock.unlock();
         // mdb_raw("\\__ (unlock)\n");
@@ -974,10 +974,10 @@ private:
 
         // fixme: was here a bigger message?
         // bug: environment->fmt_event(ev->p_event);
-        unlock();
+        do_unlock();
         // we must gurantee ORDER
         environment->relay_event(event);
-        lock();
+        do_lock();
     };
 
 
