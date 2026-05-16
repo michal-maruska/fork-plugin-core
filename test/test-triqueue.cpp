@@ -10,8 +10,8 @@ public:
   static void fmt_event(const char* message, int item) {};
 
   void log(const char* format ...) const {
-    va_list argptr;
 #if 0
+    va_list argptr;
     va_start(argptr, format);
     // VErrorF(format, argptr);
     va_end(argptr);
