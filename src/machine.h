@@ -1167,7 +1167,7 @@ public:
 #endif
             return true;
 
-        } catch (std::bad_alloc &exc) {
+        } catch (const std::bad_alloc &exc) {
             return false;
         }
 #else
