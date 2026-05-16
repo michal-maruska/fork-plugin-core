@@ -267,9 +267,13 @@ public:
         environment->log("ctor: allocated last_events %lu (%lu\n", last_events_log.size(), max_last);
 
         environment->log("ctor: resetting forkActive\n");
+#ifndef DISABLE_STD_LIBRARY
+        std::fill(std::begin(forkActive), std::end(forkActive), KEYCODE_UNUSED);
+#else
         for (auto &i: forkActive) { // unsigned char
             i = KEYCODE_UNUSED; /* not active */
         };
+#endif
         environment->log("ctor: end\n");
     };
 
