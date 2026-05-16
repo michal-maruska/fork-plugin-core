@@ -193,7 +193,7 @@ public:
             return;
         }
 
-        end_output++;
+        ++end_output;
     }
 
     void move_to_second() {
@@ -203,7 +203,7 @@ public:
             return;
         }
 
-        end_internal++;
+        ++end_internal;
     }
 
     const item_t* first() {
