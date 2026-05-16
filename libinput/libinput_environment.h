@@ -206,8 +206,8 @@ public:
 #endif
 
     services->post_event(services,
-                         (libinput_device*) li_event.device,
-                         (libinput_event_keyboard*) li_event.event);
+                         const_cast<libinput_device*>(li_event.device),
+                         const_cast<libinput_event_keyboard*>(li_event.event));
 #if 0
     li_event.event = NULL;
     li_event.device = NULL;
