@@ -108,6 +108,10 @@ void fork_init(struct libinput_fork_services* services)
   // * create timer
   struct libinput_keyboard_plugin* plugin =
     static_cast<libinput_keyboard_plugin*>(malloc(sizeof *plugin));
+  if (!plugin) {
+    services->log(services, LIBINPUT_LOG_PRIORITY_ERROR, "memory allocation failed\n");
+    return;
+  }
   *plugin = (struct libinput_keyboard_plugin) {
     .user_data = forking_machine,
     .accept_event = &accept_event,
