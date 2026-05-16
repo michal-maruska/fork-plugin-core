@@ -55,6 +55,8 @@ build_with_compiler() {
     pushd $dir
     cmake -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=$compiler
     build_run_tests
+    run-clang-tidy -checks="clang-analyzer-\*,-clang-diagnostic-vla-cxx-extension"
+
     popd
 )
 }
