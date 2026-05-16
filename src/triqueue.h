@@ -89,9 +89,9 @@ public: // gdb
     }
 
 public:
-        triqueue_t(int capacity) : buffer(circular_buffer_t(capacity)),
-                                   end_output(buffer.begin()),
-                                   end_internal(buffer.begin())
+        explicit triqueue_t(int capacity) : buffer(circular_buffer_t(capacity)),
+                                            end_output(buffer.begin()),
+                                            end_internal(buffer.begin())
         {
             log_queues(__func__);
         };
