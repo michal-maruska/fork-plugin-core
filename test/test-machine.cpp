@@ -1,3 +1,4 @@
+#include "gmock/gmock.h"
 #include <config.h>
 #include <gtest/gtest.h>
 
@@ -137,8 +138,16 @@ TEST_F(machineTest, AcceptEvent) {
   TestEvent pevent(100L, 56);
 
   EXPECT_CALL(*environment, relay_event);
+  EXPECT_CALL(*environment, detail_of(testing::_))
+    .Times(4)
+    .WillRepeatedly(testing::Return(56));
+  EXPECT_CALL(*environment, time_of).Times(3);
+  EXPECT_CALL(*environment, press_p).Times(2);
+  EXPECT_CALL(*environment, release_p).Times(2);
 
-  Time next = fm->accept_event(pevent);
+  EXPECT_CALL(*environment, output_frozen).Times(AnyNumber()).WillRepeatedly(Return(false));
+
+  Time next = fm->accept_event(pevent); // this hands over ownership?
   UNUSED(next);
   // expect calls:
   // so for that EXPECT_CALL: this is necessary? as part of this test:
