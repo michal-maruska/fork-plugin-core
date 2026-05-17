@@ -18,7 +18,7 @@ typedef int KeyCode;
 
 
 // I need archived_event
-struct archived_event
+struct test_archived_event
 {
   Time time; // never used
   KeyCode key;
@@ -31,13 +31,13 @@ using testing::Mock;
 using testing::Return;
 using testing::AnyNumber;
 
-// I need Environment which can convert into archived_event
+// I need Environment which can convert into test_archived_event
 // This is fully under control of our environment:
-class TestEvent : archived_event {
+class TestEvent : test_archived_event {
 public:
 
   TestEvent(const Time time, const KeyCode keycode, bool press = true, const KeyCode forked = 0) :
-    archived_event{time, keycode, forked, press} {}
+    test_archived_event{time, keycode, forked, press} {}
 
   ~TestEvent() {}
 
@@ -52,7 +52,7 @@ private:
 
 // I want to mock this:
 class testEnvironment final : public forkNS::platformEnvironment<KeyCode, Time,
-                                                                 archived_event,
+                                                                 test_archived_event,
                                                                  TestEvent>{
 public:
   // virtual
@@ -82,24 +82,24 @@ public:
   };
   MOCK_METHOD(void, fmt_event,(const char* message, const TestEvent &event), (const));
 
-  MOCK_METHOD(void, archive_event,(archived_event& ae, const TestEvent& event));
+  MOCK_METHOD(void, archive_event,(test_archived_event& ae, const TestEvent& event));
   MOCK_METHOD(void, free_event,(TestEvent* pevent), (const));
   MOCK_METHOD(void, rewrite_event,(TestEvent& pevent, KeyCode code));
 
-  MOCK_METHOD(std::unique_ptr<forkNS::event_dumper<archived_event>>, get_event_dumper,());
+  MOCK_METHOD(std::unique_ptr<forkNS::event_dumper<test_archived_event>>, get_event_dumper,());
 };
 
 
-using last_events_t = empty_last_events_t<archived_event>;
+using last_events_t = empty_last_events_t<test_archived_event>;
 using machineRec = forkNS::forkingMachine<KeyCode, Time,
                                           TestEvent, testEnvironment,
-                                          archived_event, last_events_t>;
+                                          test_archived_event, last_events_t>;
 using fork_configuration = machineRec::fork_configuration;
 
 // template instantiation
 namespace forkNS {
   // explicit template instantiation
-  template class forkingMachine<KeyCode, Time, TestEvent, testEnvironment, archived_event, last_events_t>;
+  template class forkingMachine<KeyCode, Time, TestEvent, testEnvironment, test_archived_event, last_events_t>;
 }
 
 
