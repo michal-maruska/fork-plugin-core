@@ -1,6 +1,13 @@
 #pragma once
 
-// #include "vector"
+#ifndef KERNEL
+#include <vector>
+#endif
+
+extern "C" {
+#include "stddef.h"
+}
+
 
 #ifndef UNREFERENCED_PARAMETER
 #define UNREFERENCED_PARAMETER(x)   (void)(x)
@@ -10,27 +17,24 @@
 template <typename event>
 class empty_last_events_t
 #ifndef KERNEL
-  : public std::vector<event>
+  : std::vector<event>
 #endif
 {
 public:
     // override:
+    static
     void push_back(const event& __x) {}
 
     // emplace_back()
+    static
     void set_capacity(const int& n) {
       UNREFERENCED_PARAMETER(n);
     };
 
-    size_t size() const {
+    static
+    size_t size() {
         return 0;
     }
 
-    bool full() const {return false;}
-
-#if 0
-  // public: I need the begin(), end()
-   begin()
-   end()
-#endif
+  // bool full() const {return false;}
 };
