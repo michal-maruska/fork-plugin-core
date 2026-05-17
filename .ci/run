@@ -63,7 +63,8 @@ build_with_compiler() {
              --enable=all \
              --suppress=missingIncludeSystem \
              --suppress=preprocessorErrorDirective \
-             --suppress=knownArgument
+             --suppress=knownArgument \
+             --library=googletest
     popd
 )
 }
