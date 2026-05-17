@@ -76,4 +76,7 @@ export(EXPORT fork FILE dump.cmake)
 
 
 
+if(WIN32)
 add_subdirectory(windows)
+endif()
+
