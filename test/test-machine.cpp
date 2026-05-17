@@ -42,18 +42,20 @@ public:
 
   /* todo:
   operator=();
-
-  // copy ctor:
-  // TestEvent(TestEvent& copy) {}
   */
+private:
+  // copy ctor:
+  // when we store in the triqueue, we _copy_
+  // TestEvent(TestEvent& copy) = delete; // we need the builtin one
 };
 
 // I want to mock this:
 class testEnvironment final : public forkNS::platformEnvironment<KeyCode, Time,
-                                                                 archived_event, TestEvent>{
+                                                                 archived_event,
+                                                                 TestEvent>{
 public:
   // virtual
-  MOCK_METHOD(bool, press_p,(const TestEvent& event),(const));
+  MOCK_METHOD(bool, press_p, (const TestEvent& event), (const));
   MOCK_METHOD(bool, release_p,(const TestEvent& event), (const));
   MOCK_METHOD(Time, time_of,(const TestEvent& event), (const));
   MOCK_METHOD(KeyCode, detail_of,(const TestEvent& event), (const));
