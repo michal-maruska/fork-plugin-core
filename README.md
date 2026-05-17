@@ -20,10 +20,10 @@ This is a big plus -- switching to modifier instantly when mouse is clicked, to 
   [see instructions](doc/windows-client-install.md)
 
 * Linux -- either build from source, or use Debian (Sid) packages from
- [my reprepro apt repository](https://github.com/MichalMaruska/michalmaruska.github.io)
+ [my reprepro apt repository](https://github.com/michal-maruska/apt-repo). That also provides the following requirements:
 
-  - Xorg server -- a patch is needed to enable plugins:
-      [xserver](https://github.com/MichalMaruska/xserver/commits/mmc-all)
+  - Xorg server -- a patch is needed to enable plugins in the key-processing "pipeline":
+      [xserver](https://github.com/michal-maruska/xserver/commits/mmc-all)
 
   - Weston --
       a patch is needed for [libinput](https://github.com/MichalMaruska/libinput/commits/main/)
