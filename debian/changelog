@@ -1,3 +1,58 @@
+fork-plugin (3.1.2) unstable; urgency=medium
+
+  * format  function (
+  * .ci/run  conditional install, build in 1 build dir
+  * d/rules: clean a bit
+  * d/rules: no overriding of the build step
+  * not even sure about sizeof(int) vs CARD32
+  * Fix: treat correctly passing va_list down to function
+	the most important
+  * cmake: test the color output by a WARNING text
+  * cmake: color from inside
+  * ci/ru: cmake: color from outside
+  * useless reformat
+  * mark UNUSED when the next_time is impossible to use
+  * drop alloca() in favour of VLA
+  * libinput: delete the temporary object
+  * configuration: get_value_from_matrix() itself is conditional
+  * machine: make some methods static
+  * libinput: mark c-tor as explicit
+  * triqueue, circular: mark ctor as explicit
+  * libinput: mark virtual dtor as override
+  * relax type cast of malloc()
+  * libinput: use static_cast after malloc
+  * triqueue: dump_item itself only if DEBUG
+  * test: SetUp is override
+  * test/triqueue: static f.
+  * test/triqueue: fix disabling code
+  * test/circular:  use static_cast not c-cast
+  * libinput: use static_cast not c-cast
+  * machine: rename do_lock() since I use variables "lock"
+  * const references
+  * use std::fill -- should use fill_n
+  * ci/run invoke also run-clang-tidy
+  * fix(ci/run): test without changing directory
+  * ci: also cppcheck
+  * libinput: stop if malloc fails
+  * Prefer prefix ++/-- operators for non-primitive types.
+  * circular_buffer: assign_into_reserving itself if SWAP
+  * ci: relax some checks
+  * empty_last_events_t: override if over vector
+  * avoid the windows dir, unless on Windows
+  * ci: cppcheck: be aware of googletest macros
+  * test: the rule of 5?
+  * Revert "empty_last_events_t: override if over vector"
+  * test-machine: the platform event needs to be copied, so copy ctor
+  * test-machine: format
+  * test-machine: expect all the mocked calls
+  * empty_last: clean up:
+  * ci: run the static-analysis tools with  set -x
+  * ci: less checks on the test-machine
+  * test-machine: rename to keep unique
+  * machine: check_unlocked dropped
+
+ -- Michal Maruska <mmaruska@gmail.com>  Sun, 17 May 2026 16:11:31 +0200
+
 fork-plugin (3.1.1) unstable; urgency=medium
 
   * info on mouse callback
