@@ -10,6 +10,11 @@ of their regular function. Also the _timing_ is significant.
 
 Packaged as a plugin for X server, Weston plugin, and a Windows 10+ filter kernel driver.
 
+It is very similar to what qmk calls [Mod-Tap
+keys](https://github.com/qmk/qmk_firmware/blob/master/docs/mod_tap.md)..... but here (apart from working with regular
+keyboards) we can trigger the switch to modifier by mouse movement too!
+This is a big plus -- switching to modifier instantly when mouse is clicked, to drag, or resize, based on the modifier.
+
 ## How to install?
 * Windows ...
   [see instructions](doc/windows-client-install.md)
