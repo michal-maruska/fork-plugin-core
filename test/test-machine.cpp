@@ -39,6 +39,17 @@ public:
     event = new ::archived_event({time, keycode, forked, press });
   }
 
+  ~TestEvent() {
+    delete event;
+  }
+
+
+  /* todo:
+  operator=();
+
+  // copy ctor:
+  // TestEvent(TestEvent& copy) {}
+  */
 };
 
 // I want to mock this:
