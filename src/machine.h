@@ -78,19 +78,12 @@ private:
     void do_lock() const
     {
         mLock.lock();
-        // mdb_raw("/--\n");
     }
     void do_unlock() const
     {
         mLock.unlock();
-        // mdb_raw("\\__ (unlock)\n");
     }
-    static void check_locked() {
-        // assert(mLock.locked);
-    }
-    static void check_unlocked() {
-        // assert(mLock == 0);
-    }
+    static void check_locked() {/* assert(mLock.locked); */}
 #else
     int mLock = 0;
 
@@ -109,7 +102,6 @@ private:
     void lock() const {};
     void unlock() const {};
     void check_locked() const {}
-    void check_unlocked() const {}
 #endif
 
 
