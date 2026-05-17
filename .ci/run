@@ -66,6 +66,8 @@ build_with_compiler() {
                  --suppress=missingIncludeSystem \
                  --suppress=preprocessorErrorDirective \
                  --suppress=knownArgument \
+                 --suppress=missingInclude \
+                 --suppress=unusedStructMember:test/test-machine.cpp \
                  --library=googletest
     )
     popd
