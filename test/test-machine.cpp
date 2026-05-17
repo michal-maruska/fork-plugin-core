@@ -17,13 +17,14 @@ typedef int KeyCode;
 
 
 // I need archived_event
-typedef struct
+struct archived_event
 {
-  Time time;
+  Time time; // never used
   KeyCode key;
   KeyCode forked;
   bool press;                  /* client type? */
-} archived_event;
+};
+// typedef
 
 using testing::Mock;
 using testing::Return;
@@ -31,18 +32,13 @@ using testing::AnyNumber;
 
 // I need Environment which can convert into archived_event
 // This is fully under control of our environment:
-class TestEvent {
+class TestEvent : archived_event {
 public:
-  archived_event *event;
 
-  TestEvent(const Time time, const KeyCode keycode, bool press = true, const KeyCode forked = 0) {
-    event = new ::archived_event({time, keycode, forked, press });
-  }
+  TestEvent(const Time time, const KeyCode keycode, bool press = true, const KeyCode forked = 0) :
+    archived_event{time, keycode, forked, press} {}
 
-  ~TestEvent() {
-    delete event;
-  }
-
+  ~TestEvent() {}
 
   /* todo:
   operator=();
