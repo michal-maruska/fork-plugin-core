@@ -56,15 +56,18 @@ build_with_compiler() {
     cmake -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=$compiler
     build_run_tests
     # analysis
-    run-clang-tidy -checks="clang-analyzer-\*,-clang-diagnostic-vla-cxx-extension"
+    (
+        set -x
+        run-clang-tidy -checks="clang-analyzer-\*,-clang-diagnostic-vla-cxx-extension"
 
-    # another static analysis:
-    cppcheck --project=compile_commands.json \
-             --enable=all \
-             --suppress=missingIncludeSystem \
-             --suppress=preprocessorErrorDirective \
-             --suppress=knownArgument \
-             --library=googletest
+        # another static analysis:
+        cppcheck --project=compile_commands.json \
+                 --enable=all \
+                 --suppress=missingIncludeSystem \
+                 --suppress=preprocessorErrorDirective \
+                 --suppress=knownArgument \
+                 --library=googletest
+    )
     popd
 )
 }
