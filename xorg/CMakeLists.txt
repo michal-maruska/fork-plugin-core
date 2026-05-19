@@ -67,10 +67,12 @@ message(STATUS "Building Fork & install in " ${moduledir})
 message(STATUS "USing Xorg headers from " ${includedir})
 
 # $<INSTALL_PREFIX>
-install(FILES ../include/fork_requests.h
+install(FILES
+  ../include/fork_requests.h
+  ../include/fork_enums.h
   #PUBLIC_HEADER
   DESTINATION ${includedir}
-  )
+)
 
 install(TARGETS fork
   EXPORT fork
