@@ -13,4 +13,6 @@ permissions:
 jobs:
   publish:
     uses: michal-maruska/workflows/.github/workflows/build-and-publish-deb.yml@main
+    with:
+      ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.ref }}
     secrets: inherit
