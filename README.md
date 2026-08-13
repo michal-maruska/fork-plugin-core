@@ -29,3 +29,6 @@ This is a big plus -- switching to modifier instantly when mouse is clicked, to 
       a patch is needed for [libinput](https://github.com/MichalMaruska/libinput/commits/main/)
       and [weston](https://github.com/MichalMaruska/weston/commits/main/)
 
+
+* for [Mac](https://developer.apple.com/documentation/driverkit/creating-a-driver-using-the-driverkit-sdk) not yet.
+https://developer.apple.com/documentation/kernel/implementing_drivers_system_extensions_and_kexts
