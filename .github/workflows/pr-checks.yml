@@ -26,7 +26,7 @@ jobs:
           apt-get update
           apt-get install -y \
                cmake ninja-build \
-               clang clang-tidy \
+               clang clang-tidy libclang-rt-dev \
                cppcheck \
                googletest libgtest-dev libgmock-dev
 
