@@ -25,7 +25,10 @@ jobs:
         run: |
           apt-get update
           apt-get install -y \
-               cmake ninja-build clang-tidy cppcheck googletest libgtest-dev libgmock-dev \
+               cmake ninja-build \
+               clang clang-tidy \
+               cppcheck \
+               googletest libgtest-dev libgmock-dev
 
       - name: Install dependencies
         run: |
