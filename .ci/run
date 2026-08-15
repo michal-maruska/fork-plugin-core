@@ -1,8 +1,12 @@
 #!/usr/bin/bash
 
+# Try to build with different compilers, for Xorg?
+# run tests, and invoke `cppcheck' and `run-clang-tidy'
+
 # needs:
 # ai libclang-rt-21-dev
 # ai clang
+# clang-tidy cppcheck
 
 # useless:
 # ai libc++-21-dev
@@ -74,12 +78,14 @@ build_with_compiler() {
 )
 }
 
+##
 build_with_compiler g++
 build_with_compiler clang++
 # fixme:
-rm -f $dir/$BUILD_DIR/clang++/**/*gcda
+rm -f $BUILD_DIR/clang++/**/*gcda
 
 
+## Install
 if [[ $INVOKE_INSTALL == yes ]]
 then
 ( cd $gitdir
