@@ -20,13 +20,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install TEST dependencies
         # inside the container, no "sudo"!
         run: |
           apt-get update
           apt-get install -y \
                cmake ninja-build clang-tidy cppcheck googletest libgtest-dev libgmock-dev \
-               xserver-xorg-dev libinput-dev
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          # 3. Install build-deps (this still needs root)
+          mk-build-deps --install --remove --tool="apt-get -y --no-install-recommends" debian/control
 
       # inside docker: the checkout was done outside as root!
       - name: fix permissions
