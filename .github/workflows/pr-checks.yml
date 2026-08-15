@@ -10,14 +10,29 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    container:
+      # this is what we build for: SID
+      image:  ghcr.io/${{ github.repository_owner }}/debian-builder:main
+      # for now the image is not public ...
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt-get update &&
-             sudo apt-get install -y
-               cmake ninja-build clang-tidy cppcheck googletest libgtest-dev libgmock-dev
+        # inside the container, no "sudo"!
+        run: |
+          apt-get update
+          apt-get install -y \
+               cmake ninja-build clang-tidy cppcheck googletest libgtest-dev libgmock-dev \
                xserver-xorg-dev libinput-dev
 
+      # inside docker: the checkout was done outside as root!
+      - name: fix permissions
+        run: |
+          chown --recursive builder:builder ../
+
       - name: Run checks
-        run: ./.ci/run
+        run: |
+          su builder -c "./.ci/run"
