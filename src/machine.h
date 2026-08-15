@@ -19,6 +19,9 @@
 #include <memory>
 #include <algorithm>
 #include <functional>
+#include <optional>
+#else
+#include "empty_unique_lock.h"
 #endif
 
 #ifndef KERNEL
@@ -73,7 +76,7 @@ private:
 
 #ifndef DISABLE_STD_LIBRARY
     mutable std::mutex mLock;
-    using  scoped_lock = std::scoped_lock<std::mutex>;
+    using  unique_lock = std::unique_lock<std::mutex>;
 
     void do_lock() const
     {
@@ -87,17 +90,7 @@ private:
 #else
     int mLock = 0;
 
-    template <typename mutex>
-    class empty_scoped_lock
-    {
-    public:
-        empty_scoped_lock(mutex m) {
-            UNUSED(m);
-        };
-
-        ~empty_scoped_lock() {}
-    };
-    using  scoped_lock = empty_scoped_lock<int>;
+    using  unique_lock = empty_unique_lock<int>;
 
     void lock() const {};
     void unlock() const {};
@@ -274,7 +267,7 @@ public:
      * @value .. either parameter is set to this value if @set is 1
      * or ... ignored  */
     int configure_global(fork_configuration_t type, int value, bool set) {
-        scoped_lock lock(mLock);
+        unique_lock lock(mLock);
         const auto fork_configuration =
 #ifndef DISABLE_STD_LIBRARY
             this->config.get()
@@ -361,14 +354,14 @@ public:
     }
 
     void set_debug(int level) {
-        scoped_lock lock(mLock);
+        unique_lock lock(mLock);
         config->debug = level;
         // (machine->config->debug? 0: 1);
     }
 
     void stop() {
         // wait & stop
-        scoped_lock wait_lock(mLock);
+        unique_lock wait_lock(mLock);
     }
 
 
@@ -907,7 +900,7 @@ private:
     void run_automaton(bool force_also) {
         // fixme: maybe All I need is the nextPlugin?
         {
-            scoped_lock lock(mLock);
+            unique_lock lock(mLock);
 #if 0
             if (environment->output_frozen() || (! tq.middle_empty() )) {
                 // log_queues_and_nextplugin(message)
@@ -961,25 +954,33 @@ private:
 
     // can modify the event!
     void relay_event(const PlatformEvent& event) {
-        // (ORDER) this event must be delivered before any other!
-        // so no preemption of this part!  Are we re-entrant?
-        // yet, the next plugin could call in here? to do what?
-
-        // machine. fixme: it's not true -- it cannot!
-        // 2020: it can!
-        // so ... this is front_lock?
-
-        // why unlock during this? maybe also during the push_time_to_next then?
-        // because it can call into back to us? NotifyThaw()
-
-        // fixme: was here a bigger message?
-        // bug: environment->fmt_event(ev->p_event);
-        do_unlock();
-        // we must gurantee ORDER
+        // we must guarantee ORDER
         environment->relay_event(event);
-        do_lock();
     }
 
+#ifndef DISABLE_STD_LIBRARY
+    [[nodiscard]] inline std::optional<PlatformEvent> pop_event_if_present() {
+        unique_lock lock(mLock);
+        if (tq.can_pop()) {
+            PlatformEvent ev = tq.head();
+            save_event_to_log(ev);
+            tq.pop();
+            return ev;
+        }
+        return std::nullopt;
+    }
+#else
+    bool pop_event_if_present(PlatformEvent& out_event) {
+        unique_lock lock(mLock);
+        if (tq.can_pop()) {
+            out_event = tq.head();
+            save_event_to_log(out_event);
+            tq.pop();
+            return true;
+        }
+        return false;
+    }
+#endif
 
     /**
      * Push as many as possible from the OUTPUT queue to the next layer.
@@ -988,15 +989,22 @@ private:
      *queue. Unlocks to be re-entrant!
      **/
     void flush_to_next() {
-        while (!environment->output_frozen() && tq.can_pop()) {
-            scoped_lock lock(mLock);
-            const PlatformEvent& event = tq.head(); // copy ?
-            // fixme ... temporarily ... not pop before sending off !
-            save_event_to_log(event);
-            // unlocks!
-            // todo: should extract the platformEvent, then pop, and deliver.
-            tq.pop();
-            relay_event(event);
+        while (!environment->output_frozen()) {
+#ifndef DISABLE_STD_LIBRARY
+            auto event = pop_event_if_present();
+            if (event.has_value()) {
+                relay_event(*event);
+            } else {
+                break;
+            }
+#else
+            PlatformEvent event;
+            if (pop_event_if_present(event)) {
+                relay_event(event);
+            } else {
+                break;
+            }
+#endif
         }
         if (!environment->output_frozen()) {
             push_time_to_next();
@@ -1014,13 +1022,16 @@ private:
         // if that plugin is gone. todo!
 
         Time now;
-        const PlatformEvent *item = tq.first();
-        if (item == nullptr) {
-            now = mCurrent_time;
-        } else {
-            now = environment->time_of(*item);
-            // in this case we might:
-            mCurrent_time = 0;
+        {
+            unique_lock lock(mLock);
+            const PlatformEvent *item = tq.first();
+            if (item == nullptr) {
+                now = mCurrent_time;
+            } else {
+                now = environment->time_of(*item);
+                // in this case we might:
+                mCurrent_time = 0;
+            }
         }
 
         if (now) {
@@ -1031,7 +1042,7 @@ private:
 
     // fixme: returned by the accept_* public API methods
     [[nodiscard]] Time next_decision_time() const {
-        // bug: not locked
+        unique_lock lock(mLock);
         if ((state == st_verify)
             || (state == st_suspect))
             // we are indeed waiting:
@@ -1112,6 +1123,7 @@ public:
     int dump_last_events_to_client(event_publisher<archived_event_t>* publisher, int max_requested) {
         // I don't need to count them! last_events_count
         // should be locked
+        unique_lock lock(mLock);
         int queue_count = last_events_log.size();
 
         if (max_requested > queue_count) {
@@ -1145,7 +1157,7 @@ public:
         @return false if allocation  failed.
     */
     bool create_configs() {
-        scoped_lock lock(mLock);
+        unique_lock lock(mLock);
 
         environment->log("%s\n", __func__);
 
@@ -1176,7 +1188,7 @@ public:
     }
 
     void dump_last_events(event_dumper<archived_event_t>* dumper) const {
-        scoped_lock lock(mLock);
+        unique_lock lock(mLock);
 #if DISABLE_STD_LIBRARY
 #if 0
         std::function<void(const event_dumper&, const archived_event_t&)> doit0 = &event_dumper::operator();
@@ -1236,7 +1248,7 @@ public:
      */
     Time accept_event(const PlatformEvent& pevent) noexcept(false) {
         {
-            scoped_lock lock(mLock);
+            unique_lock lock(mLock);
             const Keycode key = environment->detail_of(pevent);
 #if 0
             environment->fmt_event(__func__, pevent);
@@ -1285,7 +1297,7 @@ public:
 
     Time accept_time(const Time now) {
         {
-            scoped_lock lock(mLock);
+            unique_lock lock(mLock);
             /* push the time ! */
             // sometimes now is 0 -- when I ungrab-keyboard from sfc.
             if (mCurrent_time > now) {

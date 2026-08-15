@@ -142,7 +142,7 @@ public:
     item_t pop() {
         scope_queue_logger QL(this, __func__);
 
-        const item_t& item = buffer.front();
+        item_t item = buffer.front();
 
         buffer.pop_front();
         // buffer.increment_head();
