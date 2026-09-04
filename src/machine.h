@@ -890,10 +890,13 @@ private:
 
     /**
      * Internal: Run the automaton transitions on the queues.
-     * Expects mLock to be held by caller.
+     * Take from `input_queue', + the mCurrent_time + force  -> run the machine.
+     * Assumes mLock is already held by caller.
      */
     void process_automaton_locked(bool force_also) {
         check_locked();
+        // notice that instead of recursion, all the calls to `rewind_machine' are
+        // followed by return to this cycle!
         while (! environment->output_frozen()) {
 
             if (! tq.third_empty()) {
@@ -901,12 +904,15 @@ private:
                 transition_by_key(event);
             } else {
                 if ((state != st_normal) && mCurrent_time) {
+                    // If this time helped to decide -> machine rewound,
+                    // we have to try again, maybe the queue is not empty?.
                     if (transition_by_time(mCurrent_time))
                         continue;
                 }
 
                 if (force_also && (state != st_normal)) {
                     transition_by_force();
+                    // continue;
                 } else {
                     break;
                 }
@@ -930,8 +936,7 @@ private:
     }
 
 #ifndef DISABLE_STD_LIBRARY
-    [[nodiscard]] inline std::optional<PlatformEvent> pop_event_if_present() {
-        unique_lock lock(mLock);
+    [[nodiscard]] inline std::optional<PlatformEvent> pop_event_if_present_locked() {
         if (tq.can_pop()) {
             PlatformEvent ev = tq.head();
             save_event_to_log(ev);
@@ -940,9 +945,14 @@ private:
         }
         return std::nullopt;
     }
-#else
-    bool pop_event_if_present(PlatformEvent& out_event) {
+
+    [[nodiscard]] inline std::optional<PlatformEvent> pop_event_if_present() {
         unique_lock lock(mLock);
+        return pop_event_if_present_locked();
+    }
+#else
+    // same body but different result transfer:
+    bool pop_event_if_present_locked(PlatformEvent& out_event) {
         if (tq.can_pop()) {
             out_event = tq.head();
             save_event_to_log(out_event);
@@ -951,6 +961,11 @@ private:
         }
         return false;
     }
+
+    bool pop_event_if_present(PlatformEvent& out_event) {
+        unique_lock lock(mLock);
+        return pop_event_if_present_locked(out_event);
+    }
 #endif
 
     /**
@@ -958,10 +973,10 @@ private:
      * Also the time.
      * Beware: not locked.
      **/
-    void flush_to_next() {
+    void flush_to_next_locked() {
         while (!environment->output_frozen()) {
 #ifndef DISABLE_STD_LIBRARY
-            auto event = pop_event_if_present();
+            auto event = pop_event_if_present_locked();
             if (event.has_value()) {
                 relay_event(*event);
             } else {
@@ -969,24 +984,35 @@ private:
             }
 #else
             PlatformEvent event;
-            if (pop_event_if_present(event)) {
+            if (pop_event_if_present_locked(event)) {
                 relay_event(event);
             } else {
                 break;
             }
 #endif
         }
-
-        {
-            scoped_lock lock(mLock);
-            if (!environment->output_frozen()) {
-                push_time_to_next();
+        if (!environment->output_frozen()) {
+            Time now = push_time_to_next_locked();
+            if (now) {
+                environment->push_time(now);
             }
         }
-#if 0
-        if (!tq.can_pop())
-            mdb("%s: still %d events to output\n", __func__, output_queue.length());
-#endif
+    }
+
+    void flush_to_next() {
+        unique_lock lock(mLock);
+        flush_to_next_locked();
+    }
+
+    [[nodiscard]] Time push_time_to_next_locked() {
+        const PlatformEvent *item = tq.first();
+        if (item == nullptr) {
+            return mCurrent_time;
+        } else {
+            Time now = environment->time_of(*item);
+            mCurrent_time = 0;
+            return now;
+        }
     }
 
     void push_time_to_next() {
@@ -998,14 +1024,7 @@ private:
         Time now;
         {
             unique_lock lock(mLock);
-            const PlatformEvent *item = tq.first();
-            if (item == nullptr) {
-                now = mCurrent_time;
-            } else {
-                now = environment->time_of(*item);
-                // in this case we might:
-                mCurrent_time = 0;
-            }
+            now = push_time_to_next_locked();
         }
 
         if (now) {
@@ -1226,13 +1245,13 @@ public:
      * Environment.
      */
     Time accept_event(const PlatformEvent& pevent) noexcept(false) {
+
+        const Keycode key = environment->detail_of(pevent);
         {
             unique_lock lock(mLock);
             if (mStopped) {
                 return 0;
             }
-            const Keycode key = environment->detail_of(pevent);
-
             mdb("%s: event %u (%s) time: %" TIME_FMT "\n",
                 __func__,
                 environment->detail_of(pevent),
@@ -1263,7 +1282,24 @@ public:
 
         flush_to_next();
 
-        return next_decision_time();
+        mCurrent_time = 0;
+
+        if (key > MAX_KEYCODE) {
+            mdb("%s: out-of-bound event %d\n", __func__);
+            return 0;
+        }
+
+        if (environment->press_p(pevent)
+            && key_forked(key))
+        {
+            mdb("%s: skipping this Press -- it's a forked modifier and AR!\n", __func__);
+        } else {
+            tq.push(pevent);
+        }
+
+        process_automaton_locked(false);
+
+        return next_decision_time_locked();
     }
 
 
@@ -1283,7 +1319,6 @@ public:
 
             process_automaton_locked(false);
         }
-
         flush_to_next();
 
         return next_decision_time();
@@ -1298,6 +1333,8 @@ public:
      */
     void accept_confirmation() {
         {
+            // fixme: but this is possibly non-reentrant.
+            // std::atomic<uint32_t> pending_{0};
             unique_lock lock(mLock);
             process_automaton_locked(true);
         }
