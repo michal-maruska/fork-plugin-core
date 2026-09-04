@@ -153,6 +153,29 @@ TEST_F(machineTest, AcceptEvent) {
   // ::testing::Mock::AllowLeak(environment);
 }
 
+TEST_F(machineTest, AcceptEventFlushesWithoutDeadlock) {
+  TestEvent pevent(100L, 56);
+
+  EXPECT_CALL(*environment, relay_event);
+  EXPECT_CALL(*environment, detail_of(testing::_))
+    .WillRepeatedly(testing::Return(56));
+  EXPECT_CALL(*environment, time_of).WillRepeatedly(testing::Return(100L));
+  EXPECT_CALL(*environment, press_p).WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(*environment, release_p).WillRepeatedly(testing::Return(false));
+  EXPECT_CALL(*environment, ignore_event).WillRepeatedly(testing::Return(false));
+  EXPECT_CALL(*environment, output_frozen).WillRepeatedly(testing::Return(false));
+  EXPECT_CALL(*environment, push_time(testing::_)).Times(testing::AtLeast(1));
+
+  Time next = fm->accept_event(pevent);
+  UNUSED(next);
+
+  // Calling accept_time should also execute without deadlock
+  Time next_time = fm->accept_time(200L);
+  UNUSED(next_time);
+
+  Mock::VerifyAndClearExpectations(environment);
+}
+
 TEST_F(machineTest, Configure) {
   KeyCode A = 10;
   KeyCode B = 11;
