@@ -1271,17 +1271,18 @@ public:
         {
             unique_lock lock(mLock);
             /* push the time ! */
-            // sometimes now is 0 -- when I ungrab-keyboard from sfc.
             if (mCurrent_time > now) {
-                // unconditionally:
                 environment->log("%s: bug: time moved backwards!\n", __func__);
-                return next_decision_time();
+                return next_decision_time_locked();
             }
             else
                 mCurrent_time = now;
+
+            process_automaton_locked(false);
         }
 
-        run_automaton(false);
+        flush_to_next();
+
         return next_decision_time();
     }
 
