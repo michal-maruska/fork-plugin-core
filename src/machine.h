@@ -977,7 +977,7 @@ private:
         // bug: environment->fmt_event(ev->p_event);
         // we must gurantee ORDER
         environment->relay_event(event);
-    };
+    }
 
 
     /**
