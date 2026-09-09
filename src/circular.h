@@ -387,14 +387,15 @@ class circular_buffer
                     // assignment!
                     array_[next] = item;
                     increment_head();
+                    increment_tail();
                 }
             }
             else
             {
                 // what? emplacement
                 alloc_.construct(array_ + next, item);
+                increment_tail();
             }
-            increment_tail();
         }
         void pop_front()
         {
