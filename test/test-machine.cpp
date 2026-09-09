@@ -36,7 +36,7 @@ using testing::AnyNumber;
 
 // I need Environment which can convert into test_archived_event
 // This is fully under control of our environment:
-class TestEvent : test_archived_event {
+class TestEvent : public test_archived_event {
 public:
 
   TestEvent(const Time time, const KeyCode keycode, bool press = true, const KeyCode forked = 0) :
@@ -316,6 +316,9 @@ TEST_F(machineTest, ThreadSafety) {
   for (int i = 0; i < 10; ++i) {
     threads.emplace_back([this, pevent]() {
       for (int j = 0; j < 50; ++j) {
+        TestEvent event = pevent;
+        event.time += j;
+
         fm->accept_event(pevent);
         fm->accept_time(100 + j);
         fm->accept_confirmation();
