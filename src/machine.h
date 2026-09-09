@@ -350,6 +350,7 @@ public:
     void stop() {
         // wait & stop
         unique_lock wait_lock(mLock);
+        UNUSED(wait_lock);
     }
 
 
