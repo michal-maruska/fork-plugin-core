@@ -74,7 +74,7 @@ public:
 
 private:
 
-#ifndef DISABLE_STD_LIBRARY
+#if !defined(DISABLE_STD_LIBRARY) && USE_LOCKING
     mutable std::mutex mLock;
     using  unique_lock = std::unique_lock<std::mutex>;
     void check_locked() const {}
