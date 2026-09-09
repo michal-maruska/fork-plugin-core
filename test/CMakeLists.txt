@@ -32,11 +32,22 @@ gtest_discover_tests(test-triqueue)
 
 add_executable(test-machine test-machine.cpp)
 target_include_directories(test-machine SYSTEM PUBLIC "../include/")
+target_link_libraries(test-machine GTest::gtest_main GTest::gmock_main)
 
-#include_directories()
-target_link_libraries(test-machine GTest::gtest_main)
-target_link_libraries(test-machine GTest::gmock_main)
+option(ENABLE_ASAN "Build with AddressSanitizer" OFF)
+option(ENABLE_TSAN "Build with ThreadSanitizer" OFF)
+
+if(ENABLE_ASAN)
+  target_compile_options(test-machine PRIVATE -fsanitize=address -fno-omit-frame-pointer -g)
+  target_link_options(test-machine PRIVATE -fsanitize=address)
+endif()
+
+if(ENABLE_TSAN)
+  target_compile_options(test-machine PRIVATE -fsanitize=thread -fno-omit-frame-pointer -g)
+  target_link_options(test-machine PRIVATE -fsanitize=thread)
+endif()
 
 gtest_discover_tests(test-machine)
+
 
 
