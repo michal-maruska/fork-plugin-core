@@ -188,6 +188,7 @@ public:
      * what is the meaning of:  KEYCODE_UNUSED and X ? */
     Keycode          forkActive[MAX_KEYCODE] = {};
 
+    // not private, because used in tests: fixme!
 #ifndef DISABLE_STD_LIBRARY
     std::unique_ptr<fork_configuration> config; // list<fork_configuration>
 #else
