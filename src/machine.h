@@ -1222,6 +1222,9 @@ public:
     Time accept_event(const PlatformEvent& pevent) noexcept(false) {
         {
             unique_lock lock(mLock);
+            if (mStopped) {
+                return 0;
+            }
             const Keycode key = environment->detail_of(pevent);
 
             mdb("%s: event %u (%s) time: %" TIME_FMT "\n",
@@ -1261,6 +1264,9 @@ public:
     Time accept_time(const Time now) {
         {
             unique_lock lock(mLock);
+            if (mStopped) {
+                return 0;
+            }
             /* push the time ! */
             if (mCurrent_time > now) {
                 environment->log("%s: bug: time moved backwards!\n", __func__);
