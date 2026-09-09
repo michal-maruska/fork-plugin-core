@@ -884,53 +884,30 @@ private:
      */
 
     /**
-     * Take from `input_queue', + the mCurrent_time + force  -> run the machine.
+     * Internal: Run the automaton transitions on the queues.
+     * Expects mLock to be held by caller.
      */
-    void run_automaton(bool force_also) {
-        // fixme: maybe All I need is the nextPlugin?
-        {
-            unique_lock lock(mLock);
-#if 0
-            if (environment->output_frozen() || (! tq.middle_empty() )) {
-                // log_queues_and_nextplugin(message)
-                mdb("%s: next %sfrozen: internal %d, input: %d\n", __func__,
-                    (environment->output_frozen()?"":"NOT "),
-                    internal_queue.length(),
-                    input_queue.length());
-            }
-#endif
-            // notice that instead of recursion, all the calls to `rewind_machine' are
-            // followed by return to this cycle!
-            while (! environment->output_frozen()) {
+    void process_automaton_locked(bool force_also) {
+        check_locked();
+        while (! environment->output_frozen()) {
 
-                if (! tq.third_empty()) {
-                    const PlatformEvent& event = tq.peek_third();
-                    transition_by_key(event); // here crash?
+            if (! tq.third_empty()) {
+                const PlatformEvent& event = tq.peek_third();
+                transition_by_key(event);
+            } else {
+                if ((state != st_normal) && mCurrent_time) {
+                    if (transition_by_time(mCurrent_time))
+                        continue;
+                }
+
+                if (force_also && (state != st_normal)) {
+                    transition_by_force();
                 } else {
-                    if ((state != st_normal) && mCurrent_time) {
-                        // !middle_empty()
-                        if (transition_by_time(mCurrent_time))
-                            // If this time helped to decide -> machine rewound,
-                            // we have to try again, maybe the queue is not empty?.
-                            continue;
-                    }
-
-                    if (force_also && (state != st_normal)) {
-                        // !middle_empty()
-                        transition_by_force();
-                    } else {
-                        break;
-                    }
+                    break;
                 }
             }
         }
-
-        if (config->debug) {
-            log_queues("Before flushing:");
-        }
-        // unlocked now, why?
-        flush_to_next();
-    };
+    }
 
 
    /* Return the keycode into which CODE has forked _last_ time.
