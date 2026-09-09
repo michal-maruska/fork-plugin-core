@@ -301,6 +301,36 @@ TEST(machineConcurrentTest, ConcurrentLocking) {
   }
 }
 
+TEST_F(machineTest, ThreadSafety) {
+  TestEvent pevent(100L, 56);
+
+  EXPECT_CALL(*environment, relay_event).Times(AnyNumber());
+  EXPECT_CALL(*environment, detail_of(testing::_)).WillRepeatedly(Return(56));
+  EXPECT_CALL(*environment, time_of).WillRepeatedly(Return(100L));
+  EXPECT_CALL(*environment, press_p).WillRepeatedly(Return(true));
+  EXPECT_CALL(*environment, release_p).WillRepeatedly(Return(false));
+  EXPECT_CALL(*environment, ignore_event).WillRepeatedly(Return(false));
+  EXPECT_CALL(*environment, output_frozen).WillRepeatedly(Return(false));
+
+  std::vector<std::thread> threads;
+  for (int i = 0; i < 10; ++i) {
+    threads.emplace_back([this, pevent]() {
+      for (int j = 0; j < 50; ++j) {
+        fm->accept_event(pevent);
+        fm->accept_time(100 + j);
+        fm->accept_confirmation();
+        fm->configure_key(fork_configure_key_fork, 56, 57, 1);
+      }
+    });
+  }
+
+  for (auto& t : threads) {
+    t.join();
+  }
+
+  Mock::VerifyAndClearExpectations(environment);
+}
+
 #if 0
 // fixme: I need equal_to()
 
