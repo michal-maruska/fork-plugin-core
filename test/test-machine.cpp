@@ -331,6 +331,18 @@ TEST_F(machineTest, ThreadSafety) {
   Mock::VerifyAndClearExpectations(environment);
 }
 
+TEST_F(machineTest, StopFlagPreventsEventProcessing) {
+  TestEvent pevent(100L, 56);
+  fm->stop();
+
+  // After stop(), accept_event should return 0 and not call relay_event or state machine transitions
+  EXPECT_CALL(*environment, relay_event).Times(0);
+  Time next = fm->accept_event(pevent);
+  EXPECT_EQ(next, 0);
+
+  Mock::VerifyAndClearExpectations(environment);
+}
+
 #if 0
 // fixme: I need equal_to()
 
