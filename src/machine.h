@@ -85,6 +85,7 @@ private:
 
     void check_locked() const {}
 #endif
+    bool mStopped = false;
 
 
 public:
@@ -351,6 +352,7 @@ public:
         // wait & stop
         unique_lock wait_lock(mLock);
         UNUSED(wait_lock);
+        mStopped = true;
     }
 
 
