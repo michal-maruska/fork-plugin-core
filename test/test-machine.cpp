@@ -189,6 +189,7 @@ TEST_F(machineTest, ConcurrentAccess) {
           fm->accept_time(100L + j);
         } else {
           fm->configure_key(fork_configure_key_fork, 10, 20, 1);
+          fm->configure_twins(fork_configure_total_limit, 10, 11, 150, true);
           fm->configure_global(fork_configure_debug, j % 2, true);
         }
       }
