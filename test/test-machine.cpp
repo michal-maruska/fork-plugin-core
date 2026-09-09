@@ -339,8 +339,11 @@ TEST_F(machineTest, ThreadSafety) {
   TestEvent pevent(100L, 56);
 
   EXPECT_CALL(*environment, relay_event).Times(AnyNumber());
+
   EXPECT_CALL(*environment, detail_of(testing::_)).WillRepeatedly(Return(56));
-  EXPECT_CALL(*environment, time_of).WillRepeatedly(Return(100L));
+  EXPECT_CALL(*environment, time_of(testing::_)).WillRepeatedly(Return(100L));
+  // (testing::_) ???
+
   EXPECT_CALL(*environment, press_p).WillRepeatedly(Return(true));
   EXPECT_CALL(*environment, release_p).WillRepeatedly(Return(false));
   EXPECT_CALL(*environment, ignore_event).WillRepeatedly(Return(false));
