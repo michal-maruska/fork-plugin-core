@@ -17,7 +17,7 @@ extern "C" {
 template <typename event>
 class empty_last_events_t
 #ifndef KERNEL
-  : std::vector<event>
+  : public std::vector<event>
 #endif
 {
 public:
@@ -36,5 +36,5 @@ public:
         return 0;
     }
 
-  // bool full() const {return false;}
+    [[nodiscard]] bool full() const { return false; }
 };
