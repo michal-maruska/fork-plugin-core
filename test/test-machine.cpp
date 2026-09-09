@@ -120,13 +120,8 @@ protected:
 
   ~machineTest()
   {
-    // machine `owns' this:
-    // config = nullptr;
-    // so don't do this:
-    // delete config;
-
+    // machine owns `config` and `environment` via std::unique_ptr
     delete fm;
-    delete environment;
   }
 
   testEnvironment *environment;
