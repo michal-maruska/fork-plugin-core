@@ -138,7 +138,7 @@ handle_config_key(const PluginInstance *const plugin, const InternalEvent *event
                     key_to_fork = keycode;
                 } else {
                     machineRec* machine = plugin_machine(plugin);
-                    machine->config->fork_keycode[key_to_fork] = keycode;
+                    machine->configure_key(fork_configure_key_fork, key_to_fork, keycode, true);
                     key_to_fork = 0;
                 }
         };
