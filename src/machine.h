@@ -1103,17 +1103,17 @@ public:
         };
 
         publisher->prepare(max_requested);
-#if DISABLE_STD_LIBRARY
+#ifndef DISABLE_STD_LIBRARY
         std::function<void(const archived_event_t&)> lambda =
             [publisher](const archived_event_t& ev){ publisher->event(ev); };
-        // auto f = std::function<void(const archived_event&)>(bind(publisher->event(), publisher,));
 
-        // todo:
-        // fixme: we need to increase an iterator .. pointer .... to the C array!
-        // last_events.
-        for_each(last_events_log.begin(),
-                 last_events_log.end(),
-                 lambda);
+        std::for_each(last_events_log.begin(),
+                      last_events_log.end(),
+                      lambda);
+#else
+        for (const auto& ev : last_events_log) {
+            publisher->event(ev);
+        }
 #endif
         mdb("sending %d events\n", max_requested);
 
@@ -1161,14 +1161,8 @@ public:
 
     void dump_last_events(event_dumper<archived_event_t>* dumper) const {
         unique_lock lock(mLock);
-#if DISABLE_STD_LIBRARY
-#if 0
-        std::function<void(const event_dumper&, const archived_event_t&)> doit0 = &event_dumper::operator();
-        // lambda?
-        std::function<void(const archived_event_t&)> doit = std::bind(&event_dumper::operator(), doit, placeholders::_1);
-#else
+#ifndef DISABLE_STD_LIBRARY
         std::function<void(const archived_event_t&)> lambda = [dumper](const archived_event_t& ev){ dumper->operator()(ev); };
-#endif
         if (last_events_log.full()) {
             std::for_each(last_events_log.begin(),
                           last_events_log.end(),
@@ -1177,6 +1171,10 @@ public:
             std::for_each(last_events_log.begin(),
                           last_events_log.begin() + last_events_log.size(),
                           lambda);
+        }
+#else
+        for (const auto& ev : last_events_log) {
+            (*dumper)(ev);
         }
 #endif // DISABLE_STD_LIBRARY
     }
