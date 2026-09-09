@@ -1227,27 +1227,17 @@ public:
         {
             unique_lock lock(mLock);
             const Keycode key = environment->detail_of(pevent);
-#if 0
-            environment->fmt_event(__func__, pevent);
-#else
-            // mdb("%s: event time: %ul\n", __func__, );
+
             mdb("%s: event %u (%s) time: %" TIME_FMT "\n",
                 __func__,
                 environment->detail_of(pevent),
                 environment->press_p(pevent)?"press":"release",
                 environment->time_of(pevent));
-#endif
-// todo: if  forked (= modifier), and Press repeated -> discard. Just time.
-// if same press already in the queue?
-
-            // fixme: mouse must not preempt us. But what if it does?
-            // mmc: allocation:
 
             if (mCurrent_time > environment->time_of(pevent)) {
                 mdb("%s: bug: time moved backwards!\n", __func__);
             }
 
-            // no need:
             mCurrent_time = 0;
 
             if (key > MAX_KEYCODE) {
@@ -1255,18 +1245,18 @@ public:
                 return 0;
             }
 
-            // here:
             if (environment->press_p(pevent)
                 && key_forked(key))
             {
                 mdb("%s: skipping this Press -- it's a forked modifier and AR!\n", __func__);
-                // environment->free_event(&pevent);
-                // return;
             } else {
                 tq.push(pevent);
             }
+
+            process_automaton_locked(false);
         }
-        run_automaton(false);
+
+        flush_to_next();
 
         return next_decision_time();
     }
