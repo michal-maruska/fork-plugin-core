@@ -1113,7 +1113,7 @@ public:
             mdb("%s: invalid option %d\n", __func__, value);
         }
         return 0;
-    };
+    }
 
     /** ask the platform environment to send events as data. */
     int dump_last_events_to_client(event_publisher<archived_event_t>* publisher, int max_requested) {
