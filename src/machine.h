@@ -1078,7 +1078,7 @@ public:
             else return config->overlap_tolerance[key][twin];
             break;
         default:
-            mdb("%s: invalid type %d\n", __func__, type);;
+            mdb("%s: invalid type %d\n", __func__, type);
         }
 #else
         UNUSED(type);
