@@ -978,7 +978,7 @@ private:
         // we must gurantee ORDER
         environment->relay_event(event);
         do_lock();
-    };
+    }
 
 
     /**
