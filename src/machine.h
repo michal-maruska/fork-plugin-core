@@ -1293,11 +1293,12 @@ public:
      * If in Suspect or Verify state, force the fork. (todo: should be
      * configurable)
      */
-    void accept_confirmation() { // fixme!
-        /* bug: if we were frozen, then we have a sequence of keys, which
-         * might be already released, so the head is not to be forked!
-         */
-        run_automaton(true);
+    void accept_confirmation() {
+        {
+            unique_lock lock(mLock);
+            process_automaton_locked(true);
+        }
+        flush_to_next();
     }
 
 };
