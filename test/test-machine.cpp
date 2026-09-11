@@ -304,7 +304,9 @@ using concreteMachineRec = forkNS::forkingMachine<KeyCode, Time,
 TEST(machineConcurrentTest, ConcurrentLocking) {
   auto env = new ConcreteTestEnvironment();
   auto fm = std::make_unique<concreteMachineRec>(env);
+  // why this? should use api to configure it.
   auto cfg = std::make_unique<concreteMachineRec::fork_configuration>();
+  // in facts why is this type public??
   cfg->debug = 0;
   fm->config = std::move(cfg);
 
