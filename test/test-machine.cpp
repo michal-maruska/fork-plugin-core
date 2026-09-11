@@ -318,7 +318,7 @@ TEST(machineConcurrentTest, ConcurrentLocking) {
   // why this? should use api to configure it.
   auto cfg = std::make_unique<concreteMachineRec::fork_configuration>();
   // in facts why is this type public??
-  cfg->debug = 0;
+  cfg->debug = 1;
   fm->config = std::move(cfg);
 
   std::vector<std::thread> threads;
@@ -351,6 +351,7 @@ TEST_F(machineTest, ThreadSafety) {
   EXPECT_CALL(*environment, ignore_event).WillRepeatedly(Return(false));
   EXPECT_CALL(*environment, output_frozen).WillRepeatedly(Return(false));
 
+  fm->configure_global(fork_configuration_t::fork_configure_debug, 1, 1);
   std::vector<std::thread> threads;
   for (int i = 0; i < 10; ++i) {
     threads.emplace_back([this, pevent]() {
