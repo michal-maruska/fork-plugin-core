@@ -975,10 +975,8 @@ private:
 
         // fixme: was here a bigger message?
         // bug: environment->fmt_event(ev->p_event);
-        do_unlock();
         // we must gurantee ORDER
         environment->relay_event(event);
-        do_lock();
     };
 
 
@@ -989,18 +987,26 @@ private:
      *queue. Unlocks to be re-entrant!
      **/
     void flush_to_next() {
-        while (!environment->output_frozen() && tq.can_pop()) {
-            scoped_lock lock(mLock);
-            const PlatformEvent& event = tq.head(); // copy ?
-            // fixme ... temporarily ... not pop before sending off !
-            save_event_to_log(event);
-            // unlocks!
-            // todo: should extract the platformEvent, then pop, and deliver.
-            tq.pop();
-            relay_event(event);
+        // bad:
+        PlatformEvent event;
+
+        while (true) {
+            {
+                scoped_lock lock(mLock);
+                if (environment->output_frozen() || !tq.can_pop())
+                    break;
+                event = tq.head(); // copy, not reference — see below
+                save_event_to_log(event);
+                tq.pop();
+            } // lock released here, before relay_event
+          relay_event(event);
         }
-        if (!environment->output_frozen()) {
-            push_time_to_next();
+
+        {
+            scoped_lock lock(mLock);
+            if (!environment->output_frozen()) {
+                push_time_to_next();
+            }
         }
 #if 0
         if (!tq.can_pop())
