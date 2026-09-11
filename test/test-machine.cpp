@@ -221,6 +221,16 @@ TEST_F(machineTest, AcceptTimeMovedBackwardsDoesNotDeadlock) {
   Mock::VerifyAndClearExpectations(environment);
 }
 
+TEST_F(machineTest, LockingAndAcceptConfirmation) {
+  fm->set_debug(1);
+  EXPECT_EQ(fm->configure_global(fork_configure_debug, 0, false), 1);
+
+  EXPECT_CALL(*environment, output_frozen).WillRepeatedly(Return(false));
+  fm->accept_confirmation();
+
+  Mock::VerifyAndClearExpectations(environment);
+}
+
 #if 0
 // fixme: I need equal_to()
 
