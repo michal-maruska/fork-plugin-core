@@ -668,6 +668,7 @@ private:
                     // do.
                     // ..... `discard' the event???
                     // fixme: but we should recalc the mDecision_time !!
+                    tq.move_to_second(); // let's let it in.
                     return;
                 }
             } else {
