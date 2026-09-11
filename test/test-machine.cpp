@@ -164,6 +164,15 @@ TEST_F(machineTest, Configure) {
   Mock::VerifyAndClearExpectations(environment);
 }
 
+TEST_F(machineTest, ConfigureTwins) {
+  KeyCode A = 10;
+  KeyCode B = 11;
+  int res = fm->configure_twins(fork_configure_total_limit, A, B, 150, true);
+  EXPECT_EQ(res, 0);
+
+  Mock::VerifyAndClearExpectations(environment);
+}
+
 #if 0
 // fixme: I need equal_to()
 
