@@ -293,8 +293,15 @@ public:
     bool output_frozen() override { return false; }
     void relay_event(const TestEvent &pevent) const override {}
     void push_time(Time now) override {}
-    void vlog(const char* format, va_list argptr) const override {}
-    void log(const char* format...) const override {}
+    void vlog(const char* format, va_list argptr) const override {
+        vfprintf(stderr, format, argptr);
+    }
+    void log(const char* format...) const override {
+        va_list argptr;
+        va_start(argptr, format);
+        vfprintf(stderr, format, argptr);
+        va_end(argptr);
+    }
     void fmt_event(const char* message, const TestEvent &event) const override {}
     void archive_event(test_archived_event& ae, const TestEvent& event) override {}
     void free_event(TestEvent* pevent) const override {}
