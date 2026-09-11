@@ -204,6 +204,23 @@ TEST_F(machineTest, AcceptTimeForksOnTimeout) {
   Mock::VerifyAndClearExpectations(environment);
 }
 
+TEST_F(machineTest, AcceptTimeMovedBackwardsDoesNotDeadlock) {
+  // First set current time to 100
+  EXPECT_CALL(*environment, push_time(100));
+  EXPECT_CALL(*environment, output_frozen).WillRepeatedly(Return(false));
+
+  fm->accept_time(100);
+
+  // Now pass a time earlier than 100 (time moving backwards)
+  // This triggers the branch `if (mCurrent_time > now)` in `accept_time()`,
+  // which previously called `next_decision_time()` while holding `mLock`,
+  // causing a double-lock deadlock on std::mutex.
+  Time next = fm->accept_time(50);
+  EXPECT_EQ(next, 0);
+
+  Mock::VerifyAndClearExpectations(environment);
+}
+
 #if 0
 // fixme: I need equal_to()
 
