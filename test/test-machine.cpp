@@ -44,6 +44,10 @@ public:
 
   ~TestEvent() {}
 
+  TestEvent() {
+    test_archived_event {0};
+  };
+
   /* todo:
   operator=();
   */

@@ -117,6 +117,10 @@ public:
     // take ownership:  -- no
     XorgEvent(const InternalEvent* event) : event(*event) {};
     // so why not UniquePointer?
+
+    XorgEvent() {
+        event = {{0}};
+    };
 };
 
 class XOrgEnvironment : public forkNS::platformEnvironment<KeyCode, Time, archived_event, XorgEvent> {
