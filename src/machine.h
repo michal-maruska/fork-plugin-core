@@ -954,8 +954,7 @@ private:
     /**
      * Push as many as possible from the OUTPUT queue to the next layer.
      * Also the time.
-     * The machine is locked here.  It also does not change state. Only the 1
-     *queue. Unlocks to be re-entrant!
+     * Beware: not locked.
      **/
     void flush_to_next() {
         while (!environment->output_frozen()) {
