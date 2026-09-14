@@ -866,6 +866,7 @@ private:
      * low-level machine step.
      */
     void transition_by_force() {
+      check_locked();
       if (state == st_normal) {
         // so (tq.middle_empty())
         return;
