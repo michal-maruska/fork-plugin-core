@@ -1061,6 +1061,7 @@ public:
     };
 
     int configure_twins(int type, Keycode key, Keycode twin, int value, bool set) {
+        unique_lock lock(mLock);
 #if VERIFICATION_MATRIX
         switch (type) {
         case fork_configure_total_limit:
@@ -1092,6 +1093,7 @@ public:
         key_repeat,                 // true/false
     };
     int configure_key(int type, Keycode key, int value, bool set) {
+        unique_lock lock(mLock);
         mdb("%s: keycode %d -> value %d, function %d\n",
             __func__, key, value, type);
 
