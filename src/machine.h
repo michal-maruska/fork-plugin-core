@@ -86,14 +86,14 @@ private:
     {
         mLock.unlock();
     }
-    static void check_locked() {/* assert(mLock.locked); */}
+    void check_locked() const {}
 #else
     int mLock = 0;
 
     using  unique_lock = empty_unique_lock<int>;
 
-    void lock() const {};
-    void unlock() const {};
+    void lock() const {}
+    void unlock() const {}
     void check_locked() const {}
 #endif
 
