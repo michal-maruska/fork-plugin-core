@@ -88,7 +88,7 @@ private:
     }
     void check_locked() const {}
 #else
-    int mLock = 0;
+    mutable int mLock = 0;
 
     using  unique_lock = empty_unique_lock<int>;
 
