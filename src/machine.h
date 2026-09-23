@@ -1028,17 +1028,22 @@ private:
         }
     }
 
-    // fixme: returned by the accept_* public API methods
-    [[nodiscard]] Time next_decision_time() const {
-        unique_lock lock(mLock);
+private:
+    // Internal helper when lock is already held
+    [[nodiscard]] Time next_decision_time_locked() const {
+        check_locked();
         if ((state == st_verify)
             || (state == st_suspect))
-            // we are indeed waiting:
             return mDecision_time;
         else
             return 0;
     }
 
+public:
+    [[nodiscard]] Time next_decision_time() const {
+        unique_lock lock(mLock);
+        return next_decision_time_locked();
+    }
 
 public:
 /**
