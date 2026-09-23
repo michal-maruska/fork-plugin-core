@@ -77,26 +77,14 @@ private:
 #ifndef DISABLE_STD_LIBRARY
     mutable std::mutex mLock;
     using  unique_lock = std::unique_lock<std::mutex>;
-
-    void do_lock() const
-    {
-        mLock.lock();
-    }
-    void do_unlock() const
-    {
-        mLock.unlock();
-    }
     void check_locked() const {}
 #else
     mutable int mLock = 0;
 
     using  unique_lock = empty_unique_lock<int>;
 
-    void lock() const {}
-    void unlock() const {}
     void check_locked() const {}
 #endif
-
 
 
 public:
