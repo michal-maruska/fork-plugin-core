@@ -233,7 +233,7 @@ public:
           last_released(KEYCODE_UNUSED), last_released_time(0),
           mDecision_time(0),
           mCurrent_time(0),
-          config(nullptr) {
+          config(nullptr) {     // fixme!
 
         triqueue_t<PlatformEvent, Environment>::env = environment;
 
