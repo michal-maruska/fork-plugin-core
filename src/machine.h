@@ -1308,9 +1308,8 @@ public:
                 environment->log("%s: bug: time moved backwards!\n", __func__);
                 return next_decision_time_locked();
             }
-            else
-                mCurrent_time = now;
 
+            mCurrent_time = now;
             process_automaton_locked(false);
         }
         flush_to_next();
