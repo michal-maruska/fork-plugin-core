@@ -1292,24 +1292,7 @@ public:
 
         flush_to_next();
 
-        mCurrent_time = 0;
-
-        if (key > MAX_KEYCODE) {
-            mdb("%s: out-of-bound event %d\n", __func__);
-            return 0;
-        }
-
-        if (environment->press_p(pevent)
-            && key_forked(key))
-        {
-            mdb("%s: skipping this Press -- it's a forked modifier and AR!\n", __func__);
-        } else {
-            tq.push(pevent);
-        }
-
-        process_automaton_locked(false);
-
-        return next_decision_time_locked();
+        return next_decision_time();
     }
 
 
