@@ -760,8 +760,10 @@ private:
      *   either the ev  is pushed on internal_queue, or to the output-queue
      *   the head of internal_queue may be pushed to the output-queue as well.
      */
-   void transition_by_key(const PlatformEvent& pevent) {
+   void transition_by_key() {
         check_locked();
+        // todo: no need to extract here:
+        const PlatformEvent& pevent = tq.peek_third();
         const Keycode key = environment->detail_of(pevent);
 
         mdb("%s: %lu\n", __func__, key);
@@ -908,8 +910,7 @@ private:
         while (! environment->output_frozen()) {
 
             if (! tq.third_empty()) {
-                const PlatformEvent& event = tq.peek_third();
-                transition_by_key(event);
+                transition_by_key();
             } else {
                 if ((state != st_normal) && mCurrent_time) {
                     // If this time helped to decide -> machine rewound,
