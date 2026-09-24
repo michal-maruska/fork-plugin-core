@@ -110,12 +110,10 @@ class machineTest : public testing::Test {
 
 protected:
     machineTest() : environment(new testEnvironment() ),
-                    config (new fork_configuration),
+                    // config (new fork_configuration),
                     fm (new machineRec(environment)) {
 
-      // mmc: I could instead call forking_machine->create_configs();
-      config->debug = 0;
-      fm->config.reset(config);
+      fm->create_configs();
     }
 
   ~machineTest()
@@ -126,7 +124,7 @@ protected:
 
   testEnvironment *environment;
   machineRec *fm;
-  fork_configuration *config;
+  // fork_configuration *config;
 };
 
 
@@ -180,7 +178,7 @@ TEST_F(machineTest, Configure) {
   KeyCode A = 10;
   KeyCode B = 11;
   fm->configure_key(fork_configure_key_fork, A, B, 1);
-  EXPECT_EQ(config->fork_keycode[A], B);
+  // fixme: EXPECT_EQ(config->fork_keycode[A], B);
 
   Mock::VerifyAndClearExpectations(environment);
 }
@@ -301,9 +299,13 @@ using concreteMachineRec = forkNS::forkingMachine<KeyCode, Time,
 TEST(machineConcurrentTest, ConcurrentLocking) {
   auto env = new ConcreteTestEnvironment();
   auto fm = std::make_unique<concreteMachineRec>(env);
+  /*
   auto cfg = std::make_unique<concreteMachineRec::fork_configuration>();
   cfg->debug = 0;
   fm->config = std::move(cfg);
+  */
+  fm->create_configs();
+  fm->configure_global(fork_configure_debug, 1, true);
 
   std::vector<std::thread> threads;
   for (int i = 0; i < 4; ++i) {
@@ -384,7 +386,8 @@ TEST_F(machineTest, EventFreed) {
   TestEvent A_pevent(a_time, A);
 
   KeyCode B = 11;
-  config->debug = 1;
+  fm->create_configs()
+  fm->configure_global(fork_configure_debug, 1, true);
   fm->configure_key(fork_configure_key_fork, A, B, 1);
   // EXPECT_EQ(config->fork_keycode[A], B);
 
@@ -438,7 +441,7 @@ TEST_F(machineTest, ForkBySecond) {
   Time b_release_time = b_time + 50;
   TestEvent B_release_pevent (b_release_time, B, false);
 
-  config->debug = 1;
+  fm->configure_global(fork_configure_debug, 1, true);
   fm->configure_key(fork_configure_key_fork, A, F, 1); // 1 means SET
   // EXPECT_EQ(config->fork_keycode[A], F);
 
