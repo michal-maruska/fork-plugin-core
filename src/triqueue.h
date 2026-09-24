@@ -1,6 +1,7 @@
 #pragma once
 
 #include "circular.h"
+#include <cstdlib>
 
 #ifndef KERNEL
 // std::allocator
@@ -200,6 +201,7 @@ public:
         scope_queue_logger QL(this, __func__);
         if (third_empty()) {
             env->log("%s: BUG\n", __func__);
+            abort();
             return;
         }
 
