@@ -505,7 +505,14 @@ private:
 
     // is mDecision_time always recalculated?
     // possibly unlocks
-    void apply_event_to_normal(const PlatformEvent &pevent) {
+    // this MUST progress. get from `third'
+    // so this must RETURN  enum {output/pass-through, suspect, }
+    enum event_result {
+        pass_through,
+        enqueue_suspect
+    };
+
+    event_result apply_event_to_normal(const PlatformEvent &pevent) {
 
         const Keycode key = environment->detail_of(pevent);
         const Time simulated_time = environment->time_of(pevent);
@@ -532,9 +539,7 @@ private:
 
                 if (forkActive[key] == key) {
                     // it's AR .- now
-                    tq.move_to_second();
-                    tq.move_to_first();
-                    return;
+                    return event_result::pass_through;
                 }
 
                 if (last_released == key)
@@ -547,8 +552,7 @@ private:
                 mDecision_time = suspect_time +
                     config->verification_interval_of(key, KEYCODE_UNUSED);
 
-                tq.move_to_second();
-                return;
+                return event_result::enqueue_suspect;
             } else {
                 // .- trick: (fixme: or self-forked)
                 mdb("re-pressed very quickly %d\n", key);
@@ -561,11 +565,8 @@ private:
                 }
                 assert(tq.middle_empty());
 
-                tq.move_to_second(); // this is first in the middle queue
-                // move to output:
-                tq.move_to_first();
-                log_queues("after kicking off AR of forkable key");
-                return;
+                // log_queues("after kicking off AR of forkable key");
+                return event_result::pass_through;
             };
         } else if (environment->release_p(pevent) && forkActive[key] != no_key) {
             // fixme: but this does not happen when suspecting it?
@@ -589,16 +590,14 @@ private:
              */
             environment->rewrite_event(const_cast<PlatformEvent&>(pevent), forkActive[key]);
             forkActive[key] = no_key;
-            tq.move_to_second();
-            tq.move_to_first();
+            return event_result::pass_through;
         } else {
             // non forkable, for example:
             if (environment->release_p(pevent)) {
                 record_last_release_event(pevent);
             };
             // pass along the un-forkable event.
-            tq.move_to_second();
-            tq.move_to_first();
+            return pass_through;
         };
     }
 
@@ -796,7 +795,17 @@ private:
         // A currently forked keycode cannot be (suddenly) pressed 2nd time.
         // assert(release_p(event) || (key < MAX_KEYCODE && forkActive[key] == 0));
         if  (state == st_normal) {
-            apply_event_to_normal(pevent);
+            switch (apply_event_to_normal(pevent)) {
+                case pass_through:
+                    tq.move_to_second();
+                    tq.move_to_first();
+                    break;
+                case enqueue_suspect:
+                default: // this cannot happen
+                    mdb("moving to second...\n");
+                    tq.move_to_second();
+                    log_queues("...after:");
+            }
             return;
         }
 
@@ -1246,12 +1255,14 @@ public:
      */
     Time accept_event(const PlatformEvent& pevent) noexcept(false) {
 
-        const Keycode key = environment->detail_of(pevent);
+        const Keycode key;
         {
             unique_lock lock(mLock);
             if (mStopped) {
                 return 0;
             }
+
+            key = environment->detail_of(pevent);
             mdb("%s: event %u (%s) time: %" TIME_FMT "\n",
                 __func__,
                 environment->detail_of(pevent),
