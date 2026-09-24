@@ -1255,14 +1255,13 @@ public:
      */
     Time accept_event(const PlatformEvent& pevent) noexcept(false) {
 
-        const Keycode key;
         {
             unique_lock lock(mLock);
             if (mStopped) {
                 return 0;
             }
 
-            key = environment->detail_of(pevent);
+            const Keycode key = environment->detail_of(pevent);
             mdb("%s: event %u (%s) time: %" TIME_FMT "\n",
                 __func__,
                 environment->detail_of(pevent),
