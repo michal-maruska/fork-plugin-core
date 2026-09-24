@@ -779,18 +779,18 @@ private:
 
         if ((key_forked(key)) && environment->press_p(pevent)
             && (key != forkActive[key])) // not `self_forked'
-            {
-                mdb("%s: the key is forked, ignoring\n", __func__);
+        {
+            mdb("%s: the key is forked, ignoring\n", __func__);
 #if 0
-                // bug:
-                tq.drop();
-                environment->free_event(ev->p_event);
-                // mmc:  fork again, and pass-through
+            // bug:
+            tq.drop();
+            environment->free_event(ev->p_event);
+            // mmc:  fork again, and pass-through
 #endif
-                tq.move_to_second();
-                activate_fork_rewind(fork_reason_t::reason_force);
-                return;
-            }
+            tq.move_to_second();
+            activate_fork_rewind(fork_reason_t::reason_force);
+            return;
+        }
 #endif
         // `limitation':
         // A currently forked keycode cannot be (suddenly) pressed 2nd time.
