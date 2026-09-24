@@ -19,6 +19,7 @@ template <typename item_t, typename Environment_t>
 class triqueue_t {
 
     using circular_buffer_t = circular_buffer<item_t, false,
+// fixme: this should be a template parameter!
 #ifndef KERNEL
                                               std::allocator<item_t>
 #else
@@ -35,9 +36,9 @@ private:
     iterator end_output;
     iterator end_internal;
 
+// todo: elsewhere?
     struct scope_queue_logger {
         triqueue_t* parent;
-
         scope_queue_logger(triqueue_t* parent, const char* msg) : parent(parent) {
 #if DEBUG
             parent->log_queues(msg);
@@ -52,7 +53,8 @@ private:
         }
     };
 
-public: // gdb
+public:
+    // for gdb
     void log_queues(const char* msg) { // const -> mysterious operator- miss
         if (env == nullptr)
             return;
@@ -110,7 +112,9 @@ public:
         return (end_internal == end_output);
     }
 
+    // so empty would be   end_output = 0; end_internal = 0; buffer.end() ... lenght ....0 or 1?
     bool third_empty() {
+        log_queues(__func__);
         return end_internal == buffer.end();
     }
 
