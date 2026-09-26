@@ -399,7 +399,7 @@ TEST(machineConcurrentTest, ThreadSafety1) {
 }
 
 TEST_F(machineTest, StopFlagPreventsEventProcessing) {
-  TestEvent pevent(100L, 56);
+  TestEvent pevent(100L, 78);
   fm->stop();
 
   // After stop(), accept_event should return 0 and not call relay_event or state machine transitions
