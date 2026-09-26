@@ -281,7 +281,7 @@ public:
     bool press_p(const TestEvent& event) const override { return false; }
     bool release_p(const TestEvent& event) const override { return true; }
     Time time_of(const TestEvent& event) const override { return 100; }
-    KeyCode detail_of(const TestEvent& event) const override { return 20; }
+    KeyCode detail_of(const TestEvent& event) const override { return event.key; }
     bool ignore_event(const TestEvent &pevent) override { return false; }
     bool output_frozen() override { return false; }
     void relay_event(const TestEvent &pevent) const override {}
