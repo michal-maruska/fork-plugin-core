@@ -82,8 +82,11 @@ private:
     mutable int mLock = 0;
 
     using  unique_lock = empty_unique_lock<int>;
+    void check_locked() const {
+        // std::unique_lock::owns_lock()
+        // assert(mLock=);
+    }
 
-    void check_locked() const {}
 #endif
     bool mStopped = false;
 
