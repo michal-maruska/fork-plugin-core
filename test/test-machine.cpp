@@ -232,8 +232,9 @@ TEST_F(machineTest, AcceptTimeForksOnTimeout) {
   KeyCode F = 11;
   Time a_time = 100;
 
-  fm->configure_key(fork_configure_key_fork, A, F, 1);
+  fm->configure_key(fork_configure_key_fork, A, F, 1);// we need this time
 
+  fm->configure_global(fork_configure_debug, 1, true);
   TestEvent A_pevent(a_time, A);
 
   EXPECT_CALL(*environment, output_frozen).WillRepeatedly(Return(false));
@@ -242,9 +243,10 @@ TEST_F(machineTest, AcceptTimeForksOnTimeout) {
   EXPECT_CALL(*environment, detail_of(testing::_)).WillRepeatedly(Return(A));
   EXPECT_CALL(*environment, press_p(testing::_)).WillRepeatedly(Return(true));
   EXPECT_CALL(*environment, release_p(testing::_)).WillRepeatedly(Return(false));
+  EXPECT_CALL(*environment, push_time(a_time));
 
   Time decision_time = fm->accept_event(A_pevent);
-  EXPECT_GT(decision_time, a_time);
+  EXPECT_GT(decision_time, a_time); // so 101
 
   // Now call accept_time with time >= decision_time
   EXPECT_CALL(*environment, rewrite_event(testing::_, F));
