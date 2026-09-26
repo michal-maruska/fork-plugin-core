@@ -456,6 +456,7 @@ private:
     void activate_fork_rewind(fork_reason_t fork_reason) {
         UNUSED(fork_reason);
         check_locked();
+        mdb("%s", __func__);
 
         // assert()
         if (tq.middle_empty()) {
@@ -612,6 +613,7 @@ private:
         const Time simulated_time = environment->time_of(pevent);
         const Keycode key = environment->detail_of(pevent);
 
+        mdb("%s: %lu\n", __func__, key);
         /* Here, we can
          * o refuse .... if suspected/forkable is released quickly,
          * o fork (definitively),  ... for _time_
@@ -652,6 +654,7 @@ private:
                     // do.
                     // ..... `discard' the event???
                     // fixme: but we should recalc the mDecision_time !!
+                    mdb("%s: BUG -- non repeatable key just repeated\n", __func__);
                     return;
                 }
             } else {
@@ -846,6 +849,7 @@ private:
     */
     bool transition_by_time(Time current_time) {
       check_locked();
+      mdb("%s, %" TIME_FMT "\n", __func__, current_time);
       // confirm fork:
 #if 0
       mdb("%s%s%s state: %s, queue: %d, time: %u key: %d\n", fork_color,
@@ -941,6 +945,7 @@ private:
     // can modify the event!
     void relay_event(const PlatformEvent& event) {
         // we must guarantee ORDER
+        mdb("%s", __func__);
         environment->relay_event(event);
     }
 
@@ -989,6 +994,7 @@ private:
             if (event.has_value()) {
                 relay_event(*event);
             } else {
+                mdb("Good, no more to flush\n");
                 break;
             }
 #else
@@ -1010,7 +1016,10 @@ private:
 
     void flush_to_next() {
         unique_lock lock(mLock);
+        mdb("%s", __func__);
+        log_queues(__func__);
         flush_to_next_locked();
+        log_queues("AFTER ");
     }
 
     [[nodiscard]] Time push_time_to_next_locked() {
