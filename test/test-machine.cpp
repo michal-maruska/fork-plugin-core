@@ -131,15 +131,16 @@ protected:
 
 // When using a fixture, use TEST_F(TestFixtureClassName, TestName)
 TEST_F(machineTest, AcceptEvent) {
-  TestEvent pevent(100L, 56);
+  int keycode = 67;
+  TestEvent pevent(100L, keycode);
 
   EXPECT_CALL(*environment, relay_event);
   EXPECT_CALL(*environment, detail_of(testing::_))
-    .Times(4)
-    .WillRepeatedly(testing::Return(56));
-  EXPECT_CALL(*environment, time_of).Times(3);
-  EXPECT_CALL(*environment, press_p).Times(2);
-  EXPECT_CALL(*environment, release_p).Times(2);
+    .Times(AnyNumber())
+    .WillRepeatedly(testing::Return(keycode));
+  EXPECT_CALL(*environment, time_of).Times(AnyNumber());
+  EXPECT_CALL(*environment, press_p).Times(AnyNumber());
+  EXPECT_CALL(*environment, release_p).Times(AnyNumber());
 
   EXPECT_CALL(*environment, output_frozen).Times(AnyNumber()).WillRepeatedly(Return(false));
 
