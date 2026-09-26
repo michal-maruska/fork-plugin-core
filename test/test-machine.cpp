@@ -202,7 +202,7 @@ TEST_F(machineTest, ConcurrentAccess) {
   EXPECT_CALL(*environment, relay_event).Times(AnyNumber());
   EXPECT_CALL(*environment, push_time).Times(AnyNumber());
   EXPECT_CALL(*environment, detail_of(testing::_))
-    .WillRepeatedly(testing::Return(56));
+    .WillRepeatedly(testing::Return(77));
   EXPECT_CALL(*environment, time_of).WillRepeatedly(testing::Return(100L));
   EXPECT_CALL(*environment, press_p).WillRepeatedly(testing::Return(true));
   EXPECT_CALL(*environment, release_p).WillRepeatedly(testing::Return(false));
@@ -221,7 +221,7 @@ TEST_F(machineTest, ConcurrentAccess) {
       }
       for (int j = 0; j < iterations; ++j) {
         if (i % 2 == 0) {
-          fm->accept_event(TestEvent(100L + j, 56));
+          fm->accept_event(TestEvent(100L + j, 77));
           fm->accept_time(100L + j);
         } else {
           fm->configure_key(fork_configure_key_fork, 10, 20, 1);
