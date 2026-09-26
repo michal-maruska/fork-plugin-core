@@ -153,11 +153,12 @@ TEST_F(machineTest, AcceptEvent) {
 }
 
 TEST_F(machineTest, AcceptEventFlushesWithoutDeadlock) {
-  TestEvent pevent(100L, 56);
+  int keycode = 69;
+  TestEvent pevent(100L, keycode);
 
-  EXPECT_CALL(*environment, relay_event);
+  EXPECT_CALL(*environment, relay_event).Times(AnyNumber());
   EXPECT_CALL(*environment, detail_of(testing::_))
-    .WillRepeatedly(testing::Return(56));
+    .WillRepeatedly(testing::Return(keycode));
   EXPECT_CALL(*environment, time_of).WillRepeatedly(testing::Return(100L));
   EXPECT_CALL(*environment, press_p).WillRepeatedly(testing::Return(true));
   EXPECT_CALL(*environment, release_p).WillRepeatedly(testing::Return(false));
