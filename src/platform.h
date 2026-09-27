@@ -30,11 +30,14 @@ class event_publisher {
 
 
 // fork-machine passes its parameters to this:
-template <typename Keycode,
-          typename Time,
-          typename archived_fork_event,
-          typename PlatformEvent>
+
+template <typename Keycode_, typename Time_, typename PlatformArchive_, typename PlatformEvent_>
 class platformEnvironment {
+public:
+    using Keycode         = Keycode_;
+    using Time            = Time_;
+    using PlatformArchive = PlatformArchive_;
+    using PlatformEvent   = PlatformEvent_;
 public:
     platformEnvironment() = default;
 
@@ -54,13 +57,13 @@ public:
     virtual void vlog(const char* format, va_list argptr) const = 0;
     virtual void fmt_event(const char* message, const PlatformEvent& pevent) const = 0;
 
-    virtual void archive_event(archived_fork_event& ae, const PlatformEvent& event) = 0;
+    virtual void archive_event(PlatformArchive& ae, const PlatformEvent& event) = 0;
     virtual void free_event(PlatformEvent* pevent) const = 0; // not reference?
     virtual void rewrite_event(PlatformEvent& pevent, Keycode code) = 0;
 
     // factory:
     // virtual std::unique_ptr<event_dumper<archived_fork_event>> get_event_dumper() = 0;
-
     virtual ~platformEnvironment() = default;
 };
 }
+
