@@ -98,15 +98,13 @@ public:
 
 
 using last_events_t = empty_last_events_t<test_archived_event>;
-using machineRec = forkNS::forkingMachine<KeyCode, Time,
-                                          TestEvent, testEnvironment,
-                                          test_archived_event, last_events_t>;
+using machineRec = forkNS::forkingMachine<testEnvironment>;
 using fork_configuration = machineRec::fork_configuration;
 
 // template instantiation
 namespace forkNS {
   // explicit template instantiation
-  template class forkingMachine<KeyCode, Time, TestEvent, testEnvironment, test_archived_event, last_events_t>;
+  template class forkingMachine<testEnvironment>;
 }
 
 
@@ -328,9 +326,7 @@ public:
     void rewrite_event(TestEvent& pevent, KeyCode code) override {}
 };
 
-using concreteMachineRec = forkNS::forkingMachine<KeyCode, Time,
-                                                  TestEvent, ConcreteTestEnvironment,
-                                                  test_archived_event, last_events_t>;
+using concreteMachineRec = forkNS::forkingMachine<ConcreteTestEnvironment>;
 
 TEST(machineConcurrentTest, ConcurrentLocking) {
   auto env = new ConcreteTestEnvironment();
