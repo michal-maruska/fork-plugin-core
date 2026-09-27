@@ -104,7 +104,9 @@ handle_config_key(const PluginInstance *const plugin, const InternalEvent *event
         switch (keycode) {
             case keycodes::PAUSE:
                 machine = plugin_machine(plugin);
+#if ENABLE_ARCHIVE
                 machine->dump_last_events(std::make_unique<xorg_event_dumper>(plugin->device).get());
+#endif
                 ErrorF("%s: serviced %d\n", __func__, keycode);
                 break;
 #if MULTIPLE_CONFIGURATIONS
@@ -176,8 +178,9 @@ filter_config_key_maybe(const PluginInstance *const plugin, const InternalEvent*
                    plugin->device->name,
                    time_of(event), (int)(time_of(event) - last_press_time));
             // todo: send a message to listening clients.
+#if ENABLE_ARCHIVE
             plugin_machine(plugin)->dump_last_events(std::make_unique<xorg_event_dumper>(plugin->device).get());
-
+#endif
         } else {
             last_press_time = 0;
             config_mode = handle_config_key(plugin, event);
@@ -483,8 +486,10 @@ machine_command(ClientPtr client, PluginInstance* plugin, int cmd, int data1,
   switch (cmd) {
       case fork_client_dump_keys:
       {
+#if ENABLE_ARCHIVE
           auto dumper = env->get_event_publisher(client, plugin);
           machine->dump_last_events_to_client(dumper.get(), data1);
+#endif
           break;
       }
       default:
