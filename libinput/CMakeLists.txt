@@ -1,3 +1,21 @@
+cmake_minimum_required(VERSION 3.20)
+project(fork_libinput)
+
+
+include(FetchContent)
+FetchContent_Declare(
+    forking_machine
+    GIT_REPOSITORY /home/michal/repo/fork/fork-plugin-core/
+    # https://your-host/core-repo.git
+    GIT_TAG        0.3
+)
+FetchContent_MakeAvailable(forking_machine)
+
+
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(libinput REQUIRED IMPORTED_TARGET libinput)
+
 
 set(sources
   fork-plugin.cpp
