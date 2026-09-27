@@ -13,5 +13,5 @@ extern "C" {
 // template Environment_t* forkingMachine<KeyCode, Time, archived_event>::key_event::env;
 
 namespace forkNS {
-    template class forkingMachine<KeyCode, Time, XorgEvent, XOrgEnvironment, archived_event, last_events_t>;
+    // template class forkingMachine<XOrgEnvironment>;
 }
