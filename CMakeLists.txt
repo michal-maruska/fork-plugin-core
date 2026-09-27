@@ -36,6 +36,14 @@ include(./CodeCoverage.cmake)
 
 # configure_file(CMake/config.h.in ${PROJECT_BINARY_DIR}/include/config.h)
 
+add_library(forking_machine INTERFACE)
+target_include_directories(forking_machine INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+add_library(forking_machine::forking_machine ALIAS forking_machine)
+
+
 find_package(PkgConfig REQUIRED)
 
 pkg_search_module(xorg-server
