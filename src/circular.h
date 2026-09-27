@@ -246,13 +246,14 @@ class circular_buffer
         typedef circular_buffer<T, always_accept_data_when_full, Alloc>
                 self_type;
 
-        typedef Alloc                             allocator_type;
 
-        typedef typename Alloc::value_type        value_type;
-        typedef typename Alloc::pointer           pointer;
-        typedef typename Alloc::const_pointer     const_pointer;
-        typedef typename Alloc::reference         reference;
-        typedef typename Alloc::const_reference   const_reference;
+typedef Alloc                        allocator_type;
+typedef typename Alloc::value_type   value_type;
+typedef value_type*                  pointer;
+typedef const value_type*            const_pointer;
+typedef value_type&                  reference;
+typedef const value_type&            const_reference;
+
 
         typedef typename Alloc::size_type         size_type;
         typedef typename Alloc::difference_type   difference_type;
@@ -393,7 +394,8 @@ class circular_buffer
             else
             {
                 // what? emplacement
-                alloc_.construct(array_ + next, item);
+                ::new (static_cast<void*>(array_ + next)) value_type(item);
+              // alloc_.construct(array_ + next, item);
                 increment_tail();
             }
         }
@@ -401,13 +403,15 @@ class circular_buffer
         {
             size_type destroy_pos = head_;
             increment_head();
-            alloc_.destroy(array_ + destroy_pos);
+            // alloc_.destroy(array_ + destroy_pos);
+            (array_ + destroy_pos)->~value_type();
         }
         void clear()
         {
             for (size_type n = 0; n < contents_size_; ++n)
             {
-                alloc_.destroy(array_ + index_to_subscript(n));
+                (array_ + index_to_subscript(n))->~value_type();
+                // alloc_.destroy(array_ + index_to_subscript(n));
             }
             head_ = 1;
             tail_ = contents_size_ = 0;
@@ -500,7 +504,8 @@ class circular_buffer
         {
             for (size_type n = 0; n < contents_size_; ++n)
             {
-                alloc_.destroy(array_ + index_to_subscript(n));
+                (array_ + index_to_subscript(n))->~value_type();
+                // alloc_.destroy(array_ + index_to_subscript(n));
             }
         }
 
