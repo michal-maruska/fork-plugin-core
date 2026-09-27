@@ -36,7 +36,9 @@ set(sources
 # Wall
 add_compile_options("-Wall")
 add_library(fork MODULE ${sources})
-target_include_directories(fork AFTER PUBLIC PRIVATE "../src/")
+
+target_link_libraries(fork PRIVATE forking_machine::forking_machine)
+#target_include_directories(fork AFTER PUBLIC PRIVATE "../src/")
 target_include_directories(fork AFTER PUBLIC PRIVATE ".")
 target_compile_definitions(fork PRIVATE VERSION_STRING="git-local-2")
 
@@ -52,7 +54,7 @@ pkg_search_module(xorg-server REQUIRED xorg-server
 
 
 #why not ${PkgConfig::xorg-server} -- because those are imported targets!
-target_link_libraries(fork PkgConfig::xorg-server)
+target_link_libraries(fork PRIVATE PkgConfig::xorg-server)
 # ${xorg-server_LIBRARIES}
 # PROJECT_BINARY_DIR
 # ${PROJECT_SOURCE_DIR}/
