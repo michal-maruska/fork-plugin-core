@@ -46,17 +46,6 @@ add_library(forking_machine::forking_machine ALIAS forking_machine)
 
 find_package(PkgConfig REQUIRED)
 
-pkg_search_module(xorg-server
-  REQUIRED
-  IMPORTED_TARGET GLOBAL
-  xorg-server
-)
-
-if(xorg-server_MODULE_NAME)
-  add_subdirectory(xorg)
-else()
-  message("xorg-server NOT FOUND, hence not building")
-endif()
 
 # check to have
 find_package(GTest)
