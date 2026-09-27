@@ -3,6 +3,10 @@
 # Try to build with different compilers, for Xorg?
 # run tests, and invoke `cppcheck' and `run-clang-tidy'
 
+set -ue
+
+gitdir=$(git rev-parse --show-toplevel)
+
 # needs:
 # ai libclang-rt-21-dev
 # ai clang
@@ -14,8 +18,6 @@
 # ai libc++1
 
 
-
-set -eu
 
 # Do the builds & run tests. On Linux.
 # Runs inside the .git directory where THIS script is located.
