@@ -21,11 +21,8 @@ extern "C"
 }
 #include "empty_last.h"
 
-using last_events_t = empty_last_events_t<archived_event>;
+// using last_events_t = empty_last_events_t<archived_event>;
+// extern template class forkNS::forkingMachine<XOrgEnvironment>;
 
-extern template class forkNS::forkingMachine<KeyCode, Time, XorgEvent, XOrgEnvironment, archived_event, last_events_t>;
-
-using machineRec = forkNS::forkingMachine<KeyCode, Time,
-                                          XorgEvent, XOrgEnvironment,
-                                          archived_event, last_events_t>;
+using machineRec = forkNS::forkingMachine<XOrgEnvironment>;
 
