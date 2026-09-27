@@ -68,10 +68,6 @@ else()
   message("GTest NOT FOUND, hence not building")
 endif()
 
-export(EXPORT fork FILE dump.cmake)
-
-
-
 if(WIN32)
 add_subdirectory(windows)
 endif()
