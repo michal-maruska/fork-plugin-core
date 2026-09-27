@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(fork_libinput)
 
-
 include(FetchContent)
 FetchContent_Declare(
     forking_machine
@@ -11,6 +10,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(forking_machine)
 
+get_target_property(_feats forking_machine INTERFACE_COMPILE_FEATURES)
+message(STATUS "forking_machine INTERFACE_COMPILE_FEATURES: ${_feats}")
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(libinput REQUIRED IMPORTED_TARGET libinput)
@@ -18,13 +19,21 @@ pkg_check_modules(libinput REQUIRED IMPORTED_TARGET libinput)
 
 set(sources fork-plugin.cpp)
 
-add_library(fork-libinput MODULE ${sources})
+# set_target_properties(fork-libinput PROPERTIES
+#     CXX_STANDARD 17
+#     CXX_STANDARD_REQUIRED ON
+# )
 
+add_library(fork-libinput MODULE ${sources})
 target_compile_definitions(fork-libinput PRIVATE VERSION_STRING="git-local-2")
 
 #target_include_directories(fork-libinput PRIVATE ../src/)
 target_link_libraries(fork-libinput PRIVATE forking_machine::forking_machine)
 target_link_libraries(fork-libinput PRIVATE PkgConfig::libinput)
+
+get_target_property(_std fork-libinput CXX_STANDARD)
+message(STATUS "fork-libinput CXX_STANDARD: ${_std}")
+
 
 target_include_directories(fork-libinput PRIVATE AFTER ".")
 
