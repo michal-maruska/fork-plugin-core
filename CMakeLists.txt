@@ -58,19 +58,6 @@ else()
   message("xorg-server NOT FOUND, hence not building")
 endif()
 
-pkg_search_module(libinput
-  REQUIRED
-  IMPORTED_TARGET GLOBAL
-  libinput
-)
-
-if (libinput_MODULE_NAME)
-  set(HAVE_LIBINPUT 1)
-  add_subdirectory(libinput)
-else()
-  message("libinput NOT FOUND, hence not building")
-endif()
-
 # check to have
 find_package(GTest)
 if(GTest_FOUND)
