@@ -12,14 +12,11 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(forking_machine)
 
 
-
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(libinput REQUIRED IMPORTED_TARGET libinput)
 
 
-set(sources
-  fork-plugin.cpp
-)
+set(sources fork-plugin.cpp)
 
 add_library(fork-libinput MODULE ${sources})
 
