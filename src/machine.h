@@ -380,7 +380,7 @@ private:
         UNUSED(event);
 #if 0
         archived_event_t archived_event;
-        environment->archive_event(archived_event, event->p_event);
+        environment->archive_event(archived_event, event); // ->p_event
         archived_event.forked = event->original_keycode; // todo: rename original_keycode
 
         last_events_log.push_back(archived_event);
