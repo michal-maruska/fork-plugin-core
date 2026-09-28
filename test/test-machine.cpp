@@ -98,13 +98,6 @@ using last_events_archive_t = empty_last_events_t<archive_entry<ForkInfo, test_a
 using machineRec = forkNS::forkingMachine<testEnvironment>;
 using fork_configuration = machineRec::fork_configuration;
 
-// template instantiation
-namespace forkNS {
-  // explicit template instantiation
-  template class forkingMachine<testEnvironment>;
-}
-
-
 class machineTest : public testing::Test {
 
 protected:
