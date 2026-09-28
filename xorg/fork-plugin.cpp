@@ -80,6 +80,7 @@ enum keycodes {
     zero = 19,
     one = 10,
     PAUSE = 127,
+    PRINT = 107,
     key_k = 45,
     key_l = 46,
 };
@@ -164,7 +165,7 @@ filter_config_key_maybe(const PluginInstance *const plugin, const InternalEvent*
         // So, to overcome this limitation, I detect this short-lasting `down' &
         // take the `next' event as in `config_mode'   (latch)
 
-        if ((detail_of(event) == keycodes::PAUSE) && release_p(event)) { //  fake ?
+        if ((detail_of(event) == keycodes::PRINT) && release_p(event)) { //  fake ?
             if ( (time_of(event) - last_press_time) < MINIMUM_DURATION_MSEC) {
                 ErrorF("the key seems buggy, tolerating %" TIME_FMT ": duration:%" TIME_FMT ". Latching config mode\n",
                        time_of(event),
@@ -189,7 +190,7 @@ filter_config_key_maybe(const PluginInstance *const plugin, const InternalEvent*
             };
         }
     }
-    if ((detail_of(event) == keycodes::PAUSE) && press_p(event))
+    if ((detail_of(event) == keycodes::PRINT) && press_p(event))
         /* wait for the next and act ? but start w/ printing the last events: */
     {
         last_press_time = time_of(event);
