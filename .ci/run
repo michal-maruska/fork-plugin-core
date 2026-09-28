@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/zsh -feu
 
 # Try to build with different compilers, for Xorg?
 # run tests, and invoke `cppcheck' and `run-clang-tidy'
