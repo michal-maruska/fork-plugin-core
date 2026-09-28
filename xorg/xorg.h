@@ -200,6 +200,19 @@ public:
 
 
 
+using archive_info = archive_entry<ForkInfo,archived_event>;
+class XorgDumper
+{
+public:
+    void operator() (const archive_info& info) {
+        // , keybd->name
+        ErrorF("%s: dumping event %d\n", __func__,
+               info.second.key);
+    }
+};
+
+
+
 // prints into the Xorg.*.log
 static void
 dump_event(KeyCode key, KeyCode fork, bool press, Time event_time,
