@@ -32,81 +32,8 @@ extern "C" {
 extern void
 hand_over_event_to_next_plugin(const InternalEvent& event, PluginInstance* const nextPlugin);
 
-
 static void dump_event(KeyCode key, KeyCode fork, bool press, Time event_time,
                        XkbDescPtr xkb, XkbSrvInfoPtr xkbi, Time prev_time);
-
-
-class xorg_event_publisher : public forkNS::event_publisher<archived_event>
-{
-    private:
-    char* memory;
-    const ClientPtr client;
-    /* const */ PluginInstance* plugin;
-    std::size_t appendix_len;
-
-    public:
-    xorg_event_publisher(ClientPtr client, PluginInstance* plugin) : client(client), plugin(plugin) {};
-
-    virtual ~xorg_event_publisher() {
-        free(memory);
-        memory = nullptr;
-    }
-
-    virtual void prepare(int max_events) override{
-        // memory =
-        appendix_len = sizeof(fork_events_reply) + (max_events * sizeof(archived_event));
-        memory = (char*) malloc(appendix_len);
-        // if this fails?
-    }
-
-    virtual int commit() override{
-        xkb_plugin_send_reply(client, plugin, memory, appendix_len);
-          /* What XReply to send?? */
-
-        // can do now:
-        free(memory);
-        memory = nullptr;
-        return 0;
-    }
-    virtual void event(const archived_event& event) override {
-        // memcpy into the buffer:
-        // typecast
-        // const archived_event&
-    }
-};
-
-
-// Closure
-class xorg_event_dumper : public forkNS::event_dumper<archived_event>
-{
-private:
-    const XkbSrvInfoPtr xkbi;
-    const XkbDescPtr xkb;
-    Time previous_time;
-
-public:
-    void operator() (const archived_event& event) override {
-        dump_event(event.key,
-                   event.forked,
-                   event.press,
-                   event.time,
-                   xkb, xkbi, previous_time);
-        previous_time = event.time;
-    };
-
-    virtual ~xorg_event_dumper() {};
-
-
-    explicit xorg_event_dumper(const DeviceIntPtr keybd) :
-        xkbi(keybd->key->xkbInfo),
-        xkb(xkbi->desc),
-        previous_time(0) {
-#if DEBUG > 1
-        ErrorF("%s: creating dumper for %s\n", __func__, keybd->name);
-#endif
-    };
-};
 
 
 class XorgEvent {
@@ -277,13 +204,13 @@ public:
     std::unique_ptr<event_publisher> get_event_publisher() override {
         return std::make_unique<xorg_event_publisher>(keybd);
     }
-#endif
 
 
     // specific, not virtual!:
     std::unique_ptr<forkNS::event_publisher<archived_event>> get_event_publisher(ClientPtr client, PluginInstance *plugin) {
         return std::make_unique<xorg_event_publisher>(client, plugin);
     }
+#endif
 };
 
 
