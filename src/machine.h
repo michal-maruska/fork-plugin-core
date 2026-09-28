@@ -335,11 +335,11 @@ public:
 
         case fork_configure_debug:
             if (set) {
+                fork_configuration->debug = value;
                 //  here we force, rather than using MDB !
                 mdb("fork_configure_debug set: %d -> %d\n",
                     config->debug,
                     value);
-                fork_configuration->debug = value;
             } else {
                 mdb("fork_configure_debug get: %d\n",
                     fork_configuration->debug);
