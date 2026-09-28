@@ -385,6 +385,12 @@ private:
 
         last_events_log.push_back(archived_event);
 #endif
+        // Rec
+        last_events_log.record(ForkInfo{false, fork_reason_t::reason_long}, // forked, reason
+                               [&](PlatformArchive& archived_event) {  // ae
+                                 environment->archive_event(archived_event, event);
+                                 // env_.archive_event(ae, raw_ev);
+                               });
     }
 
     bool forkable_p(Keycode code)
