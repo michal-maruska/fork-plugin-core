@@ -96,8 +96,9 @@ public:
   MOCK_METHOD(std::unique_ptr<forkNS::event_dumper<test_archived_event>>, get_event_dumper,());
 };
 
+// must be able to store the 2 halves:
+using last_events_archive_t = empty_last_events_t<archive_entry<ForkInfo, test_archived_event>>;
 
-using last_events_t = empty_last_events_t<test_archived_event>;
 using machineRec = forkNS::forkingMachine<testEnvironment>;
 using fork_configuration = machineRec::fork_configuration;
 
