@@ -25,6 +25,11 @@ public:
     static
     void push_back(const event& __x) {}
 
+  template <typename Part1, typename Fill>
+  void record(const Part1& p1, Fill&& fill) {
+    // do nothing
+  };
+
     // emplace_back()
     static
     void set_capacity(const int& n) {
