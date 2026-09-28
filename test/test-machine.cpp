@@ -93,7 +93,7 @@ public:
   MOCK_METHOD(void, free_event,(TestEvent* pevent), (const));
   MOCK_METHOD(void, rewrite_event,(TestEvent& pevent, KeyCode code));
 
-  MOCK_METHOD(std::unique_ptr<forkNS::event_dumper<test_archived_event>>, get_event_dumper,());
+  // MOCK_METHOD(std::unique_ptr<forkNS::event_dumper<test_archived_event>>, get_event_dumper,());
 };
 
 // must be able to store the 2 halves:
