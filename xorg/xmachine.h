@@ -20,9 +20,13 @@ extern "C"
 #undef min
 }
 #include "empty_last.h"
-
+#include "circular_archive.h"
 // using last_events_t = empty_last_events_t<archived_event>;
 // extern template class forkNS::forkingMachine<XOrgEnvironment>;
 
-using machineRec = forkNS::forkingMachine<XOrgEnvironment>;
+
+using PlatformArchive = archived_event;
+using machineRec = forkNS::forkingMachine<XOrgEnvironment,
+                                          CircularArchive<ForkInfo, archived_event>
+                                          >;
 
