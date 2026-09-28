@@ -370,6 +370,10 @@ create_plugin(const DeviceIntPtr keybd, DevicePluginRec* plugin_class)
     auto* const forking_machine = new machineRec(xorg.release());
     forking_machine->create_configs();
 
+    // new object.... which dumps the
+    auto dumper = std::make_unique<XorgDumper>();
+    forking_machine->register_dumper(*dumper.release());
+
     plugin->data = static_cast<void *>(forking_machine);
 
     ErrorF("%s: keybd: next %p private %p on: %d\n", __func__, keybd->next,
