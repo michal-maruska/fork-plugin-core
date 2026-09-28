@@ -194,7 +194,8 @@ filter_config_key_maybe(const PluginInstance *const plugin, const InternalEvent*
         /* wait for the next and act ? but start w/ printing the last events: */
     {
         last_press_time = time_of(event);
-#if DEBUG
+#if 1 || DEBUG
+        // seems pretty important
         ErrorF("entering config_mode & discarding the event: %" TIME_FMT "!\n", last_press_time);
 #endif
         config_mode = true;
