@@ -179,6 +179,9 @@ filter_config_key_maybe(const PluginInstance *const plugin, const InternalEvent*
                    plugin->device->name,
                    time_of(event), (int)(time_of(event) - last_press_time));
             // todo: send a message to listening clients.
+
+            plugin_machine(plugin)->dump_last_events();
+            ErrorF("dumped\n");
 #if ENABLE_ARCHIVE
             plugin_machine(plugin)->dump_last_events(std::make_unique<xorg_event_dumper>(plugin->device).get());
 #endif
