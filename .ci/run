@@ -8,35 +8,36 @@ gitdir=$(git rev-parse --show-toplevel)
 
 build_run_tests()
 {
-    ninja -v
-    find -name \*.gcda -exec rm -r {}
-    cd tests; ctest
+    set -e
+    ninja -v && echo $? && \
+        { find -name \*.gcda -exec rm -v {} \; ; cd test; ctest }
 }
 
 
 
 (
     set -eu
-    mkdir ${dir:=build.gcc}
+    mkdir -p ${dir:=build.gcc}
     pushd $dir
-    cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=clang++
-
-    build_run_tests
+    cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=clang++ \
+          &&
+          build_run_tests
     popd
-) || :
-
-
+) \
+&&
 (
 set -xeu
 
-mkdir ${dir:=build.clang}
+mkdir -p ${dir:=build.clang}
 cd $dir
 cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=clang++
 
 build_run_tests
 
 rm -f **/*gcda
-) || :
+)
+
+#    || :
 
 
 
