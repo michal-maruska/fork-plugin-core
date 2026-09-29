@@ -36,6 +36,7 @@
 
 namespace forkNS {
 
+inline constexpr auto NO_TIMEOUT = 0 /* whatever Time's zero-equivalent is, e.g. Time{0} */;
 /**
  * Machine:
  * ... keeps log of the most-recent `archived_event_t'
@@ -100,8 +101,6 @@ private:
      */
     /** constants: */
     static constexpr Keycode no_key = KEYCODE_UNUSED;
-    // todo: so Time type must allow 0 NO_TIME
-    static constexpr Time NO_TIME = (Time) 0;
 
 public:
     // Types
@@ -1090,7 +1089,7 @@ private:
             || (state == st_suspect))
             return mDecision_time;
         else
-            return 0;
+            return NO_TIMEOUT;
     }
 
 public:
@@ -1294,7 +1293,7 @@ public:
         {
             unique_lock lock(mLock);
             if (mStopped) {
-                return 0;
+                return NO_TIMEOUT;
             }
 
             const Keycode key = environment->detail_of(pevent);
@@ -1312,7 +1311,7 @@ public:
 
             if (key > MAX_KEYCODE) {
                 mdb("%s: out-of-bound event %d\n", __func__);
-                return 0;
+                return NO_TIMEOUT;
             }
 
             if (environment->press_p(pevent)
@@ -1336,7 +1335,7 @@ public:
         {
             unique_lock lock(mLock);
             if (mStopped) {
-                return 0;
+                return NO_TIMEOUT;
             }
             /* push the time ! */
             if (mCurrent_time > now) {
