@@ -196,25 +196,6 @@ public:
 #endif
     };
 
-#if 0
-    virtual
-    std::unique_ptr<forkNS::event_dumper<archived_event>> get_event_dumper() override {
-        return std::make_unique<xorg_event_dumper>(keybd);
-    }
-#endif
-
-#if 0
-    virtual
-    std::unique_ptr<event_publisher> get_event_publisher() override {
-        return std::make_unique<xorg_event_publisher>(keybd);
-    }
-
-
-    // specific, not virtual!:
-    std::unique_ptr<forkNS::event_publisher<archived_event>> get_event_publisher(ClientPtr client, PluginInstance *plugin) {
-        return std::make_unique<xorg_event_publisher>(client, plugin);
-    }
-#endif
 };
 
 
