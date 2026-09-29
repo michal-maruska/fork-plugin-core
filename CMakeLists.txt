@@ -41,8 +41,12 @@ target_include_directories(forking_machine INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
+set_target_properties(forking_machine PROPERTIES
+    INTERFACE_CXX_STANDARD 17
+    INTERFACE_CXX_STANDARD_REQUIRED ON
+)
 add_library(forking_machine::forking_machine ALIAS forking_machine)
-target_compile_features(forking_machine INTERFACE cxx_std_17)
+# target_compile_features(forking_machine INTERFACE cxx_std_17)
 
 
 find_package(PkgConfig REQUIRED)
