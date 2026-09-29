@@ -95,7 +95,7 @@ public:
 // must be able to store the 2 halves:
 using last_events_archive_t = empty_last_events_t<archive_entry<ForkInfo, test_archived_event>>;
 
-using machineRec = forkNS::forkingMachine<testEnvironment>;
+using machineRec = forkNS::forkingMachine<testEnvironment, last_events_archive_t>;
 using fork_configuration = machineRec::fork_configuration;
 
 class machineTest : public testing::Test {
@@ -288,7 +288,7 @@ public:
     void rewrite_event(TestEvent& pevent, KeyCode code) override {}
 };
 
-using concreteMachineRec = forkNS::forkingMachine<ConcreteTestEnvironment>;
+using concreteMachineRec = forkNS::forkingMachine<ConcreteTestEnvironment, last_events_archive_t>;
 
 TEST(machineConcurrentTest, ConcurrentLocking) {
   auto env = new ConcreteTestEnvironment();
