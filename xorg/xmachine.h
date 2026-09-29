@@ -29,4 +29,6 @@ using machineRec = forkNS::forkingMachine<XOrgEnvironment,
                                           >;
 
 // using last_events_t = empty_last_events_t<archived_event>;
-extern machineRec;
+extern template class forkNS::forkingMachine<XOrgEnvironment,
+                                          CircularArchive<ForkInfo, archived_event>
+                                          >;

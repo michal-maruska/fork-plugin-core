@@ -12,7 +12,7 @@ extern "C" {
 
 namespace forkNS {
     // must be in sync.
-    template class forkNS::forkingMachine<XOrgEnvironment,
-                                          CircularArchive<ForkInfo, archived_event>
-                                          >;
+    template class forkingMachine<XOrgEnvironment,
+                                  CircularArchive<ForkInfo, archived_event>
+                                  >;
 }
