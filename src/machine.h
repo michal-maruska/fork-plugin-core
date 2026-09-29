@@ -67,9 +67,31 @@ class forkingMachine {
     using PlatformEvent   = typename Environment::PlatformEvent;
     using PlatformArchive = typename Environment::PlatformArchive;
 
+#if 0
+private:
+    using DumperFn = void (*)(void* ctx, const Rec&);
+
+    Dumper dumper_fn_ = nullptr;
+    void* dumper_ctx_ = nullptr;
+
+public:
+    void register_dumper(DumperFn fn, void* ctx = nullptr) {
+        dumper_fn_ = fn;
+        dumper_ctx_ = ctx;
+    }
+#else
+
+    using Dumper = FunctionRef<void(const Rec&)>;
+public:
+    void register_dumper(Dumper d) {
+        environment->log("%s\n", __func__);
+        dumper_ = d;
+    }
+private:
+    Dumper dumper_;                                // by value, not FunctionRef&
+#endif
 
 private:
-
     Archive last_events_log;
     int max_last = 10; // can be updated!
 
