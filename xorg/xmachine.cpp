@@ -10,8 +10,9 @@ extern "C" {
 }
 
 
-// template Environment_t* forkingMachine<KeyCode, Time, archived_event>::key_event::env;
-
 namespace forkNS {
-    // template class forkingMachine<XOrgEnvironment>;
+    // must be in sync.
+    template class forkNS::forkingMachine<XOrgEnvironment,
+                                          CircularArchive<ForkInfo, archived_event>
+                                          >;
 }
