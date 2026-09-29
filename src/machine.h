@@ -1,4 +1,4 @@
-// (c) Michal Maruska 2003-2025
+// (c) Michal Maruska 2003-2026
 #pragma once
 
 #ifdef KERNEL
