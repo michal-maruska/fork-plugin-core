@@ -1168,6 +1168,20 @@ public:
         return 0;
     }
 
+    void dump_last_with_dumper(Dumper &dumper) {
+        last_events_log.for_each_recent([&](const Rec &rec) {
+            environment->log("%s event\n", __func__);
+            dumper(rec);
+        });
+    }
+
+    void dump_last_events() {
+        environment->log("%s 1\n", __func__);
+        if (dumper_) {
+            dump_last_with_dumper(dumper_);
+        }
+    }
+
 #if ENABLE_ARCHIVE
     /** ask the platform environment to send events as data. */
     int dump_last_events_to_client(event_publisher<archived_event_t>* publisher, int max_requested) {
@@ -1237,28 +1251,6 @@ public:
         return false;
 #endif // KERNEL
     }
-
-#if ENABLE_ARCHIVE
-    void dump_last_events(event_dumper<archived_event_t>* dumper) const {
-        unique_lock lock(mLock);
-#ifndef DISABLE_STD_LIBRARY
-        std::function<void(const archived_event_t&)> lambda = [dumper](const archived_event_t& ev){ dumper->operator()(ev); };
-        if (last_events_log.full()) {
-            std::for_each(last_events_log.begin(),
-                          last_events_log.end(),
-                          lambda);
-        } else {
-            std::for_each(last_events_log.begin(),
-                          last_events_log.begin() + last_events_log.size(),
-                          lambda);
-        }
-#else
-        for (const auto& ev : last_events_log) {
-            (*dumper)(ev);
-        }
-#endif // DISABLE_STD_LIBRARY
-    }
-#endif
 
 private:
     /**
