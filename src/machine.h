@@ -53,8 +53,15 @@ namespace forkNS {
  */
 
 template <typename Environment,
+          typename Archive,
           int MAX_KEYCODE = 256>
 class forkingMachine {
+
+    // this gets stored in the Archive:
+    using Rec = archive_entry<ForkInfo, typename Environment::PlatformArchive>;
+    static_assert(std::is_same_v<typename Archive::value_type, Rec>,
+                "Archive must store archive_entry<ForkInfo, Environment::PlatformArchive>");
+
     using Keycode         = typename Environment::Keycode;
     using Time            = typename Environment::Time;
     using PlatformEvent   = typename Environment::PlatformEvent;
@@ -62,6 +69,10 @@ class forkingMachine {
 
 
 private:
+
+    Archive last_events_log;
+    int max_last = 10; // can be updated!
+
     /* Environment must be able to convert from
      * PlatformEvent to archived_event_t
      */
@@ -174,7 +185,6 @@ private:
         // return ( (now - past) > limit_difference);
     }
 
-    int max_last = 10; // can be updated!
 public:
     /* forkActive(x) == y  means we sent downstream Keycode Y instead of X.
      * what is the meaning of:  KEYCODE_UNUSED and X ? */
@@ -230,10 +240,9 @@ public:
         triqueue_t<PlatformEvent, Environment>::env = environment;
 
         environment->log("ctor: allocating last_events\n");
-#if ENABLE_ARCHIVE
         last_events_log.set_capacity(max_last);
-        environment->log("ctor: allocated last_events %lu (%lu\n", last_events_log.size(), max_last);
-#endif
+        environment->log("ctor: allocated last_events (%lu\n", max_last);
+
         environment->log("ctor: resetting forkActive\n");
 #ifndef DISABLE_STD_LIBRARY
         std::fill(std::begin(forkActive), std::end(forkActive), KEYCODE_UNUSED);
@@ -359,9 +368,7 @@ private:
             // shrink. todo! in the circular.h!
             mdb("%s: shrinking unimplemented\n", __func__);
         } else {
-#if ENABLE_ARCHIVE
             last_events_log.set_capacity(new_max);
-#endif
             max_last = new_max;
         }
     }
