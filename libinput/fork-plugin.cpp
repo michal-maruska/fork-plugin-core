@@ -6,23 +6,19 @@
 #include "config.h"
 #include "machine.h"
 #include "libinput_environment.h"
-#include <boost/circular_buffer.hpp>
 // it seems this will be part of libinput!
 // but I want it c++
+#include "circular_archive.h"
 
 
-using machineRec = forkNS::forkingMachine<int, uint64_t,
-                                          libinputEvent,
-                                          libinputEnvironment,
-                                          archived_event,
-                                          boost::circular_buffer<archived_event>>;
+using machineRec = forkNS::forkingMachine<libinputEnvironment,
+                                          CircularArchive<ForkInfo, archived_event>
+                                          >;
 namespace forkNS {
   // explicit instantiation
 template uint64_t
-forkingMachine<int, uint64_t,
-               libinputEvent,libinputEnvironment,
-               archived_event,
-               boost::circular_buffer<archived_event>>::accept_event(const libinputEvent& pevent);
+forkingMachine<libinputEnvironment,
+               CircularArchive<ForkInfo, archived_event>>::accept_event(const libinputEvent& pevent);
 }
 
 
