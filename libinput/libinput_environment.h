@@ -82,13 +82,12 @@ class Dumper
 public:
     void operator() (const archive_info& info) {
 #if 0
-        ErrorF("%s: dumping event %d\n", __func__,
-               info.second.key);
+      services->vlog(services, LIBINPUT_LOG_PRIORITY_INFO,
+                     "%s: dumping event %d\n", __func__, info.second.key);
 #endif
     }
 };
 
-// using Keycode int;
 
 class libinputEnvironment : public forkNS::platformEnvironment<int,
                                                                uint64_t,
