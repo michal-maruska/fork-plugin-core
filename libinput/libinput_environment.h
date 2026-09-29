@@ -8,6 +8,7 @@
 #include "colors.h"
 #include <memory>
 #include <string>
+#include "fork_base.h"
 
 // struct libinput_event_keyboard;
 
@@ -79,37 +80,18 @@ class xorg_event_publisher : public event_publisher<archived_event>
 };
 #endif
 
-#if 1
 // Closure
-class libinput_event_dumper : public forkNS::event_dumper<archived_event>
+using archive_info = archive_entry<ForkInfo,archived_event>;
+class Dumper
 {
-private:
-  // services
-  uint64_t previous_time;
-
 public:
-    void operator() (const archived_event& event) override {
+    void operator() (const archive_info& info) {
 #if 0
-        dump_event(event.key,
-                   event.forked,
-                   event.press,
-                   event.time,
-                   xkb, xkbi, previous_time);
-        previous_time = event.time;
+        ErrorF("%s: dumping event %d\n", __func__,
+               info.second.key);
 #endif
-    };
-
-    virtual ~libinput_event_dumper() override {};
-
-
-    explicit libinput_event_dumper() :
-        previous_time(0) {
-#if DEBUG > 1
-      // ErrorF("%s: creating dumper for %s\n", __func__, keybd->name);
-#endif
-    };
+    }
 };
-#endif
 
 // using Keycode int;
 
