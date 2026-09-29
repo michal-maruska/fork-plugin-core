@@ -32,6 +32,8 @@
 #include "fork_enums.h"
 #include "fork_configuration.h"
 
+#include "fork_base.h"
+
 namespace forkNS {
 
 /**
@@ -50,19 +52,19 @@ namespace forkNS {
  * archived_event_t ... contains platformEvent and "forked"
  */
 
-template <typename Keycode,
-          typename Time, // these will be decltype(keycode_of(PlatformEvent))
-          typename PlatformEvent,
-          typename Environment,
-          typename archived_event_t,
-          typename last_events_t,
+template <typename Environment,
           int MAX_KEYCODE = 256>
-    // fixme: constraints on the types:
-    // static_assert(std::is_same_v<Keycode, decltype(keycode_of(PlatformEvent()))>);
+class forkingMachine {
+    using Keycode         = typename Environment::Keycode;
+    using Time            = typename Environment::Time;
+    using PlatformEvent   = typename Environment::PlatformEvent;
+    using PlatformArchive = typename Environment::PlatformArchive;
+
+
+private:
     /* Environment must be able to convert from
      * PlatformEvent to archived_event_t
      */
-class forkingMachine {
     /** constants: */
     static constexpr Keycode no_key = KEYCODE_UNUSED;
     // todo: so Time type must allow 0 NO_TIME
@@ -164,17 +166,6 @@ private:
     Time mCurrent_time;         // the last time we received from previous
                                 // plugin/device. But only if after the last event.
 
-
-    /* How we decided for the fork */
-    enum class fork_reason_t {
-        reason_long,               // key pressed too long
-        reason_overlap,             // key press overlaps with another key
-        reason_force,                // mouse-button was pressed & triggered fork.
-        reason_short,
-        reason_wrong,
-    };
-
-
     triqueue_t<PlatformEvent, Environment> tq{100}; // total capacity
 
     static bool time_difference_more(Time now, Time past, Time limit_difference) {
@@ -183,9 +174,7 @@ private:
         // return ( (now - past) > limit_difference);
     }
 
-    last_events_t last_events_log;
     int max_last = 10; // can be updated!
-
 public:
     /* forkActive(x) == y  means we sent downstream Keycode Y instead of X.
      * what is the meaning of:  KEYCODE_UNUSED and X ? */
@@ -241,9 +230,10 @@ public:
         triqueue_t<PlatformEvent, Environment>::env = environment;
 
         environment->log("ctor: allocating last_events\n");
+#if ENABLE_ARCHIVE
         last_events_log.set_capacity(max_last);
         environment->log("ctor: allocated last_events %lu (%lu\n", last_events_log.size(), max_last);
-
+#endif
         environment->log("ctor: resetting forkActive\n");
 #ifndef DISABLE_STD_LIBRARY
         std::fill(std::begin(forkActive), std::end(forkActive), KEYCODE_UNUSED);
@@ -369,7 +359,9 @@ private:
             // shrink. todo! in the circular.h!
             mdb("%s: shrinking unimplemented\n", __func__);
         } else {
+#if ENABLE_ARCHIVE
             last_events_log.set_capacity(new_max);
+#endif
             max_last = new_max;
         }
     }
@@ -1140,6 +1132,7 @@ public:
         return 0;
     }
 
+#if ENABLE_ARCHIVE
     /** ask the platform environment to send events as data. */
     int dump_last_events_to_client(event_publisher<archived_event_t>* publisher, int max_requested) {
         // I don't need to count them! last_events_count
@@ -1168,6 +1161,7 @@ public:
 
         return publisher->commit();
     };
+#endif
 
 public:
     /** Create 2 configuration sets:
@@ -1208,6 +1202,7 @@ public:
 #endif // KERNEL
     }
 
+#if ENABLE_ARCHIVE
     void dump_last_events(event_dumper<archived_event_t>* dumper) const {
         unique_lock lock(mLock);
 #ifndef DISABLE_STD_LIBRARY
@@ -1227,6 +1222,7 @@ public:
         }
 #endif // DISABLE_STD_LIBRARY
     }
+#endif
 
 private:
     /**
