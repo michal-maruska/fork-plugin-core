@@ -50,7 +50,12 @@ public:
     };
 };
 
-class XOrgEnvironment : public forkNS::platformEnvironment<KeyCode, Time, archived_event, XorgEvent> {
+class XOrgEnvironment {
+public:
+    using Keycode         = KeyCode;
+    using Time            = ::Time;
+    using PlatformArchive = archived_event;
+    using PlatformEvent   = XorgEvent;
 
 private:
     const DeviceIntPtr keybd; // reference
@@ -60,15 +65,15 @@ public:
     XOrgEnvironment(const DeviceIntPtr keybd, PluginInstance* plugin): keybd(keybd), plugin(plugin){};
     // should I just assert(keybd)
 
-    virtual ~XOrgEnvironment() = default;
+    ~XOrgEnvironment() = default;
 
-    bool output_frozen() override {
+    bool output_frozen() {
         const PluginInstance* const nextPlugin = plugin->next;
         return plugin_frozen(nextPlugin);
     };
 
     /* certain keys might be emulating a different device. */
-    bool ignore_event(const XorgEvent &pevent) override {
+    bool ignore_event(const XorgEvent &pevent) {
         // __unused__ ?
         if (!keybd || !keybd->key) {
             // should I just assert(keybd)
@@ -83,29 +88,29 @@ public:
 
 
 
-    KeyCode detail_of(const XorgEvent& pevent) const override {
+    KeyCode detail_of(const XorgEvent& pevent) const {
         return pevent.event.device_event.detail.key;
     };
 
-    virtual void rewrite_event(XorgEvent& pevent, KeyCode code) override {
+    void rewrite_event(XorgEvent& pevent, KeyCode code) {
         auto& event = pevent.event;
         event.device_event.detail.key = code;
     }
 
-    virtual bool press_p(const XorgEvent& pevent) const override {
+    bool press_p(const XorgEvent& pevent) const {
         auto& event = static_cast<const XorgEvent&>(pevent).event;
         return (event.any.type == ET_KeyPress);
     }
-    virtual bool release_p(const XorgEvent& pevent) const override {
+    bool release_p(const XorgEvent& pevent) const {
         auto& event = static_cast<const XorgEvent&>(pevent).event;
         return (event.any.type == ET_KeyRelease);
     }
-    virtual Time time_of(const XorgEvent& pevent) const override {
+    Time time_of(const XorgEvent& pevent) const {
         auto& event = static_cast<const XorgEvent&>(pevent).event;
         return event.any.time;
     }
 
-    virtual void free_event(XorgEvent* pevent) const override {
+    void free_event(XorgEvent* pevent) const {
         if (pevent == nullptr) {
             ErrorF("BUG %s: %p\n", __func__, pevent);
             return;
@@ -118,7 +123,7 @@ public:
     }
 
     // so this is orthogonal? platform-independent?
-    void archive_event(archived_event& archived_event, const XorgEvent& pevent) override {
+    void archive_event(archived_event& archived_event, const XorgEvent& pevent) {
 
 #if DEBUG > 1
         auto xevent = static_cast<XorgEvent*>(pevent)->event;
@@ -133,7 +138,7 @@ public:
         archived_event.press = press_p(pevent);
     };
 
-    virtual void relay_event(const XorgEvent& pevent) const override {
+    void relay_event(const XorgEvent& pevent) const {
 #if DEBUG
         fmt_event(__func__, pevent);
 #endif
@@ -142,7 +147,7 @@ public:
         hand_over_event_to_next_plugin(event, nextPlugin);
     };
 
-    virtual void push_time(Time now) override {
+    void push_time(Time now) {
         PluginInstance* nextPlugin = plugin->next;
 #if DEBUG > 1
         ErrorF("%s: %" TIME_FMT "\n", __func__, now);
@@ -150,14 +155,14 @@ public:
         PluginClass(nextPlugin)->ProcessTime(nextPlugin, now);
     }
 
-    virtual void log(const char* format ...) const override {
+    void log(const char* format ...) const {
         va_list argptr;
         va_start(argptr, format);
         VErrorF(format, argptr);
         va_end(argptr);
     }
 
-    virtual void vlog(const char* format, va_list argptr) const override {
+    void vlog(const char* format, va_list argptr) const {
         va_list ap2;
         va_copy(ap2, argptr);       // copy existing va_list
         VErrorF(format, ap2);
@@ -165,7 +170,7 @@ public:
     }
 
     // the idea was to return a string. but who will deallocate it?
-    virtual void fmt_event(const char* message, const XorgEvent& pevent) const override {
+    void fmt_event(const char* message, const XorgEvent& pevent) const {
 #if 1
         const KeyCode key = detail_of(pevent);
         const bool press = press_p(pevent);
