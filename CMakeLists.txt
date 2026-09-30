@@ -54,19 +54,23 @@ add_library(forking_machine::forking_machine ALIAS forking_machine)
 target_compile_features(forking_machine INTERFACE cxx_std_17)
 
 
-find_package(PkgConfig REQUIRED)
+if(NOT WIN32)
+  find_package(PkgConfig REQUIRED)
 
-pkg_search_module(xorg-server
-  REQUIRED
-  IMPORTED_TARGET GLOBAL
-  xorg-server
-)
-
+  pkg_search_module(xorg-server
+    REQUIRED
+    IMPORTED_TARGET GLOBAL
+    xorg-server
+  )
 if(xorg-server_MODULE_NAME)
   add_subdirectory(xorg)
 else()
   message("xorg-server NOT FOUND, hence not building")
 endif()
+else()
+    message(STATUS "Skipping Xorg subproject: not building on Linux")
+endif()
+
 
 # check to have
 find_package(GTest)
@@ -76,8 +80,3 @@ if(GTest_FOUND)
 else()
   message("GTest NOT FOUND, hence not building")
 endif()
-
-if(WIN32)
-add_subdirectory(windows)
-endif()
-
