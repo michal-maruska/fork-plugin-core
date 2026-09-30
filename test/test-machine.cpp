@@ -54,10 +54,13 @@ private:
 };
 
 // I want to mock this:
-class testEnvironment final : public forkNS::platformEnvironment<KeyCode, Time,
-                                                                 test_archived_event,
-                                                                 TestEvent>{
+class testEnvironment final {
 public:
+  using Keycode         = KeyCode;
+  using Time            = ::Time;
+  using PlatformArchive = test_archived_event;
+  using PlatformEvent   = TestEvent;
+
   // virtual
   MOCK_METHOD(bool, press_p, (const TestEvent& event), (const));
   MOCK_METHOD(bool, release_p,(const TestEvent& event), (const));
@@ -72,11 +75,11 @@ public:
 
   // MOCK_METHOD(void, vlog,(const char* format, va_list argptr));
 
-  void vlog(const char* format, va_list argptr) const override {
+  void vlog(const char* format, va_list argptr) const {
     vprintf(format, argptr);
   }
 
-  void log(const char* format...) const override
+  void log(const char* format...) const
   {
     va_list argptr;
     va_start(argptr, format);
@@ -268,24 +271,27 @@ TEST_F(machineTest, AcceptTimeMovedBackwardsDoesNotDeadlock) {
   Mock::VerifyAndClearExpectations(environment);
 }
 
-class ConcreteTestEnvironment : public forkNS::platformEnvironment<KeyCode, Time,
-                                                                   test_archived_event,
-                                                                   TestEvent> {
+class ConcreteTestEnvironment {
 public:
-    bool press_p(const TestEvent& event) const override { return false; }
-    bool release_p(const TestEvent& event) const override { return true; }
-    Time time_of(const TestEvent& event) const override { return 100; }
-    KeyCode detail_of(const TestEvent& event) const override { return event.key; }
-    bool ignore_event(const TestEvent &pevent) override { return false; }
-    bool output_frozen() override { return false; }
-    void relay_event(const TestEvent &pevent) const override {}
-    void push_time(Time now) override {}
-    void vlog(const char* format, va_list argptr) const override {}
-    void log(const char* format...) const override {}
-    void fmt_event(const char* message, const TestEvent &event) const override {}
-    void archive_event(test_archived_event& ae, const TestEvent& event) override {}
-    void free_event(TestEvent* pevent) const override {}
-    void rewrite_event(TestEvent& pevent, KeyCode code) override {}
+    using Keycode         = KeyCode;
+    using Time            = ::Time;
+    using PlatformArchive = test_archived_event;
+    using PlatformEvent   = TestEvent;
+
+    bool press_p(const TestEvent& event) const { return false; }
+    bool release_p(const TestEvent& event) const { return true; }
+    Time time_of(const TestEvent& event) const { return 100; }
+    KeyCode detail_of(const TestEvent& event) const { return event.key; }
+    bool ignore_event(const TestEvent &pevent) { return false; }
+    bool output_frozen() { return false; }
+    void relay_event(const TestEvent &pevent) const {}
+    void push_time(Time now) {}
+    void vlog(const char* format, va_list argptr) const {}
+    void log(const char* format...) const {}
+    void fmt_event(const char* message, const TestEvent &event) const {}
+    void archive_event(test_archived_event& ae, const TestEvent& event) {}
+    void free_event(TestEvent* pevent) const {}
+    void rewrite_event(TestEvent& pevent, KeyCode code) {}
 };
 
 using concreteMachineRec = forkNS::forkingMachine<ConcreteTestEnvironment, last_events_archive_t>;
@@ -353,7 +359,6 @@ TEST(machineConcurrentTest, ThreadSafety1) {
   }
 
   delete fm;
-  delete env;
 }
 
 TEST_F(machineTest, StopFlagPreventsEventProcessing) {
