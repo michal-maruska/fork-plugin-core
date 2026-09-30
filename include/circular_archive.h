@@ -44,7 +44,7 @@ public:
     void for_each_recent(Dumper&& f) const {
         size_t limit = 100;
         size_t n = std::min(limit, buf_.size());
-        auto it = buf_.rbegin();
+        auto it = buf_.begin(); // rbegin
         for (size_t i = 0; i < n; ++i, ++it) f(*it);
     }
 
