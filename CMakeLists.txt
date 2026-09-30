@@ -1,3 +1,12 @@
+# when this is the top project, we do more
+# otherwise just define the ... library
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(FORKING_MACHINE_IS_TOP_LEVEL TRUE)
+else()
+    set(FORKING_MACHINE_IS_TOP_LEVEL FALSE)
+endif()
+
+
 cmake_minimum_required(VERSION 3.13)
 set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
@@ -54,29 +63,26 @@ add_library(forking_machine::forking_machine ALIAS forking_machine)
 target_compile_features(forking_machine INTERFACE cxx_std_17)
 
 
-if(NOT WIN32)
-  find_package(PkgConfig REQUIRED)
-
-  pkg_search_module(xorg-server
-    REQUIRED
-    IMPORTED_TARGET GLOBAL
-    xorg-server
-  )
-if(xorg-server_MODULE_NAME)
-  add_subdirectory(xorg)
+if (FORKING_MACHINE_IS_TOP_LEVEL AND NOT WIN32)
+    find_package(PkgConfig REQUIRED)
+    pkg_search_module(xorg-server REQUIRED IMPORTED_TARGET GLOBAL xorg-server)
+    if(xorg-server_MODULE_NAME)
+      add_subdirectory(xorg)
+    else()
+      message("xorg-server NOT FOUND, hence not building")
+    endif()
 else()
-  message("xorg-server NOT FOUND, hence not building")
-endif()
-else()
-    message(STATUS "Skipping Xorg subproject: not building on Linux")
+    message(STATUS "Skipping Xorg subproject")
 endif()
 
 
 # check to have
 find_package(GTest)
-if(GTest_FOUND)
+if(GTest_FOUND AND FORKING_MACHINE_IS_TOP_LEVEL)
   enable_testing()
   add_subdirectory(test)
 else()
-  message("GTest NOT FOUND, hence not building")
+  message(STATUS "Skipping tests: not top-level build, or GTest not found")
 endif()
+
+
