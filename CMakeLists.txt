@@ -31,8 +31,13 @@ endif ()
 #end
 
 # why this? it builds everything with -lgcov !!
-include(./CodeCoverage.cmake)
-# ai cmake-extras
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|Flang")
+  # ai cmake-extras
+    include(CodeCoverage.cmake)
+    # whatever append_coverage_compiler_flags() / setup_target_for_coverage_* calls follow
+else()
+    message(STATUS "Skipping code coverage setup: compiler is ${CMAKE_CXX_COMPILER_ID}, not GNU/Clang/Flang")
+endif()
 
 # configure_file(CMake/config.h.in ${PROJECT_BINARY_DIR}/include/config.h)
 
