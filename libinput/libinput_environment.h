@@ -89,24 +89,27 @@ public:
 };
 
 
-class libinputEnvironment : public forkNS::platformEnvironment<int,
-                                                               uint64_t,
-                                                               archived_event,
-                                                               libinputEvent> {
+class libinputEnvironment {
+public:
+  using Keycode         = int;
+  using Time            = uint64_t;
+  using PlatformArchive = archived_event;
+  using PlatformEvent   = libinputEvent;
+
 private:
   libinput_fork_services *services;
 
 public:
   explicit libinputEnvironment(libinput_fork_services* services) : services(services) {};
 
-  virtual ~libinputEnvironment() override = default;
+  ~libinputEnvironment() = default;
 
 
-  virtual bool output_frozen() override {
+  bool output_frozen() {
     return false;
   };
 
-  virtual bool ignore_event(const libinputEvent& pevent) override {
+  bool ignore_event(const libinputEvent& pevent) {
     return false;
   }
 
@@ -118,20 +121,20 @@ public:
   (const_cast<libinput_device*>(static_cast<const libinputEvent&>(pevent).device))
 
 
-  virtual int detail_of(const libinputEvent& pevent) const override {
+  int detail_of(const libinputEvent& pevent) const {
     // struct libinput_event_keyboard *
     auto* event = GET_EVENT(pevent);
     return libinput_event_keyboard_get_key(event);
   };
 
-  virtual void rewrite_event(libinputEvent& pevent, int code) override {
+  void rewrite_event(libinputEvent& pevent, int code) {
     auto event = GET_EVENT(pevent);
     services->rewrite(event, code);
   }
 
 
 
-  virtual void free_event(libinputEvent* pevent) const override {
+  void free_event(libinputEvent* pevent) const {
     log("%s: %p\n", __func__, pevent);
     if (pevent == nullptr) {
       // ErrorF("BUG %s: %p\n", __func__, pevent);
@@ -142,19 +145,19 @@ public:
     free(event);
   }
 
-  virtual bool press_p(const libinputEvent& pevent) const override {
+  bool press_p(const libinputEvent& pevent) const {
     auto* event = GET_EVENT(pevent);
 
     return (libinput_event_keyboard_get_key_state(event) == LIBINPUT_KEY_STATE_PRESSED);
   }
 
-  virtual bool release_p(const libinputEvent& pevent) const override {
+  bool release_p(const libinputEvent& pevent) const {
     auto* event = GET_EVENT(pevent);
 
     return (libinput_event_keyboard_get_key_state(event) == LIBINPUT_KEY_STATE_RELEASED);
   }
 
-  virtual uint64_t time_of(const libinputEvent& pevent) const override {
+  uint64_t time_of(const libinputEvent& pevent) const {
     auto* event = GET_EVENT(pevent);
     // libinput_event_keyboard_get_time
 #if DEBUG
@@ -165,7 +168,7 @@ public:
   }
 
   // so this is orthogonal? platform-independent?
-  void archive_event(archived_event& archived_event, const libinputEvent &pevent) override {
+  void archive_event(archived_event& archived_event, const libinputEvent &pevent) {
 
 #if DEBUG > 1
     auto xevent = static_cast<libinputEvent*>(pevent)->event;
@@ -180,7 +183,7 @@ public:
     archived_event.press = press_p(pevent);
   };
 
-  virtual void relay_event(const libinputEvent &pevent) const override {
+  void relay_event(const libinputEvent &pevent) const {
     auto &li_event = const_cast<libinputEvent&>(static_cast<const libinputEvent&>(pevent));
 #if 0
     log("%s: (%p) %p, device %p\n", __func__, pevent, event, GET_DEVICE(pevent));
@@ -197,25 +200,25 @@ public:
     // delete li_event;
   };
 
-  virtual void push_time(uint64_t now) override {
+  void push_time(uint64_t now) {
     // services->push_time(now)
   }
 
 
-  virtual void log(const char* format ...) const override {
+  void log(const char* format ...) const {
     va_list args;
     va_start(args, format);
     services->vlog(services, LIBINPUT_LOG_PRIORITY_INFO, format, args);
     va_end(args);
   }
 
-  virtual void vlog(const char* format, va_list args) const override {
+  void vlog(const char* format, va_list args) const {
     services->vlog(services, LIBINPUT_LOG_PRIORITY_INFO, format, args);
   }
 
 
   // the idea was to return a string. but who will deallocate it?
-  virtual void fmt_event(const char* message, const libinputEvent &pevent) const override {
+  void fmt_event(const char* message, const libinputEvent &pevent) const {
     // return std::string("");
     log("%s (%s): %pm\n", message, __func__, GET_EVENT(pevent));
   };
