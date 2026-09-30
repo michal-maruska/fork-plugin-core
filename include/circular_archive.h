@@ -1,4 +1,5 @@
-#include <boost/circular_buffer.hpp>
+// #include <boost/circular_buffer.hpp>
+
 #include <algorithm>
 
 #include "fork_base.h"
@@ -7,6 +8,10 @@
 // Dumper ....writes out (somehow) info from the *Rec.
 
 // Both parts must be default-constructible and copy-assignable (Part1), because of push_back() and v.first = p1.
+
+#include "circular.h"
+
+
 template <typename Part1, typename Part2>
 class CircularArchive {
 public:
@@ -15,9 +20,12 @@ public:
     using second_type = Part2;
     using value_type  = archive_entry<Part1, Part2>;
 
-    explicit CircularArchive(size_t capacity = 10) : buf_(capacity) {}
+    explicit CircularArchive(size_t capacity = 100) : buf_(capacity) {}
 
-    void set_capacity(size_t n) { buf_.rset_capacity(n); }
+    void set_capacity(size_t n) {
+        // sorry!
+        // buf_.rset_capacity(n);
+    }
 
     // fill(PlatformArchive&) runs only if this archive keeps the event
     template <typename Fill>
@@ -38,7 +46,8 @@ public:
     }
 
 private:
-    boost::circular_buffer<value_type> buf_;
+    // boost::circular_buffer<value_type>
+    circular_buffer<value_type> buf_;
 };
 
 
