@@ -1,50 +1,51 @@
 #pragma once
 
 /**
- * Created by michal on 8/10/24.
- *
- * The interface to the platforms: fork-machine should use this
- *
+ * Interface/concept for platform environments used by forkingMachine.
  */
 
-#include <stdarg.h>
+#include <cstdarg>
+
+#if defined(__cpp_concepts) && __cpp_concepts >= 201907
+#include <concepts>
+#define USE_CONCEPTS 1
+#endif
 
 namespace forkNS {
 
-// fork-machine passes its parameters to this:
-template <typename Keycode_, typename Time_, typename PlatformArchive_, typename PlatformEvent_>
-class platformEnvironment {
-public:
-    using Keycode         = Keycode_;
-    using Time            = Time_;
-    using PlatformArchive = PlatformArchive_;
-    using PlatformEvent   = PlatformEvent_;
-public:
-    platformEnvironment() = default;
+#if USE_CONCEPTS
+template <typename Env>
+concept EnvironmentConcept = requires(
+    Env& env,
+    const typename Env::PlatformEvent& const_ev,
+    typename Env::PlatformEvent& ev,
+    typename Env::PlatformEvent* ev_ptr,
+    typename Env::PlatformArchive& ae,
+    typename Env::Keycode kc,
+    typename Env::Time now,
+    const char* fmt,
+    va_list va
+) {
+    typename Env::PlatformEvent;
+    typename Env::PlatformArchive;
+    typename Env::Keycode;
+    typename Env::Time;
 
-    virtual bool press_p(const PlatformEvent& event) const = 0;
-    virtual bool release_p(const PlatformEvent& event) const = 0;
-    // fixme:
-    virtual Time time_of(const PlatformEvent& event) const = 0;
-    virtual Keycode detail_of(const PlatformEvent& event) const = 0;
-
-    virtual bool ignore_event(const PlatformEvent& pevent) = 0;
-
-    virtual bool output_frozen() = 0;
-    virtual void relay_event(const PlatformEvent &pevent) const = 0; // very important to pass-by-ref
-    virtual void push_time(Time now) = 0;
-
-    virtual void log(const char* format...) const = 0;
-    virtual void vlog(const char* format, va_list argptr) const = 0;
-    virtual void fmt_event(const char* message, const PlatformEvent& pevent) const = 0;
-
-    virtual void archive_event(PlatformArchive& ae, const PlatformEvent& event) = 0;
-    virtual void free_event(PlatformEvent* pevent) const = 0; // not reference?
-    virtual void rewrite_event(PlatformEvent& pevent, Keycode code) = 0;
-
-    // factory:
-    // virtual std::unique_ptr<event_dumper<archived_fork_event>> get_event_dumper() = 0;
-    virtual ~platformEnvironment() = default;
+    { env.detail_of(const_ev) }        -> std::same_as<typename Env::Keycode>;
+    { env.time_of(const_ev) }          -> std::same_as<typename Env::Time>;
+    { env.press_p(const_ev) }          -> std::convertible_to<bool>;
+    { env.release_p(const_ev) }        -> std::convertible_to<bool>;
+    { env.ignore_event(const_ev) }     -> std::convertible_to<bool>;
+    { env.output_frozen() }            -> std::convertible_to<bool>;
+    { env.relay_event(const_ev) }      -> std::same_as<void>;
+    { env.push_time(now) }             -> std::same_as<void>;
+    { env.archive_event(ae, const_ev) } -> std::same_as<void>;
+    { env.free_event(ev_ptr) }         -> std::same_as<void>;
+    { env.rewrite_event(ev, kc) }      -> std::same_as<void>;
+    { env.log(fmt) }                   -> std::same_as<void>;
+    { env.vlog(fmt, va) }              -> std::same_as<void>;
+    { env.fmt_event(fmt, const_ev) }   -> std::same_as<void>;
 };
-}
+#endif
 
+} // namespace forkNS
