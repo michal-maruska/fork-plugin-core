@@ -41,9 +41,9 @@ inline constexpr auto NO_TIMEOUT = 0 /* whatever Time's zero-equivalent is, e.g.
  * Machine:
  * ... keeps log of the most-recent `archived_event_t'
  *
- * It is invoked and itself invokes `platformEnvironment'
- * it receives `PlatformEvent' abstract class
- * platformEnvironment extracts ... Keycode and Time
+ * It is invoked and itself invokes `Environment' (constrained by EnvironmentConcept when supported)
+ * it receives `PlatformEvent'
+ * Environment extracts ... Keycode and Time
  *
  * and we update some state and sometimes rewrite the event
  * and output.
@@ -56,6 +56,9 @@ inline constexpr auto NO_TIMEOUT = 0 /* whatever Time's zero-equivalent is, e.g.
 template <typename Environment,
           typename Archive,
           int MAX_KEYCODE = 256>
+#if defined(USE_CONCEPTS)
+   requires EnvironmentConcept<Environment>
+#endif
 class forkingMachine {
 
     // this gets stored in the Archive:
