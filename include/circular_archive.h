@@ -31,10 +31,13 @@ public:
     template <typename Fill>
     void record(const Part1& p1, Fill&& fill) {
         if (buf_.capacity() == 0) return;
-        buf_.push_back();                  // default-constructed slot, overwrites the oldest when full
-        value_type& v = buf_.back();
+
+        // buf_.push_back();                  // default-constructed slot, overwrites the oldest when full
+        // value_type& v = buf_.back();
+        value_type v;
         v.first = p1;
         fill(v.second);
+        buf_.push_back(v);
     }
 
     template <typename Dumper>                          // newest first
