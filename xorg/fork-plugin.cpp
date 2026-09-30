@@ -490,7 +490,7 @@ machine_command(ClientPtr client, PluginInstance* plugin, int cmd, int data1,
 {
   DB("%s cmd %d, data %d ...\n", __func__, cmd, data1);
   machineRec *machine = plugin_machine(plugin);
-  auto env = dynamic_cast<XOrgEnvironment*>(machine->environment.get());
+  auto env = machine->environment.get();
 
   switch (cmd) {
       case fork_client_dump_keys:
