@@ -229,11 +229,16 @@ public:
 #ifdef KERNEL
             environment->vlog(fmt, argptr);
 #else
-            // does MS/kernel have alloca?
-            char buf[strlen(fmt) + 2];  // VLA, +1 for space, +1 for \0
+            char buf[512];
             buf[0] = ' ';
-            strcpy(buf + 1, fmt);
-            environment->vlog(buf, argptr);
+            // Safe copy of format string with leading space into fixed stack buffer
+            size_t fmt_len = strlen(fmt);
+            if (fmt_len < sizeof(buf) - 1) {
+                memcpy(buf + 1, fmt, fmt_len + 1);
+                environment->vlog(buf, argptr);
+            } else {
+                environment->vlog(fmt, argptr);
+            }
 #endif
             va_end(argptr);
         }
