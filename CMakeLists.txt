@@ -12,8 +12,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 project(fork-plugin)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED OFF)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 include_directories(include/)
 
@@ -56,8 +56,8 @@ target_include_directories(forking_machine INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 set_target_properties(forking_machine PROPERTIES
-    INTERFACE_CXX_STANDARD 17
-    INTERFACE_CXX_STANDARD_REQUIRED ON
+    INTERFACE_CXX_STANDARD 20
+    INTERFACE_CXX_STANDARD_REQUIRED OFF
 )
 add_library(forking_machine::forking_machine ALIAS forking_machine)
 target_compile_features(forking_machine INTERFACE cxx_std_17)
