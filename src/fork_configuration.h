@@ -61,6 +61,7 @@ public:
 
 
 private:
+#if VERIFICATION_MATRIX
     static Time
     get_value_from_matrix(keycode_parameter_matrix matrix, Keycode code, Keycode verificator) {
         // code/verificator specific:
@@ -70,6 +71,7 @@ private:
                  // global fallback
                  matrix[0][0]));
     }
+#endif
 
 public:
     ForkConfiguration() :

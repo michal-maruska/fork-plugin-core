@@ -1,3 +1,5 @@
+#include "gmock/gmock.h"
+#include <config.h>
 #include <gtest/gtest.h>
 
 #include "fork_enums.h"
@@ -16,36 +18,45 @@ typedef int KeyCode;
 
 
 // I need archived_event
-typedef struct
+struct test_archived_event
 {
-  Time time;
+  Time time; // never used
   KeyCode key;
   KeyCode forked;
   bool press;                  /* client type? */
-} archived_event;
+};
+// typedef
 
 using testing::Mock;
 using testing::Return;
 using testing::AnyNumber;
 
-// I need Environment which can convert into archived_event
+// I need Environment which can convert into test_archived_event
 // This is fully under control of our environment:
-class TestEvent {
+class TestEvent : test_archived_event {
 public:
-  archived_event *event;
 
-  TestEvent(const Time time, const KeyCode keycode, bool press = true, const KeyCode forked = 0) {
-    event = new ::archived_event({time, keycode, forked, press });
-  }
+  TestEvent(const Time time, const KeyCode keycode, bool press = true, const KeyCode forked = 0) :
+    test_archived_event{time, keycode, forked, press} {}
 
+  ~TestEvent() {}
+
+  /* todo:
+  operator=();
+  */
+private:
+  // copy ctor:
+  // when we store in the triqueue, we _copy_
+  // TestEvent(TestEvent& copy) = delete; // we need the builtin one
 };
 
 // I want to mock this:
 class testEnvironment final : public forkNS::platformEnvironment<KeyCode, Time,
-                                                                 archived_event, TestEvent>{
+                                                                 test_archived_event,
+                                                                 TestEvent>{
 public:
   // virtual
-  MOCK_METHOD(bool, press_p,(const TestEvent& event),(const));
+  MOCK_METHOD(bool, press_p, (const TestEvent& event), (const));
   MOCK_METHOD(bool, release_p,(const TestEvent& event), (const));
   MOCK_METHOD(Time, time_of,(const TestEvent& event), (const));
   MOCK_METHOD(KeyCode, detail_of,(const TestEvent& event), (const));
@@ -71,24 +82,24 @@ public:
   };
   MOCK_METHOD(void, fmt_event,(const char* message, const TestEvent &event), (const));
 
-  MOCK_METHOD(void, archive_event,(archived_event& ae, const TestEvent& event));
+  MOCK_METHOD(void, archive_event,(test_archived_event& ae, const TestEvent& event));
   MOCK_METHOD(void, free_event,(TestEvent* pevent), (const));
   MOCK_METHOD(void, rewrite_event,(TestEvent& pevent, KeyCode code));
 
-  MOCK_METHOD(std::unique_ptr<forkNS::event_dumper<archived_event>>, get_event_dumper,());
+  MOCK_METHOD(std::unique_ptr<forkNS::event_dumper<test_archived_event>>, get_event_dumper,());
 };
 
 
-using last_events_t = empty_last_events_t<archived_event>;
+using last_events_t = empty_last_events_t<test_archived_event>;
 using machineRec = forkNS::forkingMachine<KeyCode, Time,
                                           TestEvent, testEnvironment,
-                                          archived_event, last_events_t>;
+                                          test_archived_event, last_events_t>;
 using fork_configuration = machineRec::fork_configuration;
 
 // template instantiation
 namespace forkNS {
   // explicit template instantiation
-  template class forkingMachine<KeyCode, Time, TestEvent, testEnvironment, archived_event, last_events_t>;
+  template class forkingMachine<KeyCode, Time, TestEvent, testEnvironment, test_archived_event, last_events_t>;
 }
 
 
@@ -127,9 +138,17 @@ TEST_F(machineTest, AcceptEvent) {
   TestEvent pevent(100L, 56);
 
   EXPECT_CALL(*environment, relay_event);
+  EXPECT_CALL(*environment, detail_of(testing::_))
+    .Times(4)
+    .WillRepeatedly(testing::Return(56));
+  EXPECT_CALL(*environment, time_of).Times(3);
+  EXPECT_CALL(*environment, press_p).Times(2);
+  EXPECT_CALL(*environment, release_p).Times(2);
 
-  Time next = fm->accept_event(pevent);
+  EXPECT_CALL(*environment, output_frozen).Times(AnyNumber()).WillRepeatedly(Return(false));
 
+  Time next = fm->accept_event(pevent); // this hands over ownership?
+  UNUSED(next);
   // expect calls:
   // so for that EXPECT_CALL: this is necessary? as part of this test:
   Mock::VerifyAndClearExpectations(environment);

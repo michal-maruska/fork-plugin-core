@@ -3,6 +3,7 @@
 #include <libinput.h>
 #include <memory>
 #include <vector>
+#include "config.h"
 #include "machine.h"
 #include "libinput_environment.h"
 #include <boost/circular_buffer.hpp>
@@ -36,9 +37,11 @@ void accept_event(void* user_data, const struct libinput_device *device, const s
                        device);
 
   // the item is pointer?
-  auto *event = new libinputEvent(key_event, device);
+  libinputEvent *event = new libinputEvent(key_event, device);
 
-  uint64_t time = forking_machine->accept_event(*event);
+  uint64_t time = forking_machine->accept_event(*event); // const_cast<libinputEvent*>()
+  UNUSED(time);
+  delete  event;
 #if 0
   if (time!=0)
     service->set_timer(time);
@@ -51,6 +54,7 @@ accept_time(void* user_data, struct libinput_device *device, uint64_t time) {
   machineRec* forking_machine = static_cast<machineRec*>(user_data);
 
   uint64_t next_time = forking_machine->accept_time(time);
+  UNUSED(next_time);
 };
 
 extern "C" {
@@ -102,7 +106,12 @@ void fork_init(struct libinput_fork_services* services)
 
   // todo:
   // * create timer
-  struct libinput_keyboard_plugin* plugin = (struct libinput_keyboard_plugin*) malloc(sizeof *plugin);
+  struct libinput_keyboard_plugin* plugin =
+    static_cast<libinput_keyboard_plugin*>(malloc(sizeof *plugin));
+  if (!plugin) {
+    services->log(services, LIBINPUT_LOG_PRIORITY_ERROR, "memory allocation failed\n");
+    return;
+  }
   *plugin = (struct libinput_keyboard_plugin) {
     .user_data = forking_machine,
     .accept_event = &accept_event,

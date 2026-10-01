@@ -54,15 +54,16 @@ template <typename Keycode,
           typename archived_event_t,
           typename last_events_t,
           int MAX_KEYCODE = 256>
-
-class forkingMachine {
-    // fixme: constraints:
+    // fixme: constraints on the types:
     // static_assert(std::is_same_v<Keycode, decltype(keycode_of(PlatformEvent()))>);
     /* Environment must be able to convert from
      * PlatformEvent to archived_event_t
      */
-
+class forkingMachine {
+    /** constants: */
     static constexpr Keycode no_key = KEYCODE_UNUSED;
+    // todo: so Time type must allow 0 NO_TIME
+    static constexpr Time NO_TIME = (Time) 0;
 
 public:
     // Types
@@ -74,22 +75,15 @@ private:
     mutable std::mutex mLock;
     using  scoped_lock = std::scoped_lock<std::mutex>;
 
-    void lock() const
+    void do_lock() const
     {
         mLock.lock();
-        // mdb_raw("/--\n");
     }
-    void unlock() const
+    void do_unlock() const
     {
         mLock.unlock();
-        // mdb_raw("\\__ (unlock)\n");
     }
-    void check_locked() const {
-        // assert(mLock.locked);
-    }
-    void check_unlocked() const {
-        // assert(mLock == 0);
-    }
+    static void check_locked() {/* assert(mLock.locked); */}
 #else
     int mLock = 0;
 
@@ -108,7 +102,6 @@ private:
     void lock() const {};
     void unlock() const {};
     void check_locked() const {}
-    void check_unlocked() const {}
 #endif
 
 
@@ -122,18 +115,18 @@ public:
     Environment *environment;
 
     void* operator new(size_t size, void* p) noexcept {
-        UNREFERENCED_PARAMETER(size);
+        UNUSED(size);
         return p;
     }
 #endif
 
 
 private:
-    /* states of the automaton: */
+    /* decision states for one key: */
     enum fork_state_t {
         st_normal,
-        st_suspect,             // difference ?
-        st_verify,              // current keycode seems but...?
+        st_suspect,
+        st_verify,      // we suspect, but also have another `particular' key.
     };
 
     /* used only for debugging */
@@ -199,7 +192,7 @@ private:
 
     triqueue_t<PlatformEvent, Environment> tq{100}; // total capacity
 
-    bool time_difference_more(Time now, Time past, Time limit_difference) {
+    static bool time_difference_more(Time now, Time past, Time limit_difference) {
         return (now > past + limit_difference);
         // it's supposed to be monotonic, and 0... number is always included in the type range.
         // return ( (now - past) > limit_difference);
@@ -220,18 +213,18 @@ public:
 #endif
 
     // prefix with a space.
-    void mdb(const char* format...) const {
+    void mdb(const char* fmt...) const {
         if (config->debug) {
             va_list argptr;
-            va_start(argptr, format);
+            va_start(argptr, fmt);
 #ifdef KERNEL
-            environment->vlog(format, argptr);
+            environment->vlog(fmt, argptr);
 #else
             // does MS/kernel have alloca?
-            char* new_format = (char*) alloca(strlen(format) + 2);
-            new_format[0] = ' ';
-            strcpy(new_format + 1, format);
-            environment->vlog(new_format, argptr);
+            char buf[strlen(fmt) + 2];  // VLA, +1 for space, +1 for \0
+            buf[0] = ' ';
+            strcpy(buf + 1, fmt);
+            environment->vlog(buf, argptr);
 #endif
             va_end(argptr);
         }
@@ -248,7 +241,7 @@ public:
     };
 
     // we don't store/own anything? or environment is unique_ptr but in kernel it's not!
-    ~forkingMachine() {};
+    ~forkingMachine() = default;
 
     explicit forkingMachine(Environment* environment)
         : environment(environment),
@@ -266,9 +259,13 @@ public:
         environment->log("ctor: allocated last_events %lu (%lu\n", last_events_log.size(), max_last);
 
         environment->log("ctor: resetting forkActive\n");
+#ifndef DISABLE_STD_LIBRARY
+        std::fill(std::begin(forkActive), std::end(forkActive), KEYCODE_UNUSED);
+#else
         for (auto &i: forkActive) { // unsigned char
             i = KEYCODE_UNUSED; /* not active */
         };
+#endif
         environment->log("ctor: end\n");
     };
 
@@ -461,8 +458,10 @@ private:
         mDecision_time = 0; // nothing to decide
         verificator_keycode = no_key;
 
-        log_queues("after rewind");
         tq.rewind_middle();
+        if (config->debug) {
+            log_queues("after rewind");
+        }
     }
 
    /**
@@ -478,9 +477,9 @@ private:
             environment->log("Bug %s -- empty queue\n", __func__);
             return;
         }
-        PlatformEvent& pevent = tq.head();
-        Keycode original_key = environment->detail_of(pevent);
 
+        PlatformEvent& pevent = tq.peek_middle();
+        Keycode original_key = environment->detail_of(pevent);
         /* Change the keycode, but remember the original: */
         forkActive[original_key] = config->fork_keycode[original_key];
 
@@ -944,14 +943,13 @@ private:
             }
         }
 
-        log_queues("Before flushing:");
+        if (config->debug) {
+            log_queues("Before flushing:");
+        }
         // unlocked now, why?
         flush_to_next();
     };
 
-
-    // todo: so Time type must allow 0 NO_TIME
-    static constexpr Time NO_TIME = (Time) 0;
 
    /* Return the keycode into which CODE has forked _last_ time.
    Returns code itself, if not forked. */
@@ -976,10 +974,10 @@ private:
 
         // fixme: was here a bigger message?
         // bug: environment->fmt_event(ev->p_event);
-        unlock();
+        do_unlock();
         // we must gurantee ORDER
         environment->relay_event(event);
-        lock();
+        do_lock();
     };
 
 
@@ -996,8 +994,9 @@ private:
             // fixme ... temporarily ... not pop before sending off !
             save_event_to_log(event);
             // unlocks!
-            relay_event(event);
+            // todo: should extract the platformEvent, then pop, and deliver.
             tq.pop();
+            relay_event(event);
         }
         if (!environment->output_frozen()) {
             push_time_to_next();
@@ -1168,7 +1167,7 @@ public:
 #endif
             return true;
 
-        } catch (std::bad_alloc &exc) {
+        } catch (const std::bad_alloc &exc) {
             return false;
         }
 #else

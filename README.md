@@ -1,23 +1,34 @@
 # Keyboard filter driver
 
-This is a filter which scans the keyboard events and detects simultaneous key-presses to reinterpret
-specific use of selected keys as modifiers, instead of their regular function.
+## Summary:  Use "[home row](https://en.wikipedia.org/wiki/Touch_typing#Home_row)" keys as modifiers (shift, hyper, super, kana,roya)
+
+This is a filter which parses the stream of keyboard events and detects _simultaneous_
+key-presses to reinterpret specific use of selected keys as modifiers, instead
+of their regular function. Also the _timing_ is significant.
 
 **Example**: use "a" key to activate numeric keypad on 'uio jkl m-." keys.
 
 Packaged as a plugin for X server, Weston plugin, and a Windows 10+ filter kernel driver.
 
+It is very similar to what qmk calls [Mod-Tap
+keys](https://github.com/qmk/qmk_firmware/blob/master/docs/mod_tap.md)..... but here (apart from working with regular
+keyboards) we can trigger the switch to modifier by mouse movement too!
+This is a big plus -- switching to modifier instantly when mouse is clicked, to drag, or resize, based on the modifier.
+
 ## How to install?
 * Windows ...
   [see instructions](doc/windows-client-install.md)
 
-* Linux -- patched (up-to-date) sources and Debian (Sid) packages are available:
-  debian packages in [my reprepro apt repository](https://github.com/MichalMaruska/michalmaruska.github.io)
+* Linux -- either build from source, or use Debian (Sid) packages from
+ [my reprepro apt repository](https://github.com/michal-maruska/apt-repo). That also provides the following requirements:
 
-- Xorg server -- a patch is needed to enable plugins:
-  [xserver git repo](https://github.com/MichalMaruska/xserver/commits/mmc-all)
+  - Xorg server -- a patch is needed to enable plugins in the key-processing "pipeline":
+      [xserver](https://github.com/michal-maruska/xserver/commits/mmc-all)
 
-- Weston
-  patch is needed for [libinput](https://github.com/MichalMaruska/libinput/commits/main/)
-  and [weston](https://github.com/MichalMaruska/weston/commits/main/)
+  - Weston --
+      a patch is needed for [libinput](https://github.com/MichalMaruska/libinput/commits/main/)
+      and [weston](https://github.com/MichalMaruska/weston/commits/main/)
 
+
+* for [Mac](https://developer.apple.com/documentation/driverkit/creating-a-driver-using-the-driverkit-sdk) not yet.
+https://developer.apple.com/documentation/kernel/implementing_drivers_system_extensions_and_kexts

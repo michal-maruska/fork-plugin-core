@@ -56,3 +56,9 @@ then I could change the hardcoded forking and got the same features as under Xor
 Then I build all the resulting Debian (sid) packages in:
 https://github.com/MichalMaruska/michalmaruska.github.io
 
+
+
+## related pages:
+* https://gitlab.freedesktop.org/wayland/weston/-/issues/865
+* https://github.com/xkbcommon/libxkbcommon/blob/master/doc/user-configuration.md
+* https://wayland.freedesktop.org/libinput/doc/latest/faqs.html#can-i-write-a-program-to-make-libinput-do-foo

@@ -70,7 +70,7 @@ const char* event_names[] = {
 void
 hand_over_event_to_next_plugin(const InternalEvent& event, PluginInstance* const nextPlugin)
 {
-    assert (!plugin_frozen(nextPlugin));
+    assert(!plugin_frozen(nextPlugin));
     PluginClass(nextPlugin)->ProcessEvent(nextPlugin,
                                           const_cast<InternalEvent*>(&event), FALSE); // not owner
     // we always own the event (up to now)
@@ -219,12 +219,10 @@ set_wakeup_time(PluginInstance *plugin, Time machine_time)
         // this is wrong: if machine waits, it cannot pass to the next-plugin!
         first_non_zero(machine_time, plugin->next->wakeup_time);
 
-    if (plugin->wakeup_time != 0) {
-        if (machine_time != 0) {
-            machine->mdb("%s %s wakeup_time = %d, next wants: %u, we %" TIME_FMT "\n",
-                FORK_PLUGIN_NAME, __func__,
-                (int)plugin->wakeup_time, (int)plugin->next->wakeup_time, machine_time);
-        }
+    if (machine_time != 0) {
+        machine->mdb("%s>%s wakeup_time = %d, next wants: %u, we %" TIME_FMT "\n",
+                     FORK_PLUGIN_NAME, __func__,
+                     (int)plugin->wakeup_time, (int)plugin->next->wakeup_time, machine_time);
     }
 }
 
@@ -326,6 +324,7 @@ fork_thaw_notify(PluginInstance* plugin, Time now)
     }
 }
 
+#define FORCE_BY_MOUSE 1
 
 /* For now this is called too many times, for different events.! */
 static void
@@ -336,7 +335,9 @@ mouse_call_back(CallbackListPtr *, PluginInstance* plugin,
     if (event->any.type == ET_Motion) {
 
         machineRec *machine = plugin_machine(plugin);
-        machine->accept_confirmation();
+        if (FORCE_BY_MOUSE) {
+            machine->accept_confirmation();
+        }
     }
 }
 
@@ -352,7 +353,7 @@ create_plugin(const DeviceIntPtr keybd, DevicePluginRec* plugin_class)
 {
     DB("%s @%p\n", __func__, static_cast<void *>(keybd->name));
 
-    assert (strcmp(plugin_class->name, FORK_PLUGIN_NAME) == 0);
+    assert(strcmp(plugin_class->name, FORK_PLUGIN_NAME) == 0);
     PluginInstance* plugin = (PluginInstance*) malloc(sizeof(PluginInstance));
     plugin->pclass = plugin_class;
     plugin->device = keybd;
@@ -368,11 +369,18 @@ create_plugin(const DeviceIntPtr keybd, DevicePluginRec* plugin_class)
 
     plugin->data = static_cast<void *>(forking_machine);
 
-    ErrorF("%s:keybd: next %p private %p on: %d\n", __func__, keybd->next, keybd->cpublic.devicePrivate, keybd->cpublic.on);
-    ErrorF("%s:keybd: coreEvents %d, size %zd %zd\n", __func__, keybd->coreEvents, sizeof(Atom), sizeof(CARD32));
-    ErrorF("%s:@%s returning %d\n", __func__, keybd->name, Success);
-
+    ErrorF("%s: keybd: next %p private %p on: %d\n", __func__, keybd->next,
+           keybd->cpublic.devicePrivate, keybd->cpublic.on);
+    // should be
+    // compile_assert(sizeof(Atom) == sizeof(CARD32));
+    ErrorF("%s:keybd: coreEvents %d, compile check: size %zd %zd %zd\n", __func__,
+           keybd->coreEvents,
+           sizeof(int), sizeof(Atom), sizeof(CARD32));
+    // ErrorF("%s:@%s returning value %d\n", __func__, keybd->name, Success);
+#if FORCE_BY_MOUSE
+    ErrorF("%s: registering for mouse too.\n", __func__);
     AddCallback(&DeviceEventCallback, reinterpret_cast<CallbackProcPtr>(mouse_call_back), (void*) plugin);
+#endif
 
     plugin_class->ref_count++;
     return plugin;
@@ -389,7 +397,7 @@ inline fork_configuration_t type_subtype(int t) { return (fork_configuration_t)(
 int
 machine_configure_get(PluginInstance* plugin, int values[5], int return_config[3])
 {
-   assert (strcmp (PLUGIN_NAME(plugin), FORK_PLUGIN_NAME) == 0);
+   assert(strcmp (PLUGIN_NAME(plugin), FORK_PLUGIN_NAME) == 0);
 
    machineRec *machine = plugin_machine(plugin);
 
@@ -430,14 +438,14 @@ machine_configure_get(PluginInstance* plugin, int values[5], int return_config[3
 int
 machine_configure(PluginInstance* plugin, int values[5])
 {
-    assert (strcmp (PLUGIN_NAME(plugin), FORK_PLUGIN_NAME) == 0);
+    assert(strcmp(PLUGIN_NAME(plugin), FORK_PLUGIN_NAME) == 0);
 
     machineRec *machine = plugin_machine(plugin);
 
     int type = values[0];
     machine->mdb("%s: %d operands, command %d: %d %d %d\n",
-                 __func__,
-                 subtype_n_args(type), type_subtype(type),
+                 __func__, subtype_n_args(type),
+                 type_subtype(type),
                  values[1], values[2],values[3]);
 
     switch (subtype_n_args(type)) {

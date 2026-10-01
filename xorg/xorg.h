@@ -6,7 +6,6 @@
 #include <memory>
 
 extern "C" {
-    // /usr/include/xorg/xorg-server.h
 #include <xorg-server.h>
 
 #ifndef MMC_PIPELINE
@@ -23,8 +22,8 @@ extern "C" {
 #include <xorg/input.h>
 #include <xorg/eventstr.h>
 
+// these macros are not used, and only clash with C++
 #undef xalloc
-
 #undef max
 #undef min
 }
@@ -228,7 +227,10 @@ public:
     }
 
     virtual void vlog(const char* format, va_list argptr) const override {
-        VErrorF(format, argptr);
+        va_list ap2;
+        va_copy(ap2, argptr);       // copy existing va_list
+        VErrorF(format, ap2);
+        va_end(ap2);
     }
 
     // the idea was to return a string. but who will deallocate it?
@@ -262,6 +264,7 @@ public:
 #endif
 #endif
     };
+
 #if 0
     virtual
     std::unique_ptr<forkNS::event_dumper<archived_event>> get_event_dumper() override {

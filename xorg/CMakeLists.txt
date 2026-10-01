@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 # /usr/share/cmake-3.30/Modules/FindPkgConfig.cmake
 # set(PKG_CONFIG_EXECUTABLE "$ENV{PKG_CONFIG}" CACHE FILEPATH "pkg-config executable")
 # mark_as_advanced(PKG_CONFIG_EXECUTABLE)
-find_package(PkgConfig)
+find_package(PkgConfig REQUIRED)
 
 # This results in "Cmake Debug Log:" during the cmake --configure run
 set(CMAKE_DEBUG_TARGET_PROPERTIES
@@ -67,10 +67,12 @@ message(STATUS "Building Fork & install in " ${moduledir})
 message(STATUS "USing Xorg headers from " ${includedir})
 
 # $<INSTALL_PREFIX>
-install(FILES ../include/fork_requests.h
+install(FILES
+  ../include/fork_requests.h
+  ../include/fork_enums.h
   #PUBLIC_HEADER
   DESTINATION ${includedir}
-  )
+)
 
 install(TARGETS fork
   EXPORT fork

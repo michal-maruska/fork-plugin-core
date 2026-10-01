@@ -94,7 +94,7 @@ public:
 #endif
     };
 
-    virtual ~libinput_event_dumper() {};
+    virtual ~libinput_event_dumper() override {};
 
 
     explicit libinput_event_dumper() :
@@ -116,9 +116,9 @@ private:
   libinput_fork_services *services;
 
 public:
-  libinputEnvironment(libinput_fork_services* services) : services(services) {};
+  explicit libinputEnvironment(libinput_fork_services* services) : services(services) {};
 
-  virtual ~libinputEnvironment() = default;
+  virtual ~libinputEnvironment() override = default;
 
 
   virtual bool output_frozen() override {
@@ -206,8 +206,8 @@ public:
 #endif
 
     services->post_event(services,
-                         (libinput_device*) li_event.device,
-                         (libinput_event_keyboard*) li_event.event);
+                         const_cast<libinput_device*>(li_event.device),
+                         const_cast<libinput_event_keyboard*>(li_event.event));
 #if 0
     li_event.event = NULL;
     li_event.device = NULL;

@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.13)
 set(CMAKE_EXPORT_COMPILE_COMMANDS true)
-
+set(CMAKE_COLOR_DIAGNOSTICS ON)
 project(fork-plugin)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 include_directories(include/)
+
+message(WARNING "######## test color output")
 
 # option(WITH_LIBINPUT "Build plugin for libinput." ON)
 # option(WITH_XORG "Build plugin for Xorg server" ON)
@@ -34,9 +36,10 @@ include(./CodeCoverage.cmake)
 
 # configure_file(CMake/config.h.in ${PROJECT_BINARY_DIR}/include/config.h)
 
-find_package(PkgConfig)
+find_package(PkgConfig REQUIRED)
 
 pkg_search_module(xorg-server
+  REQUIRED
   IMPORTED_TARGET GLOBAL
   xorg-server
 )
@@ -48,6 +51,7 @@ else()
 endif()
 
 pkg_search_module(libinput
+  REQUIRED
   IMPORTED_TARGET GLOBAL
   libinput
 )
@@ -72,4 +76,7 @@ export(EXPORT fork FILE dump.cmake)
 
 
 
+if(WIN32)
 add_subdirectory(windows)
+endif()
+

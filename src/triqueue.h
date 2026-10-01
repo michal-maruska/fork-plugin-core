@@ -72,6 +72,7 @@ public: // gdb
                  buffer.end() - end_internal);
     };
 
+#if DEBUG
     void dump_item(const char* message, const item_t &item) {
 #if 0
         constexpr int per_line = 50;
@@ -87,11 +88,12 @@ public: // gdb
 #endif
         env->fmt_event(message, item);
     }
+#endif
 
 public:
-        triqueue_t(int capacity) : buffer(circular_buffer_t(capacity)),
-                                   end_output(buffer.begin()),
-                                   end_internal(buffer.begin())
+        explicit triqueue_t(int capacity) : buffer(circular_buffer_t(capacity)),
+                                            end_output(buffer.begin()),
+                                            end_internal(buffer.begin())
         {
             log_queues(__func__);
         };
@@ -140,7 +142,7 @@ public:
     item_t pop() {
         scope_queue_logger QL(this, __func__);
 
-        item_t& item = buffer.front();
+        const item_t& item = buffer.front();
 
         buffer.pop_front();
         // buffer.increment_head();
@@ -162,6 +164,15 @@ public:
         return tmp;
     }
 
+    item_t& peek_middle() {
+        item_t& tmp = *(end_output);
+#if DEBUG
+        env->log("%s: %p\n", __func__, &tmp);
+#endif
+        return tmp;
+    }
+
+
     // rewritable!
     item_t& head() {
         // why?
@@ -182,7 +193,7 @@ public:
             return;
         }
 
-        end_output++;
+        ++end_output;
     }
 
     void move_to_second() {
@@ -192,7 +203,7 @@ public:
             return;
         }
 
-        end_internal++;
+        ++end_internal;
     }
 
     const item_t* first() {
