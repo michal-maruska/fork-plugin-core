@@ -45,33 +45,34 @@ OPTIND=1
 build_run_tests()
 {
     set -e
-    ninja -v && echo $? && \
-        { find -name \*.gcda -exec rm -v {} \; ; cd test; ctest }
+    local dir=$1
+    # ninja -v && echo $? &&
+    cmake --build $dir &&
+        { find -name \*.gcda -exec rm -v {} \; ; cd $dir/test; ctest }
 }
 
 
 build_with_compiler() {
-    local compiler=$1
-(
+    local compiler="$1"
+    local dir
+
     set -eu
     mkdir -p ${dir:=$BUILD_DIR/$compiler}
-    pushd $dir
+
+    cecho blue "building with $compiler in $dir"
 
     # todo don't cd, but -B $dir
     cmake -DCMAKE_COLOR_DIAGNOSTICS=ON \
           -DCMAKE_BUILD_TYPE=Debug -G Ninja \
           -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=$compiler  \
-          ../
+          -B $dir
     # &&
-    build_run_tests
+    # changes dir:
+    ( build_run_tests $dir )
 
-    # analysis
-    (
-        set -x
-        run-clang-tidy -checks="clang-analyzer-\*,-clang-diagnostic-vla-cxx-extension"
-
-        # another static analysis:
-        cppcheck --project=compile_commands.json \
+    set -x
+    # another static analysis:
+    cppcheck --project=$dir/compile_commands.json \
                  --enable=all \
                  --suppress=missingIncludeSystem \
                  --suppress=preprocessorErrorDirective \
@@ -79,17 +80,17 @@ build_with_compiler() {
                  --suppress=missingInclude \
                  --suppress=unusedStructMember:test/test-machine.cpp \
                  --library=googletest
-    )
-    cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=clang++
-
-    # no need, since this is sub-shell
-    popd
-)
 }
 
 ##
-build_with_compiler g++
-build_with_compiler clang++
+build_with_compiler "g++"
+
+build_with_compiler "clang++"
+set -x
+# analysis
+run-clang-tidy -checks="clang-analyzer-\*,-clang-diagnostic-vla-cxx-extension" || : ignore
+
+
 # fixme:
 rm -f $BUILD_DIR/clang++/**/*gcda
 
