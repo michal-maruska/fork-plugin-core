@@ -1257,16 +1257,16 @@ private:
         tq.log_queues(message);
     }
 
-    void log_state_and_event(const char* message, const PlatformEvent & pevent) {
 #if 0
+    void log_state_and_event(const char* message, const PlatformEvent & pevent) {
         mdb("%s%s%s state: %s, queue: %d\n", // , event: %d %s%c %s %s
             info_color,message,color_reset,
             describe_machine_state(this->state),
             internal_queue.length ()
             );
-#endif
         environment->fmt_event(__func__, pevent);
     }
+#endif
 
 public:
 // main api:
