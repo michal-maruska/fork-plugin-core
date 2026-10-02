@@ -1071,24 +1071,6 @@ private:
         }
     }
 
-    void push_time_to_next() {
-        // send out time:
-
-        // interesting: after handing over, the nextPlugin might need to be refreshed.
-        // if that plugin is gone. todo!
-
-        Time now;
-        {
-            unique_lock lock(mLock);
-            now = push_time_to_next_locked();
-        }
-
-        if (now) {
-            // this can thaw, freeze,?
-            environment->push_time(now);
-        }
-    }
-
 private:
     // Internal helper when lock is already held
     [[nodiscard]] Time next_decision_time_locked() const {
