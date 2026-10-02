@@ -44,7 +44,7 @@ public:
 
   ~TestEvent() {}
 
-  TestEvent() {
+  TestEvent() : test_archived_event{} {
     test_archived_event {0};
   };
 
