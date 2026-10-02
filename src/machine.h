@@ -1045,7 +1045,7 @@ private:
 #endif
         }
         if (!environment->output_frozen()) {
-            Time now = push_time_to_next_locked();
+            Time now = time_to_next_locked();
             if (now) {
                 environment->push_time(now);
             }
@@ -1060,7 +1060,7 @@ private:
         log_queues("AFTER ");
     }
 
-    [[nodiscard]] Time push_time_to_next_locked() {
+    [[nodiscard]] Time time_to_next_locked() {
         const PlatformEvent *item = tq.first();
         if (item == nullptr) {
             return mCurrent_time;
