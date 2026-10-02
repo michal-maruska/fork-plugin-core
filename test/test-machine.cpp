@@ -79,12 +79,11 @@ public:
 
   // MOCK_METHOD(void, vlog,(const char* format, va_list argptr));
 
-  void vlog(const char* format, va_list argptr) const {
+  static void vlog(const char* format, va_list argptr) {
     vprintf(format, argptr);
   }
 
-  void log(const char* format...) const
-  {
+  static void log(const char* format...) {
     va_list argptr;
     va_start(argptr, format);
     vprintf(format, argptr);
@@ -303,20 +302,20 @@ public:
     using PlatformArchive = test_archived_event;
     using PlatformEvent   = TestEvent;
 
-    bool press_p(const TestEvent& event) const { return false; }
-    bool release_p(const TestEvent& event) const { return true; }
-    Time time_of(const TestEvent& event) const { return 100; }
-    KeyCode detail_of(const TestEvent& event) const { return event.key; }
-    bool ignore_event(const TestEvent &pevent) { return false; }
-    bool output_frozen() { return false; }
-    void relay_event(const TestEvent &pevent) const {}
-    void push_time(Time now) {}
-    void vlog(const char* format, va_list argptr) const {}
-    void log(const char* format...) const {}
-    void fmt_event(const char* message, const TestEvent &event) const {}
-    void archive_event(test_archived_event& ae, const TestEvent& event) {}
-    void free_event(TestEvent* pevent) const {}
-    void rewrite_event(TestEvent& pevent, KeyCode code) {}
+    static bool press_p(const TestEvent& event) { return false; }
+    static bool release_p(const TestEvent& event) { return true; }
+    static Time time_of(const TestEvent& event) { return 100; }
+    static KeyCode detail_of(const TestEvent& event) { return event.key; }
+    static bool ignore_event(const TestEvent &pevent) { return false; }
+    static bool output_frozen() { return false; }
+    static void relay_event(const TestEvent &pevent) {}
+    static void push_time(Time now) {}
+    static void vlog(const char* format, va_list argptr) {}
+    static void log(const char* format...) {}
+    static void fmt_event(const char* message, const TestEvent &event) {}
+    static void archive_event(test_archived_event& ae, const TestEvent& event) {}
+    static void free_event(TestEvent* pevent) {}
+    static void rewrite_event(TestEvent& pevent, KeyCode code) {}
 };
 
 using concreteMachineRec = forkNS::forkingMachine<ConcreteTestEnvironment, last_events_archive_t>;
