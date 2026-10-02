@@ -114,12 +114,12 @@ private:
 #if !defined(DISABLE_STD_LIBRARY) && USE_LOCKING
     mutable std::mutex mLock;
     using  unique_lock = std::unique_lock<std::mutex>;
-    void check_locked() const {}
+    static void check_locked() {}
 #else
     mutable int mLock = 0;
 
     using  unique_lock = empty_unique_lock<int>;
-    void check_locked() const {
+    static void check_locked() {
         // std::unique_lock::owns_lock()
         // assert(mLock=);
     }
