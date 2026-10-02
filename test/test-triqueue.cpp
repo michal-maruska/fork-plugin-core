@@ -7,7 +7,7 @@
 
 class testEnvironment {
 public:
-  static void fmt_event(const char* message, int item) {};
+  // static void fmt_event(const char* message, int item) {};
 
   void log(const char* format ...) const {
 #if 0
@@ -30,7 +30,6 @@ protected:
     triqueue_t<int, testEnvironment>::env = &environment;
   }
 };
-
 
 
 TEST_F(triqueueTest, IsEmptyInitially) {
