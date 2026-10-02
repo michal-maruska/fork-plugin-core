@@ -15,11 +15,12 @@ enum class fork_reason_t {
   reason_force,   // mouse-button was pressed & triggered fork.
   reason_short,
   reason_wrong,
+  reason_none,
 };
 
 struct ForkInfo {
-  bool forked;
-  fork_reason_t reason;
+  bool forked = false;
+  fork_reason_t reason = fork_reason_t::reason_none;
 };
 
 
