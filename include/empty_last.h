@@ -17,7 +17,7 @@ extern "C" {
 template <typename event>
 class empty_last_events_t
 #ifndef KERNEL
-  : public std::vector<event>
+    : public std::vector<event>
 #endif
 {
 public:
@@ -25,15 +25,15 @@ public:
     static
     void push_back(const event& __x) {}
 
-  template <typename Part1, typename Fill>
-  void record(const Part1& p1, Fill&& fill) {
-    // do nothing
-  };
+    template <typename Part1, typename Fill>
+    static void record(const Part1& p1, Fill&& fill) {
+        // do nothing
+    };
 
     // emplace_back()
     static
     void set_capacity(const int& n) {
-      UNREFERENCED_PARAMETER(n);
+        UNREFERENCED_PARAMETER(n);
     };
 
     static
