@@ -8,15 +8,18 @@ include(../CodeCoverage.cmake)
 
 include_directories(.)
 
-# this was crucial to use GTest::gtest_main
-find_package(GTest REQUIRED)
-# find_package(GMock REQUIRED)
-# include(GTest/GTestTargets)
+# GTest target check
+if(NOT TARGET gtest)
+  find_package(GTest REQUIRED)
+endif()
 append_coverage_compiler_flags()
 
-add_executable(test-circular test-circular.cpp)
-target_link_libraries(test-circular GTest::gtest_main)
-gtest_discover_tests(test-circular)
+find_package(Boost)
+if(Boost_FOUND)
+  add_executable(test-circular test-circular.cpp)
+  target_link_libraries(test-circular GTest::gtest_main)
+  gtest_discover_tests(test-circular)
+endif()
 
 if(false)
 add_executable(test-queue test-queue.cpp)

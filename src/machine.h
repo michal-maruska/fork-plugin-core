@@ -15,13 +15,21 @@
 
 #ifndef DISABLE_STD_LIBRARY
 #include <mutex>
+#include <atomic>
 // a couple of unique_ptr
 #include <memory>
 #include <algorithm>
 #include <functional>
 #include <optional>
+using default_mutex_t = std::mutex;
 #else
 #include "empty_unique_lock.h"
+struct empty_mutex_t {
+    void lock() {}
+    void unlock() {}
+    bool try_lock() { return true; }
+};
+using default_mutex_t = empty_mutex_t;
 #endif
 
 #ifndef KERNEL
@@ -55,7 +63,9 @@ inline constexpr auto NO_TIMEOUT = 0 /* whatever Time's zero-equivalent is, e.g.
 
 template <typename Environment,
           typename Archive,
-          int MAX_KEYCODE = 256>
+          int MAX_KEYCODE = 256,
+          typename StateLock = default_mutex_t,
+          typename OutqueueLock = default_mutex_t>
 #if defined(USE_CONCEPTS)
    requires EnvironmentConcept<Environment>
 #endif
@@ -111,19 +121,42 @@ public:
 
 private:
 
-#if !defined(DISABLE_STD_LIBRARY) && USE_LOCKING
-    mutable std::mutex mLock;
-    using  unique_lock = std::unique_lock<std::mutex>;
-    static void check_locked() {}
-#else
-    mutable int mLock = 0;
+#ifndef DISABLE_STD_LIBRARY
+    mutable StateLock mStateLock;
+    mutable OutqueueLock mOutqueueLock;
+    std::atomic<bool> mFlusherFlag{false};
 
-    using  unique_lock = empty_unique_lock<int>;
-    static void check_locked() {
-        // std::unique_lock::owns_lock()
-        // assert(mLock=);
+    using unique_state_lock = std::unique_lock<StateLock>;
+    using unique_outqueue_lock = std::unique_lock<OutqueueLock>;
+
+    bool try_acquire_flusher() {
+        bool expected = false;
+        return mFlusherFlag.compare_exchange_strong(expected, true);
     }
 
+    void release_flusher() {
+        mFlusherFlag.store(false, std::memory_order_release);
+    }
+    void check_locked() const {}
+#else
+    mutable StateLock mStateLock;
+    mutable OutqueueLock mOutqueueLock;
+    bool mFlusherFlag = false;
+
+    using unique_state_lock = empty_unique_lock<StateLock>;
+    using unique_outqueue_lock = empty_unique_lock<OutqueueLock>;
+
+    bool try_acquire_flusher() {
+        if (mFlusherFlag) return false;
+        mFlusherFlag = true;
+        return true;
+    }
+
+    void release_flusher() {
+        mFlusherFlag = false;
+    }
+
+    void check_locked() const {}
 #endif
     bool mStopped = false;
 
@@ -288,7 +321,7 @@ public:
      * @value .. either parameter is set to this value if @set is 1
      * or ... ignored  */
     int configure_global(fork_configuration_t type, int value, bool set) {
-        unique_lock lock(mLock);
+        unique_state_lock lock(mStateLock);
         const auto fork_configuration =
 #ifndef DISABLE_STD_LIBRARY
             this->config.get()
@@ -375,14 +408,14 @@ public:
     }
 
     void set_debug(int level) {
-        unique_lock lock(mLock);
+        unique_state_lock lock(mStateLock);
         config->debug = level;
         // (machine->config->debug? 0: 1);
     }
 
     void stop() {
         // wait & stop
-        unique_lock wait_lock(mLock);
+        unique_state_lock wait_lock(mStateLock);
         UNUSED(wait_lock);
         mStopped = true;
     }
@@ -464,7 +497,10 @@ private:
         UNUSED(reason);
         assert(state == st_suspect || state == st_verify);
 
-        tq.move_to_first();
+        {
+            unique_outqueue_lock lock(mOutqueueLock);
+            tq.move_to_first();
+        }
         rewind_machine();
     };
 
@@ -517,7 +553,10 @@ private:
 
         environment->rewrite_event(pevent, forkActive[original_key]);
 
-        tq.move_to_first();
+        {
+            unique_outqueue_lock lock(mOutqueueLock);
+            tq.move_to_first();
+        }
         rewind_machine();
     };
 
@@ -840,7 +879,10 @@ private:
             switch (apply_event_to_normal(pevent)) {
                 case pass_through:
                     tq.move_to_second();
-                    tq.move_to_first();
+                    {
+                        unique_outqueue_lock lock(mOutqueueLock);
+                        tq.move_to_first();
+                    }
                     break;
                 case enqueue_suspect:
                 default: // this cannot happen
@@ -999,7 +1041,7 @@ private:
     }
 
     [[nodiscard]] inline std::optional<PlatformEvent> pop_event_if_present() {
-        unique_lock lock(mLock);
+        unique_outqueue_lock lock(mOutqueueLock);
         return pop_event_if_present_locked();
     }
 #else
@@ -1015,49 +1057,58 @@ private:
     }
 
     bool pop_event_if_present(PlatformEvent& out_event) {
-        unique_lock lock(mLock);
+        unique_outqueue_lock lock(mOutqueueLock);
         return pop_event_if_present_locked(out_event);
     }
 #endif
 
-    /**
-     * Push as many as possible from the OUTPUT queue to the next layer.
-     * Also the time.
-     * Beware: not locked.
-     **/
-    void flush_to_next_locked() {
-        while (!environment->output_frozen()) {
-#ifndef DISABLE_STD_LIBRARY
-            auto event = pop_event_if_present_locked();
-            if (event.has_value()) {
-                relay_event(*event);
-            } else {
-                mdb("Good, no more to flush\n");
+    void flush_to_next() {
+        if (!try_acquire_flusher()) {
+            return;
+        }
+
+        mdb("%s", __func__);
+        log_queues(__func__);
+
+        while (true) {
+            unique_outqueue_lock outqueue_lock(mOutqueueLock);
+
+            if (environment->output_frozen() || !tq.can_pop()) {
+                // OUTPUT queue empty or frozen:
+                // Drop FLUSHER first, then OUTQUEUE lock
+                release_flusher();
+                outqueue_lock.unlock();
                 break;
+            }
+
+#ifndef DISABLE_STD_LIBRARY
+            auto event_opt = pop_event_if_present_locked();
+            outqueue_lock.unlock();
+
+            if (event_opt.has_value()) {
+                relay_event(*event_opt);
             }
 #else
             PlatformEvent event;
-            if (pop_event_if_present_locked(event)) {
+            bool got = pop_event_if_present_locked(event);
+            outqueue_lock.unlock();
+
+            if (got) {
                 relay_event(event);
-            } else {
-                break;
             }
 #endif
         }
+
+        log_queues("AFTER ");
+        // fixme: but this involves the STATE information, should have been brought to this function
+        // we cannot lock now.
+        // mmc: we might push the time of the 1st event in the next queue. Who else will do it?
         if (!environment->output_frozen()) {
             Time now = time_to_next_locked();
             if (now) {
                 environment->push_time(now);
             }
         }
-    }
-
-    void flush_to_next() {
-        unique_lock lock(mLock);
-        mdb("%s", __func__);
-        log_queues(__func__);
-        flush_to_next_locked();
-        log_queues("AFTER ");
     }
 
     [[nodiscard]] Time time_to_next_locked() {
@@ -1084,7 +1135,7 @@ private:
 
 public:
     [[nodiscard]] Time next_decision_time() const {
-        unique_lock lock(mLock);
+        unique_state_lock lock(mStateLock);
         return next_decision_time_locked();
     }
 
@@ -1104,7 +1155,7 @@ public:
     };
 
     int configure_twins(int type, Keycode key, Keycode twin, int value, bool set) {
-        unique_lock lock(mLock);
+        unique_state_lock lock(mStateLock);
 #if VERIFICATION_MATRIX
         switch (type) {
         case fork_configure_total_limit:
@@ -1136,7 +1187,7 @@ public:
         key_repeat,                 // true/false
     };
     int configure_key(int type, Keycode key, int value, bool set) {
-        unique_lock lock(mLock);
+        unique_state_lock lock(mStateLock);
         mdb("%s: keycode %d -> value %d, function %d\n",
             __func__, key, value, type);
 
@@ -1176,7 +1227,7 @@ public:
     int dump_last_events_to_client(event_publisher<archived_event_t>* publisher, int max_requested) {
         // I don't need to count them! last_events_count
         // should be locked
-        unique_lock lock(mLock);
+        unique_state_lock lock(mStateLock);
         int queue_count = last_events_log.size();
 
         if (max_requested > queue_count) {
@@ -1211,7 +1262,7 @@ public:
         @return false if allocation  failed.
     */
     bool create_configs() {
-        unique_lock lock(mLock);
+        unique_state_lock lock(mStateLock);
 
         environment->log("%s\n", __func__);
 
@@ -1281,7 +1332,7 @@ public:
     Time accept_event(const PlatformEvent& pevent) noexcept(false) {
 
         {
-            unique_lock lock(mLock);
+            unique_state_lock lock(mStateLock);
             if (mStopped) {
                 return NO_TIMEOUT;
             }
@@ -1323,7 +1374,7 @@ public:
 
     Time accept_time(const Time now) {
         {
-            unique_lock lock(mLock);
+            unique_state_lock lock(mStateLock);
             if (mStopped) {
                 return NO_TIMEOUT;
             }
@@ -1352,7 +1403,7 @@ public:
         {
             // fixme: but this is possibly non-reentrant.
             // std::atomic<uint32_t> pending_{0};
-            unique_lock lock(mLock);
+            unique_state_lock lock(mStateLock);
             process_automaton_locked(true);
         }
         flush_to_next();

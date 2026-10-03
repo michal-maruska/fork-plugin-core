@@ -64,12 +64,14 @@ target_compile_features(forking_machine INTERFACE cxx_std_17)
 
 
 if (FORKING_MACHINE_IS_TOP_LEVEL AND NOT WIN32)
-    find_package(PkgConfig REQUIRED)
-    pkg_search_module(xorg-server REQUIRED IMPORTED_TARGET GLOBAL xorg-server)
-    if(xorg-server_MODULE_NAME)
+    find_package(PkgConfig)
+    if(PkgConfig_FOUND)
+        pkg_search_module(xorg-server IMPORTED_TARGET GLOBAL xorg-server)
+    endif()
+    if(xorg-server_FOUND)
       add_subdirectory(xorg)
     else()
-      message("xorg-server NOT FOUND, hence not building")
+      message(STATUS "xorg-server NOT FOUND, hence not building xorg")
     endif()
 else()
     message(STATUS "Skipping Xorg subproject")
@@ -78,11 +80,19 @@ endif()
 
 # check to have
 find_package(GTest)
-if(GTest_FOUND AND FORKING_MACHINE_IS_TOP_LEVEL)
+if(NOT GTest_FOUND)
+  include(FetchContent)
+  FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+  )
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(googletest)
+endif()
+
+if(FORKING_MACHINE_IS_TOP_LEVEL)
   enable_testing()
   add_subdirectory(test)
-else()
-  message(STATUS "Skipping tests: not top-level build, or GTest not found")
 endif()
 
 
