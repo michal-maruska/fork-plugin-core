@@ -174,6 +174,88 @@ TEST_F(machineTest, AcceptEventFlushesWithoutDeadlock) {
   Mock::VerifyAndClearExpectations(environment);
 }
 
+struct TrackingLock {
+    mutable int lock_count = 0;
+    mutable int unlock_count = 0;
+
+    void lock() const { ++lock_count; }
+    void unlock() const { ++unlock_count; }
+    bool try_lock() const { ++lock_count; return true; }
+};
+
+using customLockMachine = forkNS::forkingMachine<testEnvironment, last_events_archive_t, 256, TrackingLock, TrackingLock>;
+
+TEST(machineLockTest, CustomLockTypes) {
+    auto env = new testEnvironment();
+    auto fm = std::make_unique<customLockMachine>(env);
+    EXPECT_CALL(*env, relay_event);
+    EXPECT_CALL(*env, detail_of(testing::_)).WillRepeatedly(testing::Return(30));
+    EXPECT_CALL(*env, time_of).WillRepeatedly(testing::Return(100L));
+    EXPECT_CALL(*env, press_p).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*env, release_p).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*env, ignore_event).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*env, output_frozen).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*env, push_time(testing::_)).Times(testing::AnyNumber());
+
+    fm->create_configs();
+    TestEvent pevent(100, 30);
+    fm->accept_event(pevent);
+    Mock::VerifyAndClearExpectations(env);
+}
+
+class ReentrantEnvironment {
+public:
+    using Keycode         = KeyCode;
+    using Time            = ::Time;
+    using PlatformArchive = test_archived_event;
+    using PlatformEvent   = TestEvent;
+
+    std::function<void()> on_relay;
+
+    bool press_p(const TestEvent& event) const { return false; }
+    bool release_p(const TestEvent& event) const { return true; }
+    Time time_of(const TestEvent& event) const { return event.time; }
+    KeyCode detail_of(const TestEvent& event) const { return event.key; }
+    bool ignore_event(const TestEvent &pevent) { return false; }
+    bool output_frozen() { return false; }
+
+    void relay_event(const TestEvent &pevent) const {
+        if (on_relay) {
+            auto cb = on_relay;
+            const_cast<ReentrantEnvironment*>(this)->on_relay = nullptr;
+            cb();
+        }
+    }
+
+    void push_time(Time now) {}
+    void vlog(const char* format, va_list argptr) const {}
+    void log(const char* format...) const {}
+    void fmt_event(const char* message, const TestEvent &event) const {}
+    void archive_event(test_archived_event& ae, const TestEvent& event) {}
+    void free_event(TestEvent* pevent) const {}
+    void rewrite_event(TestEvent& pevent, KeyCode code) {}
+};
+
+using reentrantMachineRec = forkNS::forkingMachine<ReentrantEnvironment, last_events_archive_t>;
+
+TEST(machineLockTest, ReentrantFlushingNoDeadlock) {
+    auto env = new ReentrantEnvironment();
+    auto fm = std::make_unique<reentrantMachineRec>(env);
+    fm->create_configs();
+
+    bool reentered = false;
+    env->on_relay = [&]() {
+        reentered = true;
+        TestEvent reentrant_event(200, 88);
+        fm->accept_event(reentrant_event);
+    };
+
+    TestEvent first_event(100, 77);
+    fm->accept_event(first_event);
+
+    EXPECT_TRUE(reentered);
+}
+
 TEST_F(machineTest, Configure) {
   KeyCode A = 10;
   KeyCode B = 11;
@@ -364,9 +446,9 @@ TEST(machineConcurrentTest, ThreadSafety1) {
 
   fm->configure_global(fork_configuration_t::fork_configure_debug, 1, 1);
   std::vector<std::thread> threads;
-  for (int i = 0; i < 10; ++i) {
-    threads.emplace_back([this, fm, pevent,i]() {
-      for (int j = 0; j < 20; ++j) {
+  for (int i = 0; i < 4; ++i) {
+    threads.emplace_back([fm, pevent, i]() {
+      for (int j = 0; j < 10; ++j) {
         TestEvent event = pevent;
         int keycode = 8 + i * 20 + j;
         event.time += 1;

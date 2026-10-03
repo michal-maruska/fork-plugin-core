@@ -12,6 +12,8 @@ public:
 
     ~empty_unique_lock() = default;
 
+    void unlock() {}
+
     empty_unique_lock(const empty_unique_lock&) = delete;
     empty_unique_lock& operator=(const empty_unique_lock&) = delete;
 
