@@ -32,8 +32,8 @@ public:
     inline static const Environment_t *env = nullptr;
 private:
 
-    circular_buffer_t buffer;
-    iterator end_output;
+    circular_buffer_t output_buffer;
+    circular_buffer_t internal_buffer;
     iterator end_internal;
 
 // todo: elsewhere?
@@ -69,10 +69,10 @@ public:
                  buffer.end().pos_);
 #endif
         env->log("%s: %lu [%lu %lu %lu]\n", msg,
-                 buffer.size(),
-                 end_output - buffer.begin(),
-                 end_internal - end_output,
-                 buffer.end() - end_internal);
+                 output_buffer.size() + internal_buffer.size(),
+                 output_buffer.size(),
+                 end_internal - internal_buffer.begin(),
+                 internal_buffer.end() - end_internal);
     };
 
 #if DEBUG
@@ -94,66 +94,50 @@ public:
 #endif
 
 public:
-        explicit triqueue_t(int capacity) : buffer(circular_buffer_t(capacity)),
-                                            end_output(buffer.begin()),
-                                            end_internal(buffer.begin())
+        explicit triqueue_t(int capacity) : output_buffer(circular_buffer_t(capacity)),
+                                            internal_buffer(circular_buffer_t(capacity)),
+                                            end_internal(internal_buffer.begin())
         {
             log_queues(__func__);
         };
 
     // Queries
-    // int length();
 
     bool empty() {
-        return (buffer.empty());
+        return output_buffer.empty() && internal_buffer.empty();
     }
 
     bool middle_empty() {
-        return (end_internal == end_output);
+        return end_internal == internal_buffer.begin();
     }
 
-    // so empty would be   end_output = 0; end_internal = 0; buffer.end() ... lenght ....0 or 1?
     bool third_empty() {
         log_queues(__func__);
-        return end_internal == buffer.end();
+        return end_internal == internal_buffer.end();
     }
 
     void rewind_middle() {
         scope_queue_logger QL(this, __func__);
-        end_internal = end_output;
+        end_internal = internal_buffer.begin();
     }
 
     // modifiers:
     void push(const item_t &item) {
-#if 0
-        env->log("%s: %lu\n", __func__, sizeof(item));
-        dump_item(__func__, item);
-#endif
-        buffer.push_back(item);
-
+        internal_buffer.push_back(item);
 #if DEBUG
-        // dump_item(input_queue.front());
         log_queues("post-push");
-#endif
-#if 0
-        peek_third();
 #endif
     }
 
     bool can_pop() {
-        return buffer.begin() != end_output;
+        return !output_buffer.empty();
     }
 
     item_t pop() {
         scope_queue_logger QL(this, __func__);
 
-        item_t item = buffer.front();
-
-        buffer.pop_front();
-        // buffer.increment_head();
-        // these are relative? yes. indices.
-        end_output-=1;
-        end_internal-=1;
+        item_t item = output_buffer.front();
+        output_buffer.pop_front();
 #if DEBUG
         dump_item(__func__, item);
 #endif
@@ -161,8 +145,7 @@ public:
     }
 
     const item_t& peek_third() {
-        const item_t& tmp = *(end_internal); // +1
-        // env->log("%s: %p\n", __func__, &tmp);
+        const item_t& tmp = *(end_internal);
 #if DEBUG
         dump_item(__func__, tmp);
 #endif
@@ -170,19 +153,15 @@ public:
     }
 
     item_t& peek_middle() {
-        item_t& tmp = *(end_output);
+        item_t& tmp = internal_buffer.front();
 #if DEBUG
         env->log("%s: %p\n", __func__, &tmp);
 #endif
         return tmp;
     }
 
-
-    // rewritable!
     item_t& head() {
-        // why?
-        // fixme: not pop. peek
-        item_t& tmp = buffer.front(); // *(end_output);
+        item_t& tmp = output_buffer.empty() ? internal_buffer.front() : output_buffer.front();
 #if DEBUG
         env->log("%s: %p\n", __func__, &tmp);
 #endif
@@ -198,7 +177,9 @@ public:
             return;
         }
 
-        ++end_output;
+        output_buffer.push_back(internal_buffer.front());
+        internal_buffer.pop_front();
+        --end_internal;
     }
 
     void move_to_second() {
@@ -213,10 +194,12 @@ public:
     }
 
     const item_t* first() {
-        if (buffer.empty()) {
-            return nullptr;
+        if (!output_buffer.empty()) {
+            return &(output_buffer.front());
+        } else if (!internal_buffer.empty()) {
+            return &(internal_buffer.front());
         } else {
-            return &(buffer.front());
+            return nullptr;
         }
     }
 };
