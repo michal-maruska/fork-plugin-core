@@ -205,7 +205,8 @@ public:
 
     //
     void drop_from_third() {
-        if (end_internal == internal_buffer.end()) {
+        //
+        if (end_internal + 1 == internal_buffer.end()) {
             internal_buffer.pop_end();
         } else {
             env->log("%s: BUG\n", __func__);
