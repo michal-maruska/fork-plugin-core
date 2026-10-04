@@ -407,10 +407,14 @@ typedef const value_type&            const_reference;
         void pop_end()
         {
             // it must exist!
-            size_type destroy_pos = tail_;
-            increment_tail();
-            // alloc_.destroy(array_ + destroy_pos);
-            (array_ + destroy_pos)->~value_type();
+            --contents_size_; // must be > 0
+            (array_ + tail_)->~value_type();
+
+            if (tail_ == 0) {
+                tail_ = array_size_;
+            } else  {
+                tail_ --;
+            }
         }
 
         void clear()
