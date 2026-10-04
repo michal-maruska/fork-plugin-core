@@ -1,4 +1,4 @@
-#!/usr/bin/zsh -feu
+#!/usr/bin/env bash
 
 # Try to build with different compilers, for Xorg?
 # run tests, and invoke `cppcheck' and `run-clang-tidy'
@@ -48,9 +48,13 @@ build_run_tests()
     local dir=$1
     # ninja -v && echo $? &&
     cmake --build $dir &&
-        { find -name \*.gcda -exec rm -v {} \; ; cd $dir/test; ctest }
+        { find -name \*.gcda -exec rm -v {} \; ; cd $dir/test; ctest; }
 }
 
+
+cecho() {
+    echo "[$1] $2"
+}
 
 build_with_compiler() {
     local compiler="$1"
@@ -92,7 +96,7 @@ run-clang-tidy -checks="clang-analyzer-\*,-clang-diagnostic-vla-cxx-extension" |
 
 
 # fixme:
-rm -f $BUILD_DIR/clang++/**/*gcda
+find $BUILD_DIR/clang++ -name "*.gcda" -delete 2>/dev/null || true
 
 
 ## Install
