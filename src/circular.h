@@ -403,6 +403,16 @@ typedef const value_type&            const_reference;
             // alloc_.destroy(array_ + destroy_pos);
             (array_ + destroy_pos)->~value_type();
         }
+
+        void pop_end()
+        {
+            // it must exist!
+            size_type destroy_pos = tail_;
+            increment_tail();
+            // alloc_.destroy(array_ + destroy_pos);
+            (array_ + destroy_pos)->~value_type();
+        }
+
         void clear()
         {
             for (size_type n = 0; n < contents_size_; ++n)
