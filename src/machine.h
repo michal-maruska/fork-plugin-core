@@ -868,10 +868,13 @@ private:
             // mmc:  fork again, and pass-through
 #endif
             // BUG: we should discard it.
-            tq.drop_from_second();
+            // if it was at the end of the third....
+            // mdb("at the end? %d %d\n", tq.end_internal, internal_buffer.end());
+            tq.drop_from_third();
             // tq.move_to_second();
             // drop the event .... means put it on output, and bubble up?
-            activate_fork_rewind(fork_reason_t::reason_force);
+            // environment->rewrite_event(const_cast<PlatformEvent&>(pevent), 0);
+            // activate_fork_rewind(fork_reason_t::reason_force);
             return;
         }
 #endif
