@@ -171,6 +171,10 @@ public:
     // drop item from 2nd part. It must be there.
     void drop_from_second() {
         internal_buffer.pop_front();
+        if (middle_empty()) {
+            env->log("%s: BUG\n", __func__);
+            return;
+        }
         --end_internal;
     }
 
