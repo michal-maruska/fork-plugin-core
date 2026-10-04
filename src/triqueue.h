@@ -168,6 +168,12 @@ public:
         return tmp;
     }
 
+    // drop item from 2nd part. It must be there.
+    void drop_from_second() {
+        internal_buffer.pop_front();
+        --end_internal;
+    }
+
     void move_to_first() {
         scope_queue_logger QL(this, __func__);
         if (middle_empty()) {
