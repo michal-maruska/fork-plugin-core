@@ -867,7 +867,10 @@ private:
             environment->free_event(ev->p_event);
             // mmc:  fork again, and pass-through
 #endif
-            tq.move_to_second();
+            // BUG: we should discard it.
+            tq.drop_from_second();
+            // tq.move_to_second();
+            // drop the event .... means put it on output, and bubble up?
             activate_fork_rewind(fork_reason_t::reason_force);
             return;
         }
