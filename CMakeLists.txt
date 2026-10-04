@@ -78,21 +78,21 @@ else()
 endif()
 
 
-# check to have
-find_package(GTest)
-if(NOT GTest_FOUND)
-  include(FetchContent)
-  FetchContent_Declare(
-    googletest
-    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
-  )
+if(FORKING_MACHINE_IS_TOP_LEVEL)
+  # check to have
+  find_package(GTest)
+  if(NOT GTest_FOUND)
+    include(FetchContent)
+    FetchContent_Declare(
+      googletest
+      URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
+      DOWNLOAD_EXTRACT_TIMESTAMP true
+    )
   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   FetchContent_MakeAvailable(googletest)
-endif()
+  endif()
 
-if(FORKING_MACHINE_IS_TOP_LEVEL)
+
   enable_testing()
   add_subdirectory(test)
 endif()
-
-
