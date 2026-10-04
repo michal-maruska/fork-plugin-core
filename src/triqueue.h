@@ -203,6 +203,16 @@ public:
         ++end_internal;
     }
 
+    //
+    void drop_from_third() {
+        if (end_internal == internal_buffer.end()) {
+            internal_buffer.pop_end();
+        } else {
+            env->log("%s: BUG\n", __func__);
+        }
+    }
+
+
     const item_t* first() {
         if (!output_buffer.empty()) {
             return &(output_buffer.front());
