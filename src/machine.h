@@ -846,7 +846,7 @@ private:
         const PlatformEvent& pevent = tq.peek_third();
         const Keycode key = environment->detail_of(pevent);
 
-        mdb("%s: %lu\n", __func__, key);
+        // mdb("%s: %lu\n", __func__, key);
 
         /* Please, first change the state, then enqueue, and then EMIT_EVENT.
          * fixme: should be a function then  !!!*/
@@ -886,9 +886,9 @@ private:
                     break;
                 case enqueue_suspect:
                 default: // this cannot happen
-                    mdb("moving to second...\n");
+                    // mdb("moving to second...\n");
                     tq.move_to_second();
-                    log_queues("...after:");
+                    // log_queues("...after:");
             }
             return;
         }
@@ -1025,7 +1025,7 @@ private:
     // can modify the event!
     void relay_event(const PlatformEvent& event) {
         // we must guarantee ORDER
-        mdb("%s", __func__);
+        // mdb("%s", __func__);
         environment->relay_event(event);
     }
 
@@ -1066,9 +1066,10 @@ private:
         if (!try_acquire_flusher()) {
             return;
         }
-
+#if 0
         mdb("%s", __func__);
         log_queues(__func__);
+#endif
 
         while (true) {
             unique_outqueue_lock outqueue_lock(mOutqueueLock);
@@ -1099,7 +1100,8 @@ private:
 #endif
         }
 
-        log_queues("AFTER ");
+        // log_queues("AFTER ");
+
         // fixme: but this involves the STATE information, should have been brought to this function
         // we cannot lock now.
         // mmc: we might push the time of the 1st event in the next queue. Who else will do it?

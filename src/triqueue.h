@@ -114,7 +114,7 @@ public:
 
     // so empty would be   end_output = 0; end_internal = 0; buffer.end() ... lenght ....0 or 1?
     bool third_empty() {
-        log_queues(__func__);
+        // log_queues(__func__);
         return end_internal == buffer.end();
     }
 
@@ -204,7 +204,7 @@ public:
     void move_to_second() {
         scope_queue_logger QL(this, __func__);
         if (third_empty()) {
-            env->log("%s: BUG\n", __func__);
+//            env->log("%s: BUG\n", __func__);
             abort();
             return;
         }
