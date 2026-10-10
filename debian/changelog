@@ -1,3 +1,192 @@
+fork-plugin (3.1.6) unstable; urgency=medium
+
+  * debian: build-depend on gtest
+
+ -- Michal Maruska <mmaruska@gmail.com>  Sat, 10 Oct 2026 13:52:19 +0200
+
+fork-plugin (3.1.5) unstable; urgency=medium
+
+  [ Michal Maruska ]
+  * update ci script
+  * ci/run -- add build dependencies
+  * .ci/run  conditional install, build in 1 build dir
+  * ci/ru: cmake: color from outside
+  * ci/run invoke also run-clang-tidy
+  * fix(ci/run): test without changing directory
+  * ci: also cppcheck
+  * ci: relax some checks
+  * ci: cppcheck: be aware of googletest macros
+  * ci: run the static-analysis tools with  set -x
+  * ci: less checks on the test-machine
+  * ci: new pr-checks to invoke .ci/run
+  * .ci/run: document & fix
+  * ci (pr-checks): invoke manually if needed
+  * ci (pr-checks): fix dependencies
+  * ci (pr-checks): fix dependencies -- gtest, gmock
+  * ci (pr-checks): add dependencies to build for Xorg & libinput
+  * ci (pr-checks): run on my sid container -- sudo/builder
+  * use debian info for the dependencies
+  * ci(pr-checks): install clang explicitly
+  * ci(pr-checks): install clang-rt ??
+  * ci: build on github, in my organization
+  * ci: build the tagged commit when triggered by sid/ tag
+  * docs: link to Mac sdk
+  * ci: build unstable/ arm64 ...
+  * test: ConfigureTwins
+  * test: basic: forks-on-timeout
+  * test: acceptTime going backwards
+  * test: acceptConfirmation - force   ???? incomplete
+  * test: 2 multi-threaded tests: 1 synched
+  * test: ConcurrentLocking, without gmock, but ConcreteTestEnvironment
+  * test: ConcurrentLocking: criticize the test code
+  * default ctor for the platform Event type
+  * fix: better handle repeated key
+  * flush_to_next: call relay_event() outside lock
+  * test: ConcreteTestEnvironment: log to stdout
+  * test: ConcurrentLocking: turn on debug during 2 tests
+  * clean ;
+  * drop ;
+  * drop ;
+  * Clean up locking-related  method definitions
+  * mLock is mutable
+  * drop lock(), do_lock, and unlock
+  * lock during machine configure() calls
+  * next_decision_time_locked() -- to be called in critical area
+  * rename run_automaton to process_automaton_locked, no flush_to_next()
+  * fix accept_time(): use _locked functions, flush outside lock
+  * accept_confirmation: call flush_to_next too
+  * accept_event: use _locked functions, flush_to_next + todo:
+  * machineTest: d-tor
+  * (useless) empty_last: vector & full() -- fake! false
+  * dump_last_events_to_client:  fix the DISABLE_STD distinction
+  * circular_buffer::push_back -- simplify
+  * mStopped keep updated
+  * mStopped ->  return
+  * xorg: use configure_key instead of direct access!
+  * test: StopFlagPreventsEventProcessing
+  * USE_LOCKING do I need it?
+  * increase the timestamp on Test events
+  * mock wildcard for time_of
+  * test:cmake:  asan, tsan
+  * sq: flush_to_next .... comment locked -> unlocked
+  * transition_by_force: add check
+  * apply_event_to_normal: guarantee some progress -- the caller does it
+  * sq: drop left duplicate
+  * stop using config (from tests), todo: create it during c-tor!!
+  * abort on BUG in circular
+  * log in circ + comments
+  * transition_by_key: no need to pass the event
+  * reformat???
+  * simplify
+  * back to simple, since offending DOUBLE removed
+  * verbosity to find BUG (no progress while multi-threaded)
+  * AcceptEvent: mock without strict nr of expected calls
+  * AcceptEventFlushesWithoutDeadlock: mock without counting
+  * ConcurrentAccess: different keycode
+  * ConcreteTestEnvironment: return the key value!
+  * ThreadSafety: avoid recycling same key -- the code does not handle
+  * StopFlagPreventsEventProcessing: different keycode
+  * AcceptTimeForksOnTimeout: comments + mock push_time()
+  * check_locked --- any implementation?
+  * CMake: declare the INTERFACE core library and depend on it
+  * drop libinput from the Core / top cmake
+  * drop Xorg as subproject
+  * keep Xorg subproject
+  * cmake/core: C++17 required
+  * core: no more export -- but Xorg?
+  * set_target_properties
+  * circular: C++20 remove Alloc::pointer -- adapt
+  * core/cmake:  restore target_compile_features ..
+  * libinput: use 0.3 from this repo
+  * libinput: export
+  * clean
+  * verbose
+  * run: ???
+  * run: give up on Bash
+  * run: try to stop on error
+  * environment: declare used types by 'using' + rename template params
+  * forkingMachine template: reduce to 1 type parameter, no archive
+  * add archive_entry<> FunctionRef<> and ForkInfo
+  * tests: adapt -- template with 1 parameter
+  * xorg: adapt the template ... drop other
+  * xorg/plugin: disable the ARCHIVE api
+  * platform: drop event_dumper<> and event_publisher<>
+  * xorg: drop xorg_event_publisher and xorg_event_dumper, get_event_publisher()
+  * xorg: drop obsolete publisher & dumper
+  * tests: empty_last_events_t<> adapted for 2 parameters
+  * tests: no get_event_dumper()
+  * test-machine: drop instantiation
+  * 2nd template parameter: Archive container type
+  * save_event_to_log: dead code fix
+  * save_event_to_log: run  Archive::record()
+  * empty_last_events_t: uplift with record()
+  * tests: reintroduce 2nd template
+  * circular_archive: use it to build forkingMachine<>
+  * Dumper: register -- will be used to dump the Archive contents
+  * machine: dump_last_events() dump_last_with_dumper()
+  * machine: dubious setting debug vs reporting it
+  * XorgDumper ... at least keycode
+  * x-plugin: create XorgDumper -- leak memory -- register it
+  * x-plugin: use PRINT, not PAUSE key to enter command mode
+  * x-plugin: command mode
+  * x-plugin: invoke dump_last_events on PRINT key
+  * 2026
+  * instantiation
+  * circular_archive.h move to core, export
+  * core: NO_TIMEOUT
+  * correct template instantiation
+  * libinput: plugin: adapt to the 2-template: re-use CircularArchive
+  * libinput: drop event_dumper, define Dumper
+  * libinput: use core 0.4
+  * libinput: Dumper: to log, we need services
+  * cmake: include coverage for GCC/CLANG only.
+  * cmake: drop the windows dir, skip Xorg on Windows, tests on clients
+  * cmake: when top project, do test and try xorg
+  * circular: don't use debug.h
+  * circular_archive: use our circular, not boost
+  * circular_archive: record() use push_back() with value
+  * circular_archive: for_each: use normal iterator, not reverse
+  * cmake: bump up to C++20
+  * machine.  use concept
+  * environments: it's just a concept, not a parent class
+  * libinputEnvironment: drop inheritance, but not static methods
+  * test-machine: testEnvironment no inheritance
+  * XOrgEnvironment: no inheritance, not static
+  * fork-plugin: no need to dynamic_cast unknown type
+  * ci/run: stay in the root, and tell cmake to build inside subdir -B
+  * test: environment can have all methods static
+  * test: initialize the TestEvent fully
+  * fork_base: ForkInfo default values
+  * push_time_to_next: not neededl the locked version is used
+  * and renamed to time_to_next_locked();
+  * machine: log_state_and_event() unused -> disable
+  * test-triqueue: disable fmt_event -- unused
+  * empty_last: record() static
+  * machine: make check_lock() static
+  * Fix CI runner script
+  * cmake: GTest when top_level, and fetch it if not found
+  * reduce debugging verbosity while debug is on
+  * dubious change to triqueue
+  * drop_from_second: new operation (to drop auto-repeated events)
+  * use drop_from_second for autorepeated keys
+  * is there a bug?
+  * circular: pop_end, triqueue: drop_from_third
+  * machine: ignore auto-repeat of forked keys
+  * correct?
+  * fix pop_end()
+  * drop_from_third: just call pop_end
+
+  [ MichalMaruska ]
+  * Clean up locking: use unique_lock + empty_unique_lock
+
+  [ google-labs-jules[bot] ]
+  * stop: mark as unused.
+  * UNFINISHED reviewing
+  * fix(machine): replace VLA with fixed stack buffer for MSVC compatibility
+  * Implement fine-grained locking and single-threaded flusher
+
+ -- Michal Maruska <mmaruska@gmail.com>  Sat, 10 Oct 2026 13:38:13 +0200
+
 fork-plugin (3.1.4) unstable; urgency=medium
 
   * docs: compare with qmk
