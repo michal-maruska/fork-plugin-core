@@ -161,7 +161,7 @@ private:
     bool mStopped = false;
 
 
-public:
+private:
     // why public?
     // todo: #ifdef HAVE_SMART_POINTERS
 #ifndef DISABLE_STD_LIBRARY
