@@ -19,6 +19,7 @@
 #define CIRCULAR_BUFFER_H
 
 #ifndef DISABLE_STD_LIBRARY
+#include <stdexcept>
 #include <iterator>
 #endif
 
