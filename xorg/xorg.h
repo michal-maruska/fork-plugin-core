@@ -1,6 +1,9 @@
 #pragma once
 
+extern "C" {
 #include "fork_requests.h"
+}
+
 #include "platform.h"
 #include "colors.h"
 #include <memory>
