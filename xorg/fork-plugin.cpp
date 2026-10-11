@@ -340,7 +340,7 @@ mouse_call_back(CallbackListPtr *, PluginInstance* plugin,
                 DeviceEventInfoRec* dei)
 {
     InternalEvent *event = dei->event;
-    if (event->any.type == ET_Motion) {
+    if (event->any.type == ET_ButtonPress) {
 
         machineRec *machine = plugin_machine(plugin);
         if (FORCE_BY_MOUSE) {
