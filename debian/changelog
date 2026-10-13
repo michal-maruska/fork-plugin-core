@@ -1,3 +1,10 @@
+fork-plugin (3.1.8) unstable; urgency=medium
+
+  * c++20 on Windows requires
+  * force by mouse -- only click, not movement!
+
+ -- Michal Maruska <mmaruska@gmail.com>  Tue, 13 Oct 2026 12:38:41 +0200
+
 fork-plugin (3.1.7) unstable; urgency=medium
 
   * environment can be private -- xorg plugin doesn't need it for Dumper
