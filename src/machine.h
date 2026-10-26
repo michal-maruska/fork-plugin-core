@@ -133,9 +133,10 @@ public:
 
 private:
 
-#ifndef DISABLE_STD_LIBRARY
     mutable StateLock mStateLock;
     mutable OutqueueLock mOutqueueLock;
+
+#ifndef DISABLE_STD_LIBRARY
     std::atomic<bool> mFlusherFlag{false};
 
     using unique_state_lock = std::unique_lock<StateLock>;
@@ -151,8 +152,6 @@ private:
     }
     void check_locked() const {}
 #else
-    mutable StateLock mStateLock;
-    mutable OutqueueLock mOutqueueLock;
     bool mFlusherFlag = false;
 
     using unique_state_lock = empty_unique_lock<StateLock>;
