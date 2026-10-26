@@ -268,6 +268,7 @@ public:
 
     // prefix with a space.
     void mdb(const char* fmt...) const {
+        if (config == nullptr) return; // fixme!
         if (config->debug) {
             va_list argptr;
             va_start(argptr, fmt);
