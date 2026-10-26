@@ -1,7 +1,11 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 # Try to build with different compilers, for Xorg?
 # run tests, and invoke `cppcheck' and `run-clang-tidy'
+
+set -ue
+
+gitdir=$(git rev-parse --show-toplevel)
 
 # needs:
 # ai libclang-rt-21-dev
@@ -14,8 +18,6 @@
 # ai libc++1
 
 
-
-set -eu
 
 # Do the builds & run tests. On Linux.
 # Runs inside the .git directory where THIS script is located.
@@ -42,30 +44,39 @@ OPTIND=1
 
 build_run_tests()
 {
-    # invoked where?
-    ninja -v
-    # coverage?
-    find -name \*.gcda -exec rm -r '{}' \;
-    ( cd test; ctest )
+    set -e
+    local dir=$1
+    # ninja -v && echo $? &&
+    cmake --build $dir &&
+        { find -name \*.gcda -exec rm -v {} \; ; cd $dir/test; ctest; }
 }
 
 
-build_with_compiler() {
-    local compiler=$1
-(
-    set -eu
-    cd $gitdir
-    mkdir -p ${dir:=$BUILD_DIR/$compiler}
-    pushd $dir
-    cmake -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_BUILD_TYPE=Debug -G Ninja  ../../  -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=$compiler
-    build_run_tests
-    # analysis
-    (
-        set -x
-        run-clang-tidy -checks="clang-analyzer-\*,-clang-diagnostic-vla-cxx-extension"
+cecho() {
+    echo "[$1] $2"
+}
 
-        # another static analysis:
-        cppcheck --project=compile_commands.json \
+build_with_compiler() {
+    local compiler="$1"
+    local dir
+
+    set -eu
+    mkdir -p ${dir:=$BUILD_DIR/$compiler}
+
+    cecho blue "building with $compiler in $dir"
+
+    # todo don't cd, but -B $dir
+    cmake -DCMAKE_COLOR_DIAGNOSTICS=ON \
+          -DCMAKE_BUILD_TYPE=Debug -G Ninja \
+          -DFORCE_COLORED_OUTPUT=1 -DCMAKE_CXX_COMPILER=$compiler  \
+          -B $dir
+    # &&
+    # changes dir:
+    ( build_run_tests $dir )
+
+    set -x
+    # another static analysis:
+    cppcheck --project=$dir/compile_commands.json \
                  --enable=all \
                  --suppress=missingIncludeSystem \
                  --suppress=preprocessorErrorDirective \
@@ -73,16 +84,19 @@ build_with_compiler() {
                  --suppress=missingInclude \
                  --suppress=unusedStructMember:test/test-machine.cpp \
                  --library=googletest
-    )
-    popd
-)
 }
 
 ##
-build_with_compiler g++
-build_with_compiler clang++
+build_with_compiler "g++"
+
+build_with_compiler "clang++"
+set -x
+# analysis
+run-clang-tidy -checks="clang-analyzer-\*,-clang-diagnostic-vla-cxx-extension" || : ignore
+
+
 # fixme:
-rm -f $BUILD_DIR/clang++/**/*gcda
+find $BUILD_DIR/clang++ -name "*.gcda" -delete 2>/dev/null || true
 
 
 ## Install
