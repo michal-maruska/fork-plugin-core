@@ -44,6 +44,17 @@ using default_mutex_t = empty_mutex_t;
 
 namespace forkNS {
 
+template <typename A, typename Event>
+concept ArchiveFor = requires(A a, const Event &e) {
+  a.record(e);                   // store an event
+  a.set_capacity(std::size_t{}); // returns bool or void
+  { a.size() } -> std::convertible_to<std::size_t>;
+  { a.capacity() } -> std::convertible_to<std::size_t>;
+};
+
+
+
+
 inline constexpr auto NO_TIMEOUT = 0 /* whatever Time's zero-equivalent is, e.g. Time{0} */;
 /**
  * Machine:
