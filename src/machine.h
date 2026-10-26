@@ -75,7 +75,7 @@ inline constexpr auto NO_TIMEOUT = 0 /* whatever Time's zero-equivalent is, e.g.
 template <typename Environment,
           typename Archive,
           int MAX_KEYCODE = 256,
-          typename Policies = UserspacePolicies>
+          //          typename Policies = UserspacePolicies>,
           typename StateLock = default_mutex_t,
           typename OutqueueLock = default_mutex_t>
 #if defined(USE_CONCEPTS)
