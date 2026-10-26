@@ -602,7 +602,7 @@ private:
         enqueue_suspect
     };
 
-    event_result apply_event_to_normal(const PlatformEvent &pevent) {
+    event_result apply_event_to_normal(const PlatformEvent &pevent) { // const ... but we rewrite! fixme!
 
         const Keycode key = environment->detail_of(pevent);
         const Time simulated_time = environment->time_of(pevent);
