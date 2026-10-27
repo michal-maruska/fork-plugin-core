@@ -7,6 +7,7 @@
 namespace forkNS {
     // must be in sync.
     template class forkingMachine<XOrgEnvironment,
-                                  CircularArchive<ForkInfo, archived_event>
+                                  CircularArchive<ForkInfo, archived_event>,
+                                  UserspaceTrait
                                   >;
 }
