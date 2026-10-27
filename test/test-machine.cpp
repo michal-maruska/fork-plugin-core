@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <memory>
 #include <ostream>
+
+#include "userspace.h"
 #include <thread>
 #include <vector>
 #include <atomic>
@@ -101,7 +103,8 @@ public:
 // must be able to store the 2 halves:
 using last_events_archive_t = empty_last_events_t<archive_entry<ForkInfo, test_archived_event>>;
 
-using machineRec = forkNS::forkingMachine<testEnvironment, last_events_archive_t>;
+using machineRec = forkNS::forkingMachine<testEnvironment, last_events_archive_t,
+                                          UserspaceTrait>;
 using fork_configuration = machineRec::fork_configuration;
 
 class machineTest : public testing::Test {
@@ -182,8 +185,9 @@ struct TrackingLock {
     void unlock() const { ++unlock_count; }
     bool try_lock() const { ++lock_count; return true; }
 };
-
-using customLockMachine = forkNS::forkingMachine<testEnvironment, last_events_archive_t, 256, TrackingLock, TrackingLock>;
+// fixme: use TrackingLock in the UserspaceTrait
+using customLockMachine = forkNS::forkingMachine<testEnvironment, last_events_archive_t,
+                                                 UserspaceTrait>;
 
 TEST(machineLockTest, CustomLockTypes) {
     auto env = new testEnvironment();
@@ -236,7 +240,8 @@ public:
     void rewrite_event(TestEvent& pevent, KeyCode code) {}
 };
 
-using reentrantMachineRec = forkNS::forkingMachine<ReentrantEnvironment, last_events_archive_t>;
+using reentrantMachineRec = forkNS::forkingMachine<ReentrantEnvironment, last_events_archive_t,
+                                                   UserspaceTrait>;
 
 TEST(machineLockTest, ReentrantFlushingNoDeadlock) {
     auto env = new ReentrantEnvironment();
@@ -400,7 +405,8 @@ public:
     static void rewrite_event(TestEvent& pevent, KeyCode code) {}
 };
 
-using concreteMachineRec = forkNS::forkingMachine<ConcreteTestEnvironment, last_events_archive_t>;
+using concreteMachineRec = forkNS::forkingMachine<ConcreteTestEnvironment, last_events_archive_t,
+                                                  UserspaceTrait>;
 
 TEST(machineConcurrentTest, ConcurrentLocking) {
   auto env = new ConcreteTestEnvironment();
