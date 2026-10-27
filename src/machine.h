@@ -1009,24 +1009,8 @@ private:
         environment->relay_event(event);
     }
 
-#ifndef DISABLE_STD_LIBRARY
-    [[nodiscard]] inline std::optional<PlatformEvent> pop_event_if_present_locked() {
-        if (tq.can_pop()) {
-            PlatformEvent ev = tq.head();
-            save_event_to_log(ev);
-            tq.pop();
-            return ev;
-        }
-        return std::nullopt;
-    }
-
-    [[nodiscard]] inline std::optional<PlatformEvent> pop_event_if_present() {
-        unique_outqueue_lock lock(mOutqueueLock);
-        return pop_event_if_present_locked();
-    }
-#else
     // same body but different result transfer:
-    bool pop_event_if_present_locked(PlatformEvent& out_event) {
+    [[nodiscard]] bool pop_event_if_present_locked(PlatformEvent& out_event) {
         if (tq.can_pop()) {
             out_event = tq.head();
             save_event_to_log(out_event);
@@ -1036,11 +1020,10 @@ private:
         return false;
     }
 
-    bool pop_event_if_present(PlatformEvent& out_event) {
+    [[nodiscard]] bool pop_event_if_present(PlatformEvent& out_event) {
         unique_outqueue_lock lock(mOutqueueLock);
         return pop_event_if_present_locked(out_event);
     }
-#endif
 
     void flush_to_next() {
         if (!try_acquire_flusher()) {
@@ -1062,14 +1045,6 @@ private:
                 break;
             }
 
-#ifndef DISABLE_STD_LIBRARY
-            auto event_opt = pop_event_if_present_locked();
-            outqueue_lock.unlock();
-
-            if (event_opt.has_value()) {
-                relay_event(*event_opt);
-            }
-#else
             PlatformEvent event;
             bool got = pop_event_if_present_locked(event);
             outqueue_lock.unlock();
@@ -1077,7 +1052,6 @@ private:
             if (got) {
                 relay_event(event);
             }
-#endif
         }
 
         // log_queues("AFTER ");
