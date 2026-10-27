@@ -13,25 +13,6 @@
 #include "platform.h"
 #include "colors.h"
 
-#ifndef DISABLE_STD_LIBRARY
-#include <mutex>
-#include <atomic>
-// a couple of unique_ptr
-#include <memory>
-#include <algorithm>
-#include <functional>
-#include <optional>
-using default_mutex_t = std::mutex;
-#else
-#include "empty_unique_lock.h"
-struct empty_mutex_t {
-    void lock() {}
-    void unlock() {}
-    bool try_lock() { return true; }
-};
-using default_mutex_t = empty_mutex_t;
-#endif
-
 #ifndef KERNEL
 #include <cstdlib>
 #include <cstring>
@@ -74,15 +55,16 @@ inline constexpr auto NO_TIMEOUT = 0 /* whatever Time's zero-equivalent is, e.g.
 
 template <typename Environment,
           typename Archive,
-          int MAX_KEYCODE = 256,
-          //          typename Policies = UserspacePolicies>,
-          typename StateLock = default_mutex_t,
-          typename OutqueueLock = default_mutex_t>
+          typename Trait,
+          int MAX_KEYCODE = 256>
 #if defined(USE_CONCEPTS)
    requires EnvironmentConcept<Environment>
   // ArchiveConcept<Archive>
 #endif
 class forkingMachine {
+public:
+    using Policies = Trait;
+
 
     // this gets stored in the Archive:
     using Rec = archive_entry<ForkInfo, typename Environment::PlatformArchive>;
@@ -134,14 +116,13 @@ public:
 
 private:
 
-    mutable StateLock mStateLock;
-    mutable OutqueueLock mOutqueueLock;
+    mutable typename Trait::mutex_t mStateLock;
+    mutable typename Trait::mutex_t mOutqueueLock;
+    typename Trait::atomic_bool mFlusherFlag{false};
 
-#ifndef DISABLE_STD_LIBRARY
-    std::atomic<bool> mFlusherFlag{false};
-
-    using unique_state_lock = std::unique_lock<StateLock>;
-    using unique_outqueue_lock = std::unique_lock<OutqueueLock>;
+    using unique_lock = typename Trait::unique_lock;
+    using unique_state_lock = unique_lock;
+    using unique_outqueue_lock = unique_lock;
 
     bool try_acquire_flusher() {
         bool expected = false;
@@ -149,27 +130,10 @@ private:
     }
 
     void release_flusher() {
-        mFlusherFlag.store(false, std::memory_order_release);
-    }
-    void check_locked() const {}
-#else
-    bool mFlusherFlag = false;
-
-    using unique_state_lock = empty_unique_lock<StateLock>;
-    using unique_outqueue_lock = empty_unique_lock<OutqueueLock>;
-
-    bool try_acquire_flusher() {
-        if (mFlusherFlag) return false;
-        mFlusherFlag = true;
-        return true;
-    }
-
-    void release_flusher() {
-        mFlusherFlag = false;
+        mFlusherFlag.store(false);
     }
 
     void check_locked() const {}
-#endif
     bool mStopped = false;
 
 
