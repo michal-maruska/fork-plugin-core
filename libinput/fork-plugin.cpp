@@ -9,16 +9,19 @@
 // it seems this will be part of libinput!
 // but I want it c++
 #include "circular_archive.h"
+#include "userspace.h"
 
 
 using machineRec = forkNS::forkingMachine<libinputEnvironment,
-                                          CircularArchive<ForkInfo, archived_event>
+                                          CircularArchive<ForkInfo, archived_event>,
+                                          UserspaceTrait
                                           >;
 namespace forkNS {
   // explicit instantiation
 template uint64_t
 forkingMachine<libinputEnvironment,
-               CircularArchive<ForkInfo, archived_event>>::accept_event(const libinputEvent& pevent);
+               CircularArchive<ForkInfo, archived_event>,
+               UserspaceTrait>::accept_event(const libinputEvent& pevent);
 }
 
 
@@ -65,7 +68,6 @@ void fork_init(struct libinput_fork_services* services)
 
   // we hand it over to C
   machineRec *forking_machine = new machineRec(libinputEnv.release());
-  forking_machine->create_configs();
   forking_machine->set_debug(1);
 
   // space -> shift
