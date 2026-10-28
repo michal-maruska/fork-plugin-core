@@ -1070,7 +1070,7 @@ private:
             return NO_TIMEOUT;
     }
 
-public:
+private:
     [[nodiscard]] Time next_decision_time() const {
         unique_state_lock lock(mStateLock);
         return next_decision_time_locked();
