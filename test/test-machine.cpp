@@ -105,13 +105,10 @@ using last_events_archive_t = empty_last_events_t<archive_entry<ForkInfo, test_a
 
 using machineRec = forkNS::forkingMachine<testEnvironment, last_events_archive_t,
                                           UserspaceTrait>;
-using fork_configuration = machineRec::fork_configuration;
-
 class machineTest : public testing::Test {
 
 protected:
     machineTest() : environment(new testEnvironment() ),
-                    // config (new fork_configuration),
                     fm (new machineRec(environment)) {
     }
 
@@ -123,7 +120,6 @@ protected:
 
   testEnvironment *environment;
   machineRec *fm;
-  // fork_configuration *config;
 };
 
 
@@ -407,12 +403,7 @@ using concreteMachineRec = forkNS::forkingMachine<ConcreteTestEnvironment, last_
 TEST(machineConcurrentTest, ConcurrentLocking) {
   auto env = new ConcreteTestEnvironment();
   auto fm = std::make_unique<concreteMachineRec>(env);
-  /*
-  auto cfg = std::make_unique<concreteMachineRec::fork_configuration>();
-  // in facts why is this type public??
-  cfg->debug = 1;
-  fm->config = std::move(cfg);
-  */
+
   fm->configure_global(fork_configure_debug, 1, true);
 
   std::vector<std::thread> threads;

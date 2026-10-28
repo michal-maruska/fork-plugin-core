@@ -111,7 +111,7 @@ private:
     /** constants: */
     static constexpr Keycode no_key = KEYCODE_UNUSED;
 
-public:
+private:
     // Types
     using fork_configuration = ForkConfiguration<Keycode, Time, MAX_KEYCODE>;
 
