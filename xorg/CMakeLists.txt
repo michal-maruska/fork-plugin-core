@@ -40,7 +40,9 @@ add_library(fork MODULE ${sources})
 target_link_libraries(fork PRIVATE forking_machine::forking_machine)
 #target_include_directories(fork AFTER PUBLIC PRIVATE "../src/")
 target_include_directories(fork AFTER PUBLIC PRIVATE ".")
-target_compile_definitions(fork PRIVATE VERSION_STRING="git-local-2")
+target_compile_definitions(fork PRIVATE VERSION_STRING="git-local-3"
+    ASSERT_DEFINED
+)
 
 set_target_properties(fork PROPERTIES PREFIX "" # drop lib
   NO_SONAME "fork.so"
