@@ -224,16 +224,14 @@ public:
      * what is the meaning of:  KEYCODE_UNUSED and X ? */
     Keycode          forkActive[MAX_KEYCODE] = {};
 
-    // not private, because used in tests: fixme!
-#ifndef DISABLE_STD_LIBRARY
-    std::unique_ptr<fork_configuration> config; // list<fork_configuration>
-#else
-    fork_configuration* config;
-#endif
 
+private:    // not, because used in tests: fixme!
+    fork_configuration inline_config; // list<fork_configuration>
+    fork_configuration *const config = &inline_config;
+
+public:
     // prefix with a space.
     void mdb(const char* fmt...) const {
-        if (config == nullptr) return; // fixme!
         if (config->debug) {
             va_list argptr;
             va_start(argptr, fmt);
@@ -274,8 +272,9 @@ public:
           verificator_keycode(0),
           last_released(KEYCODE_UNUSED), last_released_time(0),
           mDecision_time(0),
-          mCurrent_time(0),
-          config(nullptr) {     // fixme!
+          mCurrent_time(0) {     // fixme! config(nullptr)
+
+        inline_config.debug = true;
 
         triqueue_t<PlatformEvent, Environment>::env = environment;
 
@@ -297,13 +296,7 @@ public:
      * or ... ignored  */
     int configure_global(fork_configuration_t type, int value, bool set) {
         unique_state_lock lock(mStateLock);
-        const auto fork_configuration =
-#ifndef DISABLE_STD_LIBRARY
-            this->config.get()
-#else
-            this->config
-#endif
-            ;
+        const auto fork_configuration = this->config;
 
         switch (type) {
 #if VERIFICATION_MATRIX
@@ -432,13 +425,7 @@ private:
 
     bool forkable_p(Keycode code)
     {
-        const fork_configuration* pconfig =
-#ifndef DISABLE_STD_LIBRARY
-            this->config.get()
-#else
-            this->config
-#endif
-            ;
+        const fork_configuration* pconfig = this->config;
         return (pconfig->fork_keycode[code] != no_key);
     }
 
@@ -1209,45 +1196,6 @@ public:
         return publisher->commit();
     };
 #endif
-
-public:
-    /** Create 2 configuration sets:
-        0. w/o forking,  no-op.
-        1. user-configurable
-        this is on loading, so should not use Abort allocation policy:
-
-        @return false if allocation  failed.
-    */
-    bool create_configs() {
-        unique_state_lock lock(mStateLock);
-
-        environment->log("%s\n", __func__);
-
-#ifndef KERNEL
-        try {
-#if MULTIPLE_CONFIGURATIONS
-            auto config_no_fork = std::unique_ptr<fork_configuration>(new fork_configuration);
-            config_no_fork->debug = 0; // should be settable somehow.
-
-            auto user_configurable = std::unique_ptr<fork_configuration>(new fork_configuration);
-            user_configurable->debug = 1;
-
-            // todo:
-            // user_configurable->next = config_no_fork.release();
-
-            config = user_configurable.release();
-#else
-            config = std::make_unique<fork_configuration>();
-#endif
-            return true;
-
-        } catch (const std::bad_alloc &exc) {
-            return false;
-        }
-#else
-        return false;
-#endif // KERNEL
-    }
 
 private:
     /**
