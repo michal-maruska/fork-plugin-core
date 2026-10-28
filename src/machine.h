@@ -139,18 +139,9 @@ private:
 
 
 private:
-    // why public?
-    // todo: #ifdef HAVE_SMART_POINTERS
-#ifndef DISABLE_STD_LIBRARY
-    std::unique_ptr<Environment> environment;
-#else
+    /* we don't transfer ownership; it's the (default) destructor
+     * which deallocates the Environment */
     Environment *environment;
-
-    void* operator new(size_t size, void* p) noexcept {
-        UNUSED(size);
-        return p;
-    }
-#endif
 
 
 private:
@@ -263,8 +254,10 @@ public:
         }
     };
 
-    // we don't store/own anything? or environment is unique_ptr but in kernel it's not!
-    ~forkingMachine() = default;
+    // deallocate the `environment' we own:
+    ~forkingMachine() {
+        delete environment;
+    }
 
     explicit forkingMachine(Environment* environment)
         : environment(environment),

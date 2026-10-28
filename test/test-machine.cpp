@@ -117,7 +117,7 @@ protected:
 
   ~machineTest()
   {
-    // machine owns `config` and `environment` via std::unique_ptr
+    // machine owns `config` and `environment`
     delete fm;
   }
 
