@@ -210,7 +210,7 @@ private:
         // return ( (now - past) > limit_difference);
     }
 
-public:
+private:
     /* forkActive(x) == y  means we sent downstream Keycode Y instead of X.
      * what is the meaning of:  KEYCODE_UNUSED and X ? */
     Keycode          forkActive[MAX_KEYCODE] = {};
