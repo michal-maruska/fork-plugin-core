@@ -1,10 +1,12 @@
 // (c) Michal Maruska 2003-2026
 #pragma once
 
-#ifdef KERNEL
-#define assert(x)
+
+// assert_compat.h
+#ifdef ASSERT_DEFINED
+#  include <assert.h>
 #else
-#include <assert.h>
+#  define assert(x)  ((void)0)
 #endif
 
 #include "config.h"
