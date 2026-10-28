@@ -15,12 +15,6 @@
 #include "platform.h"
 #include "colors.h"
 
-#ifndef KERNEL
-// #include <cstddef>
-#include <cstdlib>
-#include <cstring>
-#endif
-
 #include "fork_enums.h"
 #include "fork_configuration.h"
 
@@ -228,20 +222,7 @@ public:
         if (config->debug) {
             va_list argptr;
             va_start(argptr, fmt);
-#ifdef KERNEL
             environment->vlog(fmt, argptr);
-#else
-            char buf[512];
-            buf[0] = ' ';
-            // Safe copy of format string with leading space into fixed stack buffer
-            size_t fmt_len = strlen(fmt);
-            if (fmt_len < sizeof(buf) - 1) {
-                memcpy(buf + 1, fmt, fmt_len + 1);
-                environment->vlog(buf, argptr);
-            } else {
-                environment->vlog(fmt, argptr);
-            }
-#endif
             va_end(argptr);
         }
     };
