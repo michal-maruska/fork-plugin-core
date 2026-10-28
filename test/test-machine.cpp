@@ -213,12 +213,12 @@ public:
 
     std::function<void()> on_relay;
 
-    bool press_p(const TestEvent& event) const { return false; }
-    bool release_p(const TestEvent& event) const { return true; }
-    Time time_of(const TestEvent& event) const { return event.time; }
-    KeyCode detail_of(const TestEvent& event) const { return event.key; }
-    bool ignore_event(const TestEvent &pevent) { return false; }
-    bool output_frozen() { return false; }
+    static bool press_p(const TestEvent& event) { return false; }
+    static bool release_p(const TestEvent& event) { return true; }
+    static Time time_of(const TestEvent& event) { return event.time; }
+    static KeyCode detail_of(const TestEvent& event) { return event.key; }
+    static bool ignore_event(const TestEvent &pevent) { return false; }
+    static bool output_frozen() { return false; }
 
     void relay_event(const TestEvent &pevent) const {
         if (on_relay) {
@@ -228,13 +228,13 @@ public:
         }
     }
 
-    void push_time(Time now) {}
-    void vlog(const char* format, va_list argptr) const {}
-    void log(const char* format...) const {}
-    void fmt_event(const char* message, const TestEvent &event) const {}
-    void archive_event(test_archived_event& ae, const TestEvent& event) {}
-    void free_event(TestEvent* pevent) const {}
-    void rewrite_event(TestEvent& pevent, KeyCode code) {}
+    static void push_time(Time now) {}
+    static void vlog(const char* format, va_list argptr) {}
+    static void log(const char* format...) {}
+    static void fmt_event(const char* message, const TestEvent &event) {}
+    static void archive_event(test_archived_event& ae, const TestEvent& event) {}
+    static void free_event(TestEvent* pevent) {}
+    static void rewrite_event(TestEvent& pevent, KeyCode code) {}
 };
 
 using reentrantMachineRec = forkNS::forkingMachine<ReentrantEnvironment, last_events_archive_t,
