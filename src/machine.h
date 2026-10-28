@@ -1159,37 +1159,6 @@ public:
         }
     }
 
-#if ENABLE_ARCHIVE
-    /** ask the platform environment to send events as data. */
-    int dump_last_events_to_client(event_publisher<archived_event_t>* publisher, int max_requested) {
-        // I don't need to count them! last_events_count
-        // should be locked
-        unique_state_lock lock(mStateLock);
-        int queue_count = last_events_log.size();
-
-        if (max_requested > queue_count) {
-            max_requested = queue_count;
-        };
-
-        publisher->prepare(max_requested);
-#ifndef DISABLE_STD_LIBRARY
-        std::function<void(const archived_event_t&)> lambda =
-            [publisher](const archived_event_t& ev){ publisher->event(ev); };
-
-        std::for_each(last_events_log.begin(),
-                      last_events_log.end(),
-                      lambda);
-#else
-        for (const auto& ev : last_events_log) {
-            publisher->event(ev);
-        }
-#endif
-        mdb("sending %d events\n", max_requested);
-
-        return publisher->commit();
-    };
-#endif
-
 private:
     /**
      * Logging ... why templated?
@@ -1310,6 +1279,3 @@ public:
 };
 
 }
-
-
-// extern int dump_last_events_to_client(PluginInstance* plugin, ClientPtr client, int n);
