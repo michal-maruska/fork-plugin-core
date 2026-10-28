@@ -113,8 +113,6 @@ protected:
     machineTest() : environment(new testEnvironment() ),
                     // config (new fork_configuration),
                     fm (new machineRec(environment)) {
-
-      fm->create_configs();
     }
 
   ~machineTest()
@@ -201,7 +199,6 @@ TEST(machineLockTest, CustomLockTypes) {
     EXPECT_CALL(*env, output_frozen).WillRepeatedly(testing::Return(false));
     EXPECT_CALL(*env, push_time(testing::_)).Times(testing::AnyNumber());
 
-    fm->create_configs();
     TestEvent pevent(100, 30);
     fm->accept_event(pevent);
     Mock::VerifyAndClearExpectations(env);
@@ -246,7 +243,6 @@ using reentrantMachineRec = forkNS::forkingMachine<ReentrantEnvironment, last_ev
 TEST(machineLockTest, ReentrantFlushingNoDeadlock) {
     auto env = new ReentrantEnvironment();
     auto fm = std::make_unique<reentrantMachineRec>(env);
-    fm->create_configs();
 
     bool reentered = false;
     env->on_relay = [&]() {
@@ -417,7 +413,6 @@ TEST(machineConcurrentTest, ConcurrentLocking) {
   cfg->debug = 1;
   fm->config = std::move(cfg);
   */
-  fm->create_configs();
   fm->configure_global(fork_configure_debug, 1, true);
 
   std::vector<std::thread> threads;
@@ -444,7 +439,6 @@ TEST(machineConcurrentTest, ThreadSafety1) {
   auto env = new ConcreteTestEnvironment();
   auto fm = new concreteMachineRec(env);
 
-  fm->create_configs();
   fm->configure_global(fork_configure_debug, 1, true);
 
   int keycode = 79;
@@ -500,7 +494,6 @@ TEST_F(machineTest, EventFreed) {
   TestEvent A_pevent(a_time, A);
 
   KeyCode B = 11;
-  fm->create_configs()
   fm->configure_global(fork_configure_debug, 1, true);
   fm->configure_key(fork_configure_key_fork, A, B, 1);
   // EXPECT_EQ(config->fork_keycode[A], B);

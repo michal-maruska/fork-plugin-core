@@ -373,7 +373,6 @@ create_plugin(const DeviceIntPtr keybd, DevicePluginRec* plugin_class)
 
     auto xorg = std::make_unique<XOrgEnvironment>(keybd, plugin);
     auto* const forking_machine = new machineRec(xorg.release());
-    forking_machine->create_configs();
 
     // new object.... which dumps the
     auto dumper = std::make_unique<XorgDumper>();
