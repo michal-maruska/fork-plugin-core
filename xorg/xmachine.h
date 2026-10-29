@@ -24,7 +24,7 @@ extern "C"
 #include "circular_archive.h"
 
 
-using PlatformArchive = archived_event;
+// using PlatformArchive = archived_event;
 using machineRec = forkNS::forkingMachine<XOrgEnvironment,
                                           CircularArchive<ForkInfo, archived_event>,
                                           UserspaceTrait
