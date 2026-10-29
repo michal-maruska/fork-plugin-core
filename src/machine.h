@@ -345,7 +345,6 @@ public:
     void set_debug(int level) {
         unique_state_lock lock(mStateLock);
         config->debug = level;
-        // (machine->config->debug? 0: 1);
     }
 
     void stop() {
