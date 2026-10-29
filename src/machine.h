@@ -1089,7 +1089,7 @@ public:
 
 private:
     /**
-     * Logging ... why templated?
+     * Logging/debugging ... why templated?
      */
     void log_state(const char *message) const {
         UNUSED(message);
@@ -1115,7 +1115,7 @@ private:
 #endif
 
 public:
-// main api:
+    /// main (loop) api:
 
     /**
      *  We take over pevent and promise to deliver back via
