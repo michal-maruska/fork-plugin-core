@@ -18,17 +18,15 @@
 #ifndef CIRCULAR_BUFFER_H
 #define CIRCULAR_BUFFER_H
 
-#ifndef DISABLE_STD_LIBRARY
+#ifdef HAS_STD_LIBRARY
 #include <stdexcept>
 #include <iterator>
-#endif
-
-#ifndef DISABLE_STD_LIBRARY
 // std::allocator
 // std::swap
 #include <memory>
 
 #else
+
 #include "my-memory.h"
 #define DISABLE_SWAP 1
 #endif
@@ -58,7 +56,7 @@ class circular_buffer_iterator
         typedef circular_buffer_iterator<T,T_nonconst,elem_type> self_type;
 
         typedef T                                   cbuf_type;
-#ifndef DISABLE_STD_LIBRARY
+#ifdef HAS_STD_LIBRARY
         typedef std::random_access_iterator_tag     iterator_category;
 #endif
         typedef typename cbuf_type::value_type      value_type;
@@ -222,7 +220,7 @@ circular_buffer_iterator_t operator-
  * @version 1.00
  */
 template <typename T,
-#ifndef DISABLE_STD_LIBRARY
+#ifdef HAS_STD_LIBRARY
           bool     always_accept_data_when_full = true,
           typename Alloc = std::allocator<T>
 #else
@@ -262,7 +260,7 @@ typedef const value_type&            const_reference;
         typedef circular_buffer_iterator
                 <const self_type, self_type, const value_type>
                 const_iterator;
-#ifndef DISABLE_STD_LIBRARY
+#ifdef HAS_STD_LIBRARY
         typedef std::reverse_iterator<iterator>       reverse_iterator;
         typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 #endif
@@ -336,7 +334,7 @@ typedef const value_type&            const_reference;
 
         const_iterator   begin() const { return const_iterator(this, 0); }
         const_iterator   end() const   { return const_iterator(this, size()); }
-#ifndef DISABLE_STD_LIBRARY
+#ifdef HAS_STD_LIBRARY
         reverse_iterator rbegin()      { return reverse_iterator(end()); }
         reverse_iterator rend()        { return reverse_iterator(begin()); }
 
