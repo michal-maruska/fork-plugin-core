@@ -22,6 +22,7 @@
 
 namespace forkNS {
 
+#if 0
 template <typename A, typename Event>
 concept ArchiveFor = requires(A a, const Event &e) {
   a.record(e);                   // store an event
@@ -30,9 +31,16 @@ concept ArchiveFor = requires(A a, const Event &e) {
   { a.capacity() } -> std::convertible_to<std::size_t>;
 };
 
+#else
 
+template <typename A, typename Part1, typename Part2>
+concept ArchiveFor = requires(A a, const Part1& p1) {
+    { a.record(p1, [](Part2&){}) };
+    //{ a.size() } -> std::convertible_to<std::size_t>;
+    // { a.capacity() } -> std::convertible_to<std::size_t>;
+};
 
-
+#endif
 inline constexpr auto NO_TIMEOUT = 0 /* whatever Time's zero-equivalent is, e.g. Time{0} */;
 /**
  * Machine:
@@ -56,7 +64,8 @@ template <typename Environment,
           int MAX_KEYCODE = 256>
 #if defined(USE_CONCEPTS)
    requires EnvironmentConcept<Environment>
-  // ArchiveConcept<Archive>
+       && ArchiveFor<Archive, ForkInfo, typename Environment::PlatformArchive>
+       // ArchiveFor<Archive, typename Environment::PlatformArchive>
 #endif
 class forkingMachine {
 public:
