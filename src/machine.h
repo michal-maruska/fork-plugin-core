@@ -319,13 +319,6 @@ public:
                 fork_configuration->consider_forks_for_repeat = value;
             return fork_configuration->consider_forks_for_repeat;
 
-        case fork_configure_last_events:
-            if (set)
-                set_last_events_count(value);
-            else
-                return max_last;
-            break;
-
         case fork_configure_debug:
             if (set) {
                 fork_configuration->debug = value;
@@ -341,7 +334,6 @@ public:
             break;
 
         case fork_server_dump_keys:
-//            dump_last_events(environment->get_event_dumper().get());
             break;
 
             // mmc: this is special:
@@ -375,38 +367,6 @@ public:
 
 
 private:
-    void set_last_events_count(const int new_max) {
-        check_locked();
-        mdb("%s: allocating %d events\n", __func__, new_max);
-
-        if (max_last > new_max) {
-            // shrink. todo! in the circular.h!
-            mdb("%s: shrinking unimplemented\n", __func__);
-        } else {
-            last_events_log.set_capacity(new_max);
-            max_last = new_max;
-        }
-    }
-
-    void save_event_to_log(const PlatformEvent& event) {
-        // could I emplace it?
-        // reference = last_events_log.emplace_back()
-        // reference.forked = ev->forked;
-        UNUSED(event);
-#if 0
-        archived_event_t archived_event;
-        environment->archive_event(archived_event, event); // ->p_event
-        archived_event.forked = event->original_keycode; // todo: rename original_keycode
-
-        last_events_log.push_back(archived_event);
-#endif
-        // Rec
-        last_events_log.record(ForkInfo{false, fork_reason_t::reason_long}, // forked, reason
-                               [&](PlatformArchive& archived_event) {  // ae
-                                 environment->archive_event(archived_event, event);
-                                 // env_.archive_event(ae, raw_ev);
-                               });
-    }
 
     bool forkable_p(Keycode code)
     {
@@ -986,7 +946,7 @@ private:
     [[nodiscard]] bool pop_event_if_present_locked(PlatformEvent& out_event) {
         if (tq.can_pop()) {
             out_event = tq.head();
-            save_event_to_log(out_event);
+            // todo: save_event_to_log(out_event);
             tq.pop();
             return true;
         }
@@ -1135,20 +1095,6 @@ public:
             mdb("%s: invalid option %d\n", __func__, value);
         }
         return 0;
-    }
-
-    void dump_last_with_dumper(Dumper &dumper) {
-        last_events_log.for_each_recent([&](const Rec &rec) {
-            environment->log("%s event\n", __func__);
-            dumper(rec);
-        });
-    }
-
-    void dump_last_events() {
-        environment->log("%s 1\n", __func__);
-        if (dumper_) {
-            dump_last_with_dumper(dumper_);
-        }
     }
 
 private:
