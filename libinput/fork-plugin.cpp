@@ -13,15 +13,12 @@
 
 
 using machineRec = forkNS::forkingMachine<libinputEnvironment,
-                                          CircularArchive<ForkInfo, archived_event>,
                                           UserspaceTrait
                                           >;
 namespace forkNS {
   // explicit instantiation
 template uint64_t
-forkingMachine<libinputEnvironment,
-               CircularArchive<ForkInfo, archived_event>,
-               UserspaceTrait>::accept_event(const libinputEvent& pevent);
+forkingMachine<libinputEnvironment, UserspaceTrait>::accept_event(const libinputEvent& pevent);
 }
 
 

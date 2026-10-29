@@ -6,7 +6,7 @@ FetchContent_Declare(
     forking_machine
     GIT_REPOSITORY /home/michal/repo/fork/fork-plugin-core/
     # https://your-host/core-repo.git
-    GIT_TAG        0.5
+    GIT_TAG        0.6
 )
 FetchContent_MakeAvailable(forking_machine)
 
