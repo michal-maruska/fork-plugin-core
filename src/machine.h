@@ -107,7 +107,6 @@ private:
 #endif
 
 private:
-    Archive last_events_log;
     int max_last = 10; // can be updated!
 
     /* Environment must be able to convert from
@@ -264,7 +263,6 @@ public:
         triqueue_t<PlatformEvent, Environment>::env = environment;
 
         environment->log("ctor: allocating last_events\n");
-        last_events_log.set_capacity(max_last);
         environment->log("ctor: allocated last_events (%lu\n", max_last);
 
         environment->log("ctor: resetting forkActive\n");
