@@ -59,14 +59,8 @@ inline constexpr auto NO_TIMEOUT = 0 /* whatever Time's zero-equivalent is, e.g.
  */
 
 template <typename Environment,
-          typename Archive,
           typename Trait,
           int MAX_KEYCODE = 256>
-#if defined(USE_CONCEPTS)
-   requires EnvironmentConcept<Environment>
-       && ArchiveFor<Archive, ForkInfo, typename Environment::PlatformArchive>
-       // ArchiveFor<Archive, typename Environment::PlatformArchive>
-#endif
 class forkingMachine {
 public:
     using Policies = Trait;
@@ -74,8 +68,6 @@ public:
 
     // this gets stored in the Archive:
     using Rec = archive_entry<ForkInfo, typename Environment::PlatformArchive>;
-    static_assert(std::is_same_v<typename Archive::value_type, Rec>,
-                "Archive must store archive_entry<ForkInfo, Environment::PlatformArchive>");
 
     using Keycode         = typename Environment::Keycode;
     using Time            = typename Environment::Time;
