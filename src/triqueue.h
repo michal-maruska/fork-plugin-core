@@ -4,15 +4,12 @@
 // It can be compiled for Kernel environment, where C++ std-lib is absent.
 // this limits: exceptions, memory allocation, iterators
 
-// #include "circular.h"
-// #include <cstdlib>
-
 // todo: move to common
 #ifndef UNREFERENCED_PARAMETER
 #define UNREFERENCED_PARAMETER(x)   (void)(x)
 #endif
 
-template <typename item_t, typename CircularBuffer >
+template <typename item_t, template <typename> typename CircularBuffer>
 class triqueue_t {
     using circular_buffer_t = CircularBuffer<item_t>;
     using iterator = typename circular_buffer_t::iterator;
@@ -196,7 +193,7 @@ public:
         scope_queue_logger QL(this, __func__);
         if (third_empty()) {
 //            trace("%s: BUG\n", __func__);
-            abort();
+// bug:           abort();
             return;
         }
 
