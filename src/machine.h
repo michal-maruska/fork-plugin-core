@@ -982,12 +982,18 @@ private:
                 break;
             }
 
-            PlatformEvent event;
-            bool got = pop_event_if_present_locked(event);
-            outqueue_lock.unlock();
+            PlatformEvent event = tq.head();
+            ForkDecision decision = tq.head_output();
+            tq.pop();
+            tq.pop_output();
+            bool got = true;
 
+            // re-entrancy ?
+            // the state_lock was enough!
+            outqueue_lock.unlock();
+            // so someone can push a new event.
             if (got) {
-                relay_event(event);
+                environment->output(event, decision.verdict, decision.code);
             }
         }
 
