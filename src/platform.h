@@ -5,6 +5,7 @@
  */
 
 #include <cstdarg>
+#include "fork_base.h"
 
 #if defined(__cpp_concepts) && __cpp_concepts >= 201907
 #include <concepts>
@@ -24,6 +25,7 @@ concept EnvironmentConcept = requires(
     typename Env::Keycode kc,
     typename Env::Time now,
     const char* fmt,
+    fork_reason_t reason,
     va_list va
 ) {
     typename Env::PlatformEvent;
@@ -40,7 +42,7 @@ concept EnvironmentConcept = requires(
     { env.push_time(now) }             -> std::same_as<void>;
     { env.free_event(ev_ptr) }         -> std::same_as<void>;
 
-    { env.output(const_ev) }      -> std::same_as<void>;
+    { env.output(ev, reason, kc) }      -> std::same_as<void>;
     // { env.archive_event(ae, const_ev) } -> std::same_as<void>;
     // { env.rewrite_event(ev, kc) }      -> std::same_as<void>;
 
