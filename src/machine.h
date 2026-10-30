@@ -790,11 +790,27 @@ private:
         // assert(release_p(event) || (key < MAX_KEYCODE && forkActive[key] == 0));
         if  (state == st_normal) {
             switch (apply_event_to_normal(pevent)) {
+                case rewrite:
+                    tq.move_to_second();
+                    {
+                        const Keycode key = environment->detail_of(pevent);
+                        ForkDecision decision = {
+                            fork_reason_t::reason_release,
+                            forkActive[key]
+                        };
+                        forkActive[key] = no_key;
+                        unique_outqueue_lock lock(mOutqueueLock);
+                        tq.move_to_first(decision);
+                    }
+                    break;
                 case pass_through:
                     tq.move_to_second();
                     {
+                        ForkDecision decision = {
+                            fork_reason_t::reason_none,
+                            no_key};
                         unique_outqueue_lock lock(mOutqueueLock);
-                        tq.move_to_first(fork_reason_t::reason_none, no_key);
+                        tq.move_to_first(decision);
                     }
                     break;
                 case enqueue_suspect:
