@@ -950,14 +950,6 @@ private:
         return (forkActive[code] != code && forkActive[code]!= KEYCODE_UNUSED);
     }
 
-
-    // can modify the event!
-    void relay_event(const PlatformEvent& event) {
-        // we must guarantee ORDER
-        // mdb("%s", __func__);
-        environment->relay_event(event);
-    }
-
     // same body but different result transfer:
     [[nodiscard]] bool pop_event_if_present_locked(PlatformEvent& out_event) {
         if (tq.can_pop()) {
