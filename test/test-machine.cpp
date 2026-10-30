@@ -2,6 +2,9 @@
 #include <config.h>
 #include <gtest/gtest.h>
 
+#define HAS_STD_LIBRARY 1
+#include "circular.h"
+
 #include "fork_enums.h"
 #include <cstdlib>
 #include <memory>
@@ -104,7 +107,9 @@ public:
 using last_events_archive_t = empty_last_events_t<archive_entry<ForkInfo, test_archived_event>>;
 
 using machineRec = forkNS::forkingMachine<testEnvironment,
-                                          UserspaceTrait>;
+                                          UserspaceTrait,
+                                          circular_buffer
+                                          >;
 class machineTest : public testing::Test {
 
 protected:
@@ -181,7 +186,7 @@ struct TrackingLock {
 };
 // fixme: use TrackingLock in the UserspaceTrait
 using customLockMachine = forkNS::forkingMachine<testEnvironment,
-                                                 UserspaceTrait>;
+                                                 UserspaceTrait,circular_buffer>;
 
 TEST(machineLockTest, CustomLockTypes) {
     auto env = new testEnvironment();
@@ -234,7 +239,7 @@ public:
 };
 
 using reentrantMachineRec = forkNS::forkingMachine<ReentrantEnvironment,
-                                                   UserspaceTrait>;
+                                                   UserspaceTrait,circular_buffer>;
 
 TEST(machineLockTest, ReentrantFlushingNoDeadlock) {
     auto env = new ReentrantEnvironment();
@@ -398,7 +403,7 @@ public:
 };
 
 using concreteMachineRec = forkNS::forkingMachine<ConcreteTestEnvironment,
-                                                  UserspaceTrait>;
+                                                  UserspaceTrait, circular_buffer>;
 
 TEST(machineConcurrentTest, ConcurrentLocking) {
   auto env = new ConcreteTestEnvironment();
