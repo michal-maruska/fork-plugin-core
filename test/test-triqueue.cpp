@@ -3,6 +3,8 @@
 #include <cstdlib>
 
 #include "../src/triqueue.h"
+#define HAS_STD_LIBRARY 1
+#include "../src/circular.h"
 
 
 class testEnvironment {
@@ -23,11 +25,11 @@ public:
 class triqueueTest : public testing::Test {
 protected:
   testEnvironment environment;
-  triqueue_t<int, testEnvironment> q0_{100};
+  triqueue_t<int, circular_buffer> q0_{100};
 
   void SetUp () override {
     // static variable:
-    triqueue_t<int, testEnvironment>::env = &environment;
+    // triqueue_t<int, circular_buffer>::env = &environment;
   }
 };
 
