@@ -493,7 +493,8 @@ private:
     // so this must RETURN  enum {output/pass-through, suspect, }
     enum event_result {
         pass_through,
-        enqueue_suspect
+        enqueue_suspect,
+        rewrite,
     };
 
     event_result apply_event_to_normal(const PlatformEvent &pevent) { // const ... but we rewrite! fixme!
@@ -572,9 +573,7 @@ private:
              *  bug: not true!
              * fixme: do i do this in other machine states?
              */
-            environment->rewrite_event(const_cast<PlatformEvent&>(pevent), forkActive[key]);
-            forkActive[key] = no_key;
-            return event_result::pass_through;
+            return event_result::rewrite;
         } else {
             // non forkable, for example:
             if (environment->release_p(pevent)) {
