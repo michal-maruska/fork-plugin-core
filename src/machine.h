@@ -198,7 +198,12 @@ private:
     Time mCurrent_time;         // the last time we received from previous
                                 // plugin/device. But only if after the last event.
 
-    triqueue_t<PlatformEvent, CircularBuffer> tq{100}; // total capacity
+    struct ForkDecision {
+        fork_reason_t verdict;
+        Keycode code;
+    };
+
+    triqueue_t<PlatformEvent, ForkDecision, CircularBuffer> tq{100}; // total capacity
 
     static bool time_difference_more(Time now, Time past, Time limit_difference) {
         return (now > past + limit_difference);
@@ -395,8 +400,11 @@ private:
         assert(state == st_suspect || state == st_verify);
 
         {
+            ForkDecision decision = {
+                fork_reason_t::reason_none,
+                no_key};
             unique_outqueue_lock lock(mOutqueueLock);
-            tq.move_to_first(reason, no_key);
+            tq.move_to_first(decision);
         }
         rewind_machine();
     };
@@ -450,8 +458,11 @@ private:
 
         // environment->rewrite_event(pevent, forkActive[original_key]);
         {
+            ForkDecision decision = {
+                fork_reason,
+                forkActive[original_key]};
             unique_outqueue_lock lock(mOutqueueLock);
-            tq.move_to_first(fork_reason, forkActive[original_key]);
+            tq.move_to_first(decision);
         }
         rewind_machine();
     };
