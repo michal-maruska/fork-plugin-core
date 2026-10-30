@@ -37,11 +37,13 @@ concept EnvironmentConcept = requires(
     { env.release_p(const_ev) }        -> std::convertible_to<bool>;
     { env.ignore_event(const_ev) }     -> std::convertible_to<bool>;
     { env.output_frozen() }            -> std::convertible_to<bool>;
-    { env.relay_event(const_ev) }      -> std::same_as<void>;
     { env.push_time(now) }             -> std::same_as<void>;
-    { env.archive_event(ae, const_ev) } -> std::same_as<void>;
     { env.free_event(ev_ptr) }         -> std::same_as<void>;
-    { env.rewrite_event(ev, kc) }      -> std::same_as<void>;
+
+    { env.output(const_ev) }      -> std::same_as<void>;
+    // { env.archive_event(ae, const_ev) } -> std::same_as<void>;
+    // { env.rewrite_event(ev, kc) }      -> std::same_as<void>;
+
     { env.log(fmt) }                   -> std::same_as<void>;
     { env.vlog(fmt, va) }              -> std::same_as<void>;
     { env.fmt_event(fmt, const_ev) }   -> std::same_as<void>;
