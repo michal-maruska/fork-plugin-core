@@ -6,6 +6,7 @@
 #include "circular.h"
 
 #include "fork_enums.h"
+#include "fork_base.h"
 #include <cstdlib>
 #include <memory>
 #include <ostream>
@@ -79,7 +80,6 @@ public:
   MOCK_METHOD(bool, ignore_event,(const TestEvent &pevent));
 
   MOCK_METHOD(bool, output_frozen,());
-  MOCK_METHOD(void, relay_event,(const TestEvent &pevent), (const));
   MOCK_METHOD(void, push_time,(Time now));
 
   // MOCK_METHOD(void, vlog,(const char* format, va_list argptr));
@@ -98,7 +98,9 @@ public:
 
   MOCK_METHOD(void, archive_event,(test_archived_event& ae, const TestEvent& event));
   MOCK_METHOD(void, free_event,(TestEvent* pevent), (const));
-  MOCK_METHOD(void, rewrite_event,(TestEvent& pevent, KeyCode code));
+
+  MOCK_METHOD(void, output,(TestEvent& pevent, fork_reason_t reason, KeyCode code));
+
 
   // MOCK_METHOD(std::unique_ptr<forkNS::event_dumper<test_archived_event>>, get_event_dumper,());
 };
@@ -134,7 +136,6 @@ TEST_F(machineTest, AcceptEvent) {
   int keycode = 67;
   TestEvent pevent(100L, keycode);
 
-  EXPECT_CALL(*environment, relay_event);
   EXPECT_CALL(*environment, detail_of(testing::_))
     .Times(AnyNumber())
     .WillRepeatedly(testing::Return(keycode));
@@ -156,7 +157,6 @@ TEST_F(machineTest, AcceptEventFlushesWithoutDeadlock) {
   int keycode = 69;
   TestEvent pevent(100L, keycode);
 
-  EXPECT_CALL(*environment, relay_event).Times(AnyNumber());
   EXPECT_CALL(*environment, detail_of(testing::_))
     .WillRepeatedly(testing::Return(keycode));
   EXPECT_CALL(*environment, time_of).WillRepeatedly(testing::Return(100L));
@@ -165,6 +165,7 @@ TEST_F(machineTest, AcceptEventFlushesWithoutDeadlock) {
   EXPECT_CALL(*environment, ignore_event).WillRepeatedly(testing::Return(false));
   EXPECT_CALL(*environment, output_frozen).WillRepeatedly(testing::Return(false));
   EXPECT_CALL(*environment, push_time(testing::_)).Times(testing::AtLeast(1));
+  EXPECT_CALL(*environment, output).Times(1);
 
   Time next = fm->accept_event(pevent);
   UNUSED(next);
@@ -191,7 +192,6 @@ using customLockMachine = forkNS::forkingMachine<testEnvironment,
 TEST(machineLockTest, CustomLockTypes) {
     auto env = new testEnvironment();
     auto fm = std::make_unique<customLockMachine>(env);
-    EXPECT_CALL(*env, relay_event);
     EXPECT_CALL(*env, detail_of(testing::_)).WillRepeatedly(testing::Return(30));
     EXPECT_CALL(*env, time_of).WillRepeatedly(testing::Return(100L));
     EXPECT_CALL(*env, press_p).WillRepeatedly(testing::Return(true));
@@ -199,7 +199,7 @@ TEST(machineLockTest, CustomLockTypes) {
     EXPECT_CALL(*env, ignore_event).WillRepeatedly(testing::Return(false));
     EXPECT_CALL(*env, output_frozen).WillRepeatedly(testing::Return(false));
     EXPECT_CALL(*env, push_time(testing::_)).Times(testing::AnyNumber());
-
+    EXPECT_CALL(*env, output).Times(1);
     TestEvent pevent(100, 30);
     fm->accept_event(pevent);
     Mock::VerifyAndClearExpectations(env);
@@ -221,7 +221,7 @@ public:
     static bool ignore_event(const TestEvent &pevent) { return false; }
     static bool output_frozen() { return false; }
 
-    void relay_event(const TestEvent &pevent) const {
+    void output(TestEvent &pevent, fork_reason_t reason, Keycode code) const {
         if (on_relay) {
             auto cb = on_relay;
             const_cast<ReentrantEnvironment*>(this)->on_relay = nullptr;
@@ -277,7 +277,7 @@ TEST_F(machineTest, ConfigureTwins) {
 }
 
 TEST_F(machineTest, ConcurrentAccess) {
-  EXPECT_CALL(*environment, relay_event).Times(AnyNumber());
+  EXPECT_CALL(*environment, output).Times(AnyNumber());
   EXPECT_CALL(*environment, push_time).Times(AnyNumber());
   EXPECT_CALL(*environment, detail_of(testing::_))
     .WillRepeatedly(testing::Return(77));
@@ -341,8 +341,7 @@ TEST_F(machineTest, AcceptTimeForksOnTimeout) {
   EXPECT_GT(decision_time, a_time); // so 101
 
   // Now call accept_time with time >= decision_time
-  EXPECT_CALL(*environment, rewrite_event(testing::_, F));
-  EXPECT_CALL(*environment, relay_event(testing::_));
+  EXPECT_CALL(*environment, output(testing::_, fork_reason_t::reason_long, F));
   EXPECT_CALL(*environment, push_time(decision_time));
 
   Time next = fm->accept_time(decision_time);
@@ -392,14 +391,14 @@ public:
     static KeyCode detail_of(const TestEvent& event) { return event.key; }
     static bool ignore_event(const TestEvent &pevent) { return false; }
     static bool output_frozen() { return false; }
-    static void relay_event(const TestEvent &pevent) {}
     static void push_time(Time now) {}
     static void vlog(const char* format, va_list argptr) {}
     static void log(const char* format...) {}
     static void fmt_event(const char* message, const TestEvent &event) {}
     static void archive_event(test_archived_event& ae, const TestEvent& event) {}
     static void free_event(TestEvent* pevent) {}
-    static void rewrite_event(TestEvent& pevent, KeyCode code) {}
+    static void output(TestEvent &pevent, fork_reason_t reason, Keycode code) {}
+
 };
 
 using concreteMachineRec = forkNS::forkingMachine<ConcreteTestEnvironment,
@@ -470,7 +469,7 @@ TEST_F(machineTest, StopFlagPreventsEventProcessing) {
   fm->stop();
 
   // After stop(), accept_event should return 0 and not call relay_event or state machine transitions
-  EXPECT_CALL(*environment, relay_event).Times(0);
+  EXPECT_CALL(*environment, output).Times(0);
   Time next = fm->accept_event(pevent);
   EXPECT_EQ(next, 0);
 
