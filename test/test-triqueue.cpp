@@ -24,7 +24,7 @@ public:
 
 class triqueueTest : public testing::Test {
 protected:
-  testEnvironment environment;
+  // testEnvironment environment;
   triqueue_t<int, int, circular_buffer> q0_{100};
 
   void SetUp () override {
