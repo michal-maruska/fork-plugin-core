@@ -7,9 +7,7 @@
 
 #include "fork_enums.h"
 #include "fork_base.h"
-#include <cstdlib>
 #include <memory>
-#include <ostream>
 
 #include "userspace.h"
 #include <thread>
@@ -17,7 +15,6 @@
 #include <atomic>
 
 #include "../src/machine.h"
-#include "../src/platform.h"
 #include "empty_last.h"
 
 #include <gmock/gmock.h>
