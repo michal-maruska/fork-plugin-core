@@ -33,6 +33,7 @@ extern "C" {
 #undef min
 }
 #include <string>
+#include "fork_base.h"
 
 extern void
 hand_over_event_to_next_plugin(const InternalEvent& event, PluginInstance* const nextPlugin);
@@ -97,11 +98,6 @@ public:
         return pevent.event.device_event.detail.key;
     };
 
-    void rewrite_event(XorgEvent& pevent, KeyCode code) {
-        auto& event = pevent.event;
-        event.device_event.detail.key = code;
-    }
-
     bool press_p(const XorgEvent& pevent) const {
         auto& event = static_cast<const XorgEvent&>(pevent).event;
         return (event.any.type == ET_KeyPress);
@@ -143,14 +139,18 @@ public:
         archived_event.press = press_p(pevent);
     };
 
-    void relay_event(const XorgEvent& pevent) const {
-#if DEBUG
-        fmt_event(__func__, pevent);
-#endif
-        const auto& event = pevent.event;
+
+    void output(XorgEvent& pevent, fork_reason_t reason, Keycode code) {
+        auto& event = pevent.event;
+        if (reason  != fork_reason_t::reason_none) {
+            // forked:
+            event.device_event.detail.key = code;
+        }
+        // write to Archive
         PluginInstance* nextPlugin = plugin->next;
         hand_over_event_to_next_plugin(event, nextPlugin);
-    };
+    }
+
 
     void push_time(Time now) {
         PluginInstance* nextPlugin = plugin->next;
