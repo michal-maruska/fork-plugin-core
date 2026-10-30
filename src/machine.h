@@ -41,6 +41,18 @@ concept ArchiveFor = requires(A a, const Part1& p1) {
 };
 
 #endif
+
+template <typename T>
+concept CircularBufferLike = requires(T t, typename T::value_type v) {
+    t.push_back(v);
+    t.pop_front();
+    { t.size() }     -> std::convertible_to<std::size_t>;
+    { t.capacity() } -> std::convertible_to<std::size_t>;
+    { t[0] }         -> std::convertible_to<typename T::value_type>;
+};
+
+
+
 inline constexpr auto NO_TIMEOUT = 0 /* whatever Time's zero-equivalent is, e.g. Time{0} */;
 /**
  * Machine:
@@ -60,9 +72,13 @@ inline constexpr auto NO_TIMEOUT = 0 /* whatever Time's zero-equivalent is, e.g.
 
 template <typename Environment,
           typename Trait,
+
+          template <typename> class CircularBuffer, //= std::circular_buffer_default,
           int MAX_KEYCODE = 256>
 #if defined(USE_CONCEPTS)
     requires EnvironmentConcept<Environment>
+    &&
+        CircularBufferLike<CircularBuffer<int>>  // probe with a concrete type
 #endif
 class forkingMachine {
 public:
@@ -201,7 +217,7 @@ private:
     Time mCurrent_time;         // the last time we received from previous
                                 // plugin/device. But only if after the last event.
 
-    triqueue_t<PlatformEvent, Environment> tq{100}; // total capacity
+    triqueue_t<PlatformEvent, CircularBuffer> tq{100}; // total capacity
 
     static bool time_difference_more(Time now, Time past, Time limit_difference) {
         return (now > past + limit_difference);
@@ -255,7 +271,8 @@ public:
 
         inline_config.debug = true;
 
-        triqueue_t<PlatformEvent, Environment>::env = environment;
+        // have to assign the LOG function:
+        // triqueue_t<PlatformEvent, CircularBufferArchive<typename Part1, typename Part2>Environment>::env = environment;
 
         environment->log("ctor: allocating last_events\n");
         environment->log("ctor: allocated last_events (%lu\n", max_last);
