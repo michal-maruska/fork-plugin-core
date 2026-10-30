@@ -396,7 +396,7 @@ private:
 
         {
             unique_outqueue_lock lock(mOutqueueLock);
-            tq.move_to_first();
+            tq.move_to_first(reason, no_key);
         }
         rewind_machine();
     };
@@ -448,11 +448,10 @@ private:
             original_key, forkActive[original_key],
             describe_machine_state(this->state));
 
-        environment->rewrite_event(pevent, forkActive[original_key]);
-
+        // environment->rewrite_event(pevent, forkActive[original_key]);
         {
             unique_outqueue_lock lock(mOutqueueLock);
-            tq.move_to_first();
+            tq.move_to_first(fork_reason, forkActive[original_key]);
         }
         rewind_machine();
     };
@@ -767,6 +766,7 @@ private:
             // BUG: we should discard it.
             // if it was at the end of the third....
             // mdb("at the end? %d %d\n", tq.end_internal, internal_buffer.end());
+
             tq.drop_from_third();
             // tq.move_to_second();
             // drop the event .... means put it on output, and bubble up?
@@ -784,7 +784,7 @@ private:
                     tq.move_to_second();
                     {
                         unique_outqueue_lock lock(mOutqueueLock);
-                        tq.move_to_first();
+                        tq.move_to_first(fork_reason_t::reason_none, no_key);
                     }
                     break;
                 case enqueue_suspect:
