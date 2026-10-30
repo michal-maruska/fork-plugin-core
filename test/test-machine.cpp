@@ -408,14 +408,23 @@ TEST(machineConcurrentTest, ConcurrentLocking) {
   fm->configure_global(fork_configure_debug, 1, true);
 
   std::vector<std::thread> threads;
-  for (int i = 0; i < 14; ++i) {
-    threads.emplace_back([&fm, i]() {
-      for (int j = 0; j < 20; ++j) {
-        fm->configure_key(fork_configure_key_fork, 10 + (i % 5), 20 + (i % 5), 1);
-        fm->configure_global(fork_configure_repeat_limit, 200 + j, true);
-        TestEvent pevent(100 + j, 20);
+
+  for (int t = 0; t < 10; ++t) {
+    threads.emplace_back([fm, t]() {
+        // 20 * 14
+      for (int iter = 0; iter < 20; ++iter) {
+        fm->configure_key(fork_configure_key_fork,
+                          10 + (t % 5),
+                          20 + (t % 5), 1);
+
+        fm->configure_global(fork_configure_repeat_limit, 200 + iter, true);
+
+        // time, keycode
+        TestEvent pevent(10, // time
+                         20 * t + iter // keycode
+            );
         fm->accept_event(pevent);
-        fm->accept_time(100 + j);
+        fm->accept_time(100 + iter);
         fm->accept_confirmation();
       }
     });
