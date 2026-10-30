@@ -488,13 +488,12 @@ machine_command(ClientPtr client, PluginInstance* plugin, int cmd, int data1,
                 int data2, int data3, int data4)
 {
   DB("%s cmd %d, data %d ...\n", __func__, cmd, data1);
-  machineRec *machine = plugin_machine(plugin);
-  // auto env = machine->environment.get();
-
   switch (cmd) {
       case fork_client_dump_keys:
       {
 #if ENABLE_ARCHIVE
+          machineRec *machine = plugin_machine(plugin);
+          // auto env = machine->environment.get();
           auto dumper = env->get_event_publisher(client, plugin);
           machine->dump_last_events_to_client(dumper.get(), data1);
 #endif
