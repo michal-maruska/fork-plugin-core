@@ -6,9 +6,7 @@ extern "C" {
 #undef min
 }
 
-#include "platform.h"
 #include "colors.h"
-#include <memory>
 
 extern "C" {
 #include <xorg-server.h>
