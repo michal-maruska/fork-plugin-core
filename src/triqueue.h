@@ -16,28 +16,13 @@ class triqueue_t {
     using LogFn = void (*)(const char* fmt, ...);
 public:
     // inline static const Environment_t *env = nullptr;
+#include "scope-logger.h"
 private:
 
     circular_buffer_t output_buffer;
     circular_buffer_t internal_buffer;
     iterator end_internal;
 
-// todo: elsewhere?
-    struct scope_queue_logger {
-        triqueue_t* parent;
-        scope_queue_logger(triqueue_t* parent, const char* msg) : parent(parent) {
-#if DEBUG
-            parent->log_queues(msg);
-#else
-            UNREFERENCED_PARAMETER(msg);
-#endif
-        }
-        ~scope_queue_logger() {
-#if DEBUG
-            parent->log_queues(" post");
-#endif
-        }
-    };
 
   private:
     LogFn log_ = nullptr;
