@@ -447,11 +447,11 @@ TEST(machineConcurrentTest, ThreadSafety1) {
 
   fm->configure_global(fork_configuration_t::fork_configure_debug, 1, 1);
   std::vector<std::thread> threads;
-  for (int i = 0; i < 4; ++i) {
-    threads.emplace_back([fm, pevent, i]() {
+  for (int t = 0; t < 4; ++t) {
+    threads.emplace_back([fm, pevent, t]() {
       for (int j = 0; j < 10; ++j) {
         TestEvent event = pevent;
-        int keycode = 8 + i * 20 + j;
+        int keycode = 8 + t * 20 + j;
         event.time += 1;
         event.key = keycode;
 
