@@ -961,10 +961,6 @@ private:
         return false;
     }
 
-    [[nodiscard]] bool pop_event_if_present(PlatformEvent& out_event) {
-        unique_outqueue_lock lock(mOutqueueLock);
-        return pop_event_if_present_locked(out_event);
-    }
 
     void flush_to_next() {
         if (!try_acquire_flusher()) {
