@@ -9,22 +9,23 @@
 #define UNREFERENCED_PARAMETER(x)   (void)(x)
 #endif
 
-template <typename item_t, template <typename> typename CircularBuffer>
+template <typename item_t,
+          typename output_item_t,
+          template <typename> typename CircularBuffer>
 class triqueue_t {
+
     using circular_buffer_t = CircularBuffer<item_t>;
     using iterator = typename circular_buffer_t::iterator;
     using LogFn = void (*)(const char* fmt, ...);
-public:
-    // inline static const Environment_t *env = nullptr;
-#include "scope-logger.h"
+
 private:
 
     circular_buffer_t buffer;
+    CircularBuffer<output_item_t> output_buffer;
     iterator end_output;
     iterator end_internal;
 
 
-  private:
     LogFn log_ = nullptr;
 
 void trace(const char* fmt, ...) {
@@ -34,6 +35,7 @@ void trace(const char* fmt, ...) {
     }
 
 
+#include "scope-logger.h"
 
 public:
     // for gdb
@@ -126,6 +128,18 @@ public:
         return buffer.begin() != end_output;
     }
 
+    output_item_t pop_output() {
+        scope_queue_logger QL(this, __func__);
+
+        output_item_t item = output_buffer.front();
+        output_buffer.pop_front();
+#if DEBUG
+        dump_item(__func__, item);
+#endif
+        return item;
+    }
+
+
     item_t pop() {
         scope_queue_logger QL(this, __func__);
 
@@ -160,6 +174,14 @@ public:
     }
 
 
+    output_item_t& head_output() {
+        output_item_t& tmp = output_buffer.front();
+#if DEBUG
+        trace("%s: %p\n", __func__, &tmp);
+#endif
+        return tmp;
+    }
+
     // rewritable!
     item_t& head() {
         // why?
@@ -171,7 +193,7 @@ public:
         return tmp;
     }
 
-    void move_to_first() {
+    void move_to_first(const output_item_t &output) {
         scope_queue_logger QL(this, __func__);
         if (middle_empty()) {
 #if DEBUG
@@ -179,7 +201,7 @@ public:
 #endif
             return;
         }
-
+        output_buffer.push_back(output);
         ++end_output;
     }
 
