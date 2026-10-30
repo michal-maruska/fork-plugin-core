@@ -7,6 +7,7 @@
 namespace forkNS {
     // must be in sync.
     template class forkingMachine<XOrgEnvironment,
-                                  UserspaceTrait
+                                  UserspaceTrait,
+                                  circular_buffer
                                   >;
 }
