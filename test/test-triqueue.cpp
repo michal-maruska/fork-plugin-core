@@ -25,7 +25,7 @@ public:
 class triqueueTest : public testing::Test {
 protected:
   testEnvironment environment;
-  triqueue_t<int, circular_buffer> q0_{100};
+  triqueue_t<int, int, circular_buffer> q0_{100};
 
   void SetUp () override {
     // static variable:
@@ -76,7 +76,7 @@ TEST_F(triqueueTest, Push_And_overwrite_move) {
   const int new_value = 20;
   q0_.head() = new_value;
 
-  q0_.move_to_first();
+  q0_.move_to_first(1);
 
   // only first has values  (x)()()
   EXPECT_FALSE(q0_.empty());
