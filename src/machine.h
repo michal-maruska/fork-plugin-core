@@ -61,6 +61,9 @@ inline constexpr auto NO_TIMEOUT = 0 /* whatever Time's zero-equivalent is, e.g.
 template <typename Environment,
           typename Trait,
           int MAX_KEYCODE = 256>
+#if defined(USE_CONCEPTS)
+    requires EnvironmentConcept<Environment>
+#endif
 class forkingMachine {
 public:
     using Policies = Trait;
