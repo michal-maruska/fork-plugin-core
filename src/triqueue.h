@@ -1,35 +1,24 @@
 #pragma once
 
-#include "circular.h"
-#include <cstdlib>
+// This code is supposed to have minimum dependencies.
+// It can be compiled for Kernel environment, where C++ std-lib is absent.
+// this limits: exceptions, memory allocation, iterators
 
-#ifndef KERNEL
-// std::allocator
-#include <memory>
-#else
-#include "my-memory.h"
-#endif
+// #include "circular.h"
+// #include <cstdlib>
 
 // todo: move to common
 #ifndef UNREFERENCED_PARAMETER
 #define UNREFERENCED_PARAMETER(x)   (void)(x)
 #endif
 
-template <typename item_t, typename Environment_t>
+template <typename item_t, typename CircularBuffer >
 class triqueue_t {
-
-    using circular_buffer_t = circular_buffer<item_t, false,
-// fixme: this should be a template parameter!
-#ifndef KERNEL
-                                              std::allocator<item_t>
-#else
-                                              kernelAllocator<item_t>
-#endif
-                                              >;
+    using circular_buffer_t = CircularBuffer<item_t>;
     using iterator = typename circular_buffer_t::iterator;
-
+    using LogFn = void (*)(const char* fmt, ...);
 public:
-    inline static const Environment_t *env = nullptr;
+    // inline static const Environment_t *env = nullptr;
 private:
 
     circular_buffer_t output_buffer;
@@ -53,22 +42,33 @@ private:
         }
     };
 
+  private:
+    LogFn log_ = nullptr;
+
+void trace(const char* fmt, ...) {
+#ifdef FORK_DEBUG
+        if (log_) { va_list ap; va_start(ap, fmt); /* call log_ */ va_end(ap); }
+#endif
+    }
+
+
+
 public:
     // for gdb
     void log_queues(const char* msg) { // const -> mysterious operator- miss
-        if (env == nullptr)
+        if (log_ == nullptr)
             return;
 #if 0
-        env->log("(%s) %s: %lu\n", __func__, msg, buffer.size());
+        trace("(%s) %s: %lu\n", __func__, msg, buffer.size());
 
 
-        env->log("%s: %lu %lu %lu %lu\n", msg,
+        trace("%s: %lu %lu %lu %lu\n", msg,
                  buffer.begin().pos_,
                  end_output.pos_,
                  end_internal.pos_,
                  buffer.end().pos_);
 #endif
-        env->log("%s: %lu [%lu %lu %lu]\n", msg,
+        trace("%s: %lu [%lu %lu %lu]\n", msg,
                  output_buffer.size() + internal_buffer.size(),
                  output_buffer.size(),
                  end_internal - internal_buffer.begin(),
@@ -82,14 +82,14 @@ public:
         const char* as_string = (char*) &item;
         for (int i=0; i< per_line - 1;) { // sizeof(item)
             // hh unsigned char?
-            env->log("%hhx ", as_string[i]);
+            trace("%hhx ", as_string[i]);
 
             if ( 0 ==  (++i % per_line))
-                env->log("\n");
+                trace("\n");
         }
-        env->log("\n");
+        trace("\n");
 #endif
-        env->fmt_event(message, item);
+        trace(message, item);
     }
 #endif
 
@@ -155,7 +155,7 @@ public:
     item_t& peek_middle() {
         item_t& tmp = internal_buffer.front();
 #if DEBUG
-        env->log("%s: %p\n", __func__, &tmp);
+        trace("%s: %p\n", __func__, &tmp);
 #endif
         return tmp;
     }
@@ -163,7 +163,7 @@ public:
     item_t& head() {
         item_t& tmp = output_buffer.empty() ? internal_buffer.front() : output_buffer.front();
 #if DEBUG
-        env->log("%s: %p\n", __func__, &tmp);
+        trace("%s: %p\n", __func__, &tmp);
 #endif
         return tmp;
     }
@@ -172,7 +172,7 @@ public:
     void drop_from_second() {
         internal_buffer.pop_front();
         if (middle_empty()) {
-            env->log("%s: BUG\n", __func__);
+            trace("%s: BUG\n", __func__);
             return;
         }
         --end_internal;
@@ -182,7 +182,7 @@ public:
         scope_queue_logger QL(this, __func__);
         if (middle_empty()) {
 #if DEBUG
-            env->log("%s: BUG\n", __func__);
+            trace("%s: BUG\n", __func__);
 #endif
             return;
         }
@@ -195,7 +195,7 @@ public:
     void move_to_second() {
         scope_queue_logger QL(this, __func__);
         if (third_empty()) {
-//            env->log("%s: BUG\n", __func__);
+//            trace("%s: BUG\n", __func__);
             abort();
             return;
         }
@@ -209,7 +209,7 @@ public:
         // if (end_internal + 1 == internal_buffer.end()) {
         internal_buffer.pop_end();
         // } else {
-        //     env->log("%s: BUG\n", __func__);
+        //     trace("%s: BUG\n", __func__);
         // }
 
     }
