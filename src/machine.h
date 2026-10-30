@@ -22,26 +22,6 @@
 
 namespace forkNS {
 
-#if 0
-template <typename A, typename Event>
-concept ArchiveFor = requires(A a, const Event &e) {
-  a.record(e);                   // store an event
-  a.set_capacity(std::size_t{}); // returns bool or void
-  { a.size() } -> std::convertible_to<std::size_t>;
-  { a.capacity() } -> std::convertible_to<std::size_t>;
-};
-
-#else
-
-template <typename A, typename Part1, typename Part2>
-concept ArchiveFor = requires(A a, const Part1& p1) {
-    { a.record(p1, [](Part2&){}) };
-    //{ a.size() } -> std::convertible_to<std::size_t>;
-    // { a.capacity() } -> std::convertible_to<std::size_t>;
-};
-
-#endif
-
 template <typename T>
 concept CircularBufferLike = requires(T t, typename T::value_type v) {
     t.push_back(v);
