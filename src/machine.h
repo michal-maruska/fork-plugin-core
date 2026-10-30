@@ -22,6 +22,7 @@
 
 namespace forkNS {
 
+#if defined(USE_CONCEPTS)
 template <typename T>
 concept CircularBufferLike = requires(T t, typename T::value_type v) {
     t.push_back(v);
@@ -30,7 +31,7 @@ concept CircularBufferLike = requires(T t, typename T::value_type v) {
     { t.capacity() } -> std::convertible_to<std::size_t>;
     { t[0] }         -> std::convertible_to<typename T::value_type>;
 };
-
+#endif
 
 
 inline constexpr auto NO_TIMEOUT = 0 /* whatever Time's zero-equivalent is, e.g. Time{0} */;
