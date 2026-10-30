@@ -15,6 +15,7 @@ enum class fork_reason_t {
   reason_force,   // mouse-button was pressed & triggered fork.
   reason_short,
   reason_wrong,
+  reason_release,
   reason_none,
 };
 
