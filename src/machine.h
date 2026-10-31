@@ -11,7 +11,7 @@
 
 #include "config.h"
 
-#include "triqueue.h"
+#include "splitqueue.h"
 #include "platform.h"
 #include "colors.h"
 
@@ -65,14 +65,15 @@ class forkingMachine {
 public:
     using Policies = Trait;
 
-
-    // this gets stored in the Archive:
-    using Rec = archive_entry<ForkInfo, typename Environment::PlatformArchive>;
-
     using Keycode         = typename Environment::Keycode;
     using Time            = typename Environment::Time;
     using PlatformEvent   = typename Environment::PlatformEvent;
-    using PlatformArchive = typename Environment::PlatformArchive;
+
+    struct ForkDecision {
+        fork_reason_t verdict;
+        Keycode code;
+    };
+    using OutputEvent     = archive_entry<PlatformEvent, ForkDecision>;
 
 #if 0
 private:
@@ -198,12 +199,8 @@ private:
     Time mCurrent_time;         // the last time we received from previous
                                 // plugin/device. But only if after the last event.
 
-    struct ForkDecision {
-        fork_reason_t verdict;
-        Keycode code;
-    };
-
-    triqueue_t<PlatformEvent, ForkDecision, CircularBuffer> tq{100}; // total capacity
+    CircularBuffer<OutputEvent>  output_queue{20};
+    SplitQueue<PlatformEvent, CircularBuffer> tq{100}; // total capacity
 
     static bool time_difference_more(Time now, Time past, Time limit_difference) {
         return (now > past + limit_difference);
@@ -391,6 +388,18 @@ private:
 #endif
 
 
+    void output(ForkDecision& decision) {
+        PlatformEvent& pevent = tq.peek_middle();
+
+        OutputEvent entry = {
+            pevent,
+            decision
+        };
+        unique_outqueue_lock lock(mOutqueueLock);
+        output_queue.push_back(entry);
+    }
+
+
     // So the event proves, that the current event is not forked.
     // /----internal--queue--/ event /----input event----/
     //  ^ suspect                ^ confirmation.
@@ -403,8 +412,8 @@ private:
             ForkDecision decision = {
                 fork_reason_t::reason_none,
                 no_key};
-            unique_outqueue_lock lock(mOutqueueLock);
-            tq.move_to_first(decision);
+
+            output(decision);
         }
         rewind_machine();
     };
@@ -456,13 +465,11 @@ private:
             original_key, forkActive[original_key],
             describe_machine_state(this->state));
 
-        // environment->rewrite_event(pevent, forkActive[original_key]);
         {
             ForkDecision decision = {
                 fork_reason,
                 forkActive[original_key]};
-            unique_outqueue_lock lock(mOutqueueLock);
-            tq.move_to_first(decision);
+            output(decision);
         }
         rewind_machine();
     };
@@ -776,7 +783,6 @@ private:
             // BUG: we should discard it.
             // if it was at the end of the third....
             // mdb("at the end? %d %d\n", tq.end_internal, internal_buffer.end());
-
             tq.drop_from_third();
             // tq.move_to_second();
             // drop the event .... means put it on output, and bubble up?
@@ -799,8 +805,7 @@ private:
                             forkActive[key]
                         };
                         forkActive[key] = no_key;
-                        unique_outqueue_lock lock(mOutqueueLock);
-                        tq.move_to_first(decision);
+                        output(decision);
                     }
                     break;
                 case pass_through:
@@ -809,8 +814,8 @@ private:
                         ForkDecision decision = {
                             fork_reason_t::reason_none,
                             no_key};
-                        unique_outqueue_lock lock(mOutqueueLock);
-                        tq.move_to_first(decision);
+
+                        output(decision);
                     }
                     break;
                 case enqueue_suspect:
@@ -981,6 +986,15 @@ private:
                 outqueue_lock.unlock();
                 break;
             }
+
+            PlatformEvent& pevent = tq.peek_middle();
+            OutputEvent entry = {
+                PlatformEvent,
+                decision
+            };
+
+            unique_outqueue_lock lock(mOutqueueLock);
+            output_queue.push_back(entry);
 
             PlatformEvent event = tq.head();
             ForkDecision decision = tq.head_output();
