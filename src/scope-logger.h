@@ -2,6 +2,23 @@
 #define UNREFERENCED_PARAMETER(x)   (void)(x)
 #endif
 
+// use CTAD
+// ScopeLogger ql(this, __func__);
+template <typename T>
+struct ScopeLogger {
+    T* obj_;
+    const char* name_;
+
+    ScopeLogger(T* obj, const char* name) : obj_(obj), name_(name) {
+        obj_->trace(">> %s\n", name_);
+    }
+    ~ScopeLogger() { obj_->trace("<< %s\n", name_); }
+};
+
+
+
+#if 0
+
 // log_queues on c-tor & d-tor.
 struct scope_queue_logger {
     triqueue_t* parent;
@@ -22,3 +39,5 @@ public:
 #endif
     }
 };
+
+#endif
