@@ -389,7 +389,7 @@ private:
 
 
     void output(ForkDecision& decision) {
-        PlatformEvent& pevent = tq.peek_middle();
+        PlatformEvent& pevent = tq.peek_front();
 
         OutputEvent entry = {
             pevent,
@@ -397,6 +397,8 @@ private:
         };
         unique_outqueue_lock lock(mOutqueueLock);
         output_queue.push_back(entry);
+
+        tq.pop();
     }
 
 
@@ -430,7 +432,7 @@ private:
         mDecision_time = 0; // nothing to decide
         verificator_keycode = no_key;
 
-        tq.rewind_middle();
+        tq.rewind();
         if (config->debug) {
             log_queues("after rewind");
         }
@@ -446,12 +448,12 @@ private:
         mdb("%s", __func__);
 
         // assert()
-        if (tq.middle_empty()) {
+        if (tq.front_empty()) {
             environment->log("Bug %s -- empty queue\n", __func__);
             return;
         }
 
-        PlatformEvent& pevent = tq.peek_middle();
+        PlatformEvent& pevent = tq.peek_front();
         Keycode original_key = environment->detail_of(pevent);
         /* Change the keycode, but remember the original: */
         forkActive[original_key] = config->fork_keycode[original_key];
@@ -552,10 +554,10 @@ private:
                 forkActive[key] = key;
 
                 // double move:
-                if (! tq.middle_empty()) {
+                if (! tq.front_empty()) {
                     environment->log("Bug! 2nd is not empty!\n");
                 }
-                assert(tq.middle_empty());
+                assert(tq.front_empty());
 
                 // log_queues("after kicking off AR of forkable key");
                 return event_result::pass_through;
@@ -623,7 +625,7 @@ private:
             } else {
                 /* something released, but not verificating, b/c we are in `suspect',
                  * not `confirm'  */
-                tq.move_to_second();
+                tq.move_to_front();
                 return;
             };
         } else {
@@ -643,7 +645,7 @@ private:
                     // do.
                     // ..... `discard' the event???
                     // fixme: but we should recalc the mDecision_time !!
-                    tq.move_to_second(); // let's let it in.
+                    tq.move_to_front(); // let's let it in.
                     mdb("%s: BUG -- non repeatable key just repeated\n", __func__);
                     return;
                 }
@@ -667,7 +669,7 @@ private:
 
                 }
 
-                tq.move_to_second();
+                tq.move_to_front();
                 return;
             };
         }
@@ -733,11 +735,11 @@ private:
             change_state(st_suspect);
             verificator_keycode = 0;   // we _should_ take the next possible verificator
 
-            tq.move_to_second();
+            tq.move_to_front();
         } else {
             // fixme: a (repeated) press of the verificator ?
             // fixme: we pressed another key: but we should tell XKB to repeat it !
-            tq.move_to_second();
+            tq.move_to_front();
         };
     };
 
@@ -756,7 +758,7 @@ private:
    void transition_by_key() {
         check_locked();
         // todo: no need to extract here:
-        const PlatformEvent& pevent = tq.peek_third();
+        const PlatformEvent& pevent = tq.peek_back();
         const Keycode key = environment->detail_of(pevent);
 
         // mdb("%s: %lu\n", __func__, key);
@@ -783,8 +785,8 @@ private:
             // BUG: we should discard it.
             // if it was at the end of the third....
             // mdb("at the end? %d %d\n", tq.end_internal, internal_buffer.end());
-            tq.drop_from_third();
-            // tq.move_to_second();
+            tq.drop_from_back();
+            // tq.move_to_front();
             // drop the event .... means put it on output, and bubble up?
             // environment->rewrite_event(const_cast<PlatformEvent&>(pevent), 0);
             // activate_fork_rewind(fork_reason_t::reason_force);
@@ -797,7 +799,7 @@ private:
         if  (state == st_normal) {
             switch (apply_event_to_normal(pevent)) {
                 case rewrite:
-                    tq.move_to_second();
+                    tq.move_to_front();
                     {
                         const Keycode key = environment->detail_of(pevent);
                         ForkDecision decision = {
@@ -809,7 +811,7 @@ private:
                     }
                     break;
                 case pass_through:
-                    tq.move_to_second();
+                    tq.move_to_front();
                     {
                         ForkDecision decision = {
                             fork_reason_t::reason_none,
@@ -821,7 +823,7 @@ private:
                 case enqueue_suspect:
                 default: // this cannot happen
                     // mdb("moving to second...\n");
-                    tq.move_to_second();
+                    tq.move_to_front();
                     // log_queues("...after:");
             }
             return;
@@ -840,7 +842,7 @@ private:
             && ! environment->release_p(pevent)
             ) {
             mdb("a bizzare event scanned\n");
-            tq.move_to_second();
+            tq.move_to_front();
             return;
         }
 
@@ -897,7 +899,7 @@ private:
     void transition_by_force() {
       check_locked();
       if (state == st_normal) {
-        // so (tq.middle_empty())
+        // so (tq.front_empty())
         return;
       }
 
@@ -905,7 +907,7 @@ private:
       log_state(__func__);
 
       // fixme: only if there are in inter
-      if (!tq.middle_empty())
+      if (!tq.front_empty())
           // bug: it might activate multiple forks!
           activate_fork_rewind(fork_reason_t::reason_force);
       else
@@ -927,7 +929,7 @@ private:
         // followed by return to this cycle!
         while (! environment->output_frozen()) {
 
-            if (! tq.third_empty()) {
+            if (! tq.back_empty()) {
                 transition_by_key();
             } else {
                 if ((state != st_normal) && mCurrent_time) {
@@ -979,7 +981,7 @@ private:
         while (true) {
             unique_outqueue_lock outqueue_lock(mOutqueueLock);
 
-            if (environment->output_frozen() || !tq.can_pop()) {
+            if (environment->output_frozen() || output_queue.empty()) {
                 // OUTPUT queue empty or frozen:
                 // Drop FLUSHER first, then OUTQUEUE lock
                 release_flusher();
