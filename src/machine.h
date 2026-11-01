@@ -452,7 +452,6 @@ private:
     * fixme: locking -- possibly unlocks?
     */
     void activate_fork_rewind(fork_reason_t fork_reason) {
-        UNUSED(fork_reason);
         check_locked();
         mdb("%s\n", __func__);
 
