@@ -200,7 +200,16 @@ private:
                                 // plugin/device. But only if after the last event.
 
     CircularBuffer<OutputEvent>  output_queue{20};
-    SplitQueue<PlatformEvent, CircularBuffer> tq{100}; // total capacity
+
+    struct VLogger {
+        forkingMachine* self_;
+        int operator()(const char* fmt, va_list ap) const {
+            return self_->environment->vlog(fmt, ap);
+        }
+    };
+
+    VLogger vlogger_{this};
+    SplitQueue<PlatformEvent, CircularBuffer> tq{100, vlogger_};
 
     static bool time_difference_more(Time now, Time past, Time limit_difference) {
         return (now > past + limit_difference);
