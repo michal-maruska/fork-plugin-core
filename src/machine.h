@@ -968,6 +968,7 @@ private:
         return (forkActive[code] != code && forkActive[code]!= KEYCODE_UNUSED);
     }
 
+#if 0
     // same body but different result transfer:
     [[nodiscard]] bool pop_event_if_present_locked(PlatformEvent& out_event) {
         if (tq.can_pop()) {
@@ -978,14 +979,13 @@ private:
         }
         return false;
     }
-
+#endif
 
     void flush_to_next() {
         if (!try_acquire_flusher()) {
             return;
         }
-#if 0
-        mdb("%s", __func__);
+#if 1
         log_queues(__func__);
 #endif
 
