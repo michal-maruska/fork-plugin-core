@@ -1000,28 +1000,20 @@ private:
                 break;
             }
 
-            PlatformEvent& pevent = tq.peek_middle();
-            OutputEvent entry = {
-                PlatformEvent,
-                decision
-            };
-
-            unique_outqueue_lock lock(mOutqueueLock);
-            output_queue.push_back(entry);
-
-            PlatformEvent event = tq.head();
-            ForkDecision decision = tq.head_output();
-            tq.pop();
-            tq.pop_output();
-            bool got = true;
+            // bug: we must COPY if we unlock.
+            OutputEvent& entry = output_queue.front();
+            // copy:
+            PlatformEvent event = entry.first;
+            ForkDecision decision = entry.second;
+            output_queue.pop_front();
 
             // re-entrancy ?
             // the state_lock was enough!
             outqueue_lock.unlock();
             // so someone can push a new event.
-            if (got) {
-                environment->output(event, decision.verdict, decision.code);
-            }
+            mdb("calling output\n");
+            environment->output(event, decision.verdict, decision.code);
+            mdb("calling output ... done\n");
         }
 
         // log_queues("AFTER ");
