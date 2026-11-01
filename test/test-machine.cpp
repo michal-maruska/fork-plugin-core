@@ -94,9 +94,9 @@ public:
   MOCK_METHOD(void, fmt_event,(const char* message, const TestEvent &event), (const));
 
   MOCK_METHOD(void, archive_event,(test_archived_event& ae, const TestEvent& event));
-  MOCK_METHOD(void, free_event,(TestEvent* pevent), (const));
+  MOCK_METHOD(void, free_event,(TestEvent* event), (const));
 
-  MOCK_METHOD(void, output,(TestEvent& pevent, fork_reason_t reason, KeyCode code));
+  MOCK_METHOD(void, output,(TestEvent& event, fork_reason_t reason, KeyCode code));
 
 
   // MOCK_METHOD(std::unique_ptr<forkNS::event_dumper<test_archived_event>>, get_event_dumper,());
