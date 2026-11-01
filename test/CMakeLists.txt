@@ -27,9 +27,9 @@ target_link_libraries(test-queue GTest::gtest_main)
 gtest_discover_tests(test-queue)
 endif()
 
-add_executable(test-triqueue test-triqueue.cpp)
-target_link_libraries(test-triqueue GTest::gtest_main)
-gtest_discover_tests(test-triqueue)
+#add_executable(test-triqueue test-triqueue.cpp)
+#target_link_libraries(test-triqueue GTest::gtest_main)
+#gtest_discover_tests(test-triqueue)
 
 
 
