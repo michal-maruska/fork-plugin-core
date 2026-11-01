@@ -1025,7 +1025,7 @@ private:
         }
 
         // log_queues("AFTER ");
-
+#if 0
         // fixme: but this involves the STATE information, should have been brought to this function
         // we cannot lock now.
         // mmc: we might push the time of the 1st event in the next queue. Who else will do it?
@@ -1035,8 +1035,11 @@ private:
                 environment->push_time(now);
             }
         }
+#endif
     }
 
+#if 0
+    // time we can push to the output -- no other event will come before that. Strange.
     [[nodiscard]] Time time_to_next_locked() {
         const PlatformEvent *item = tq.first();
         if (item == nullptr) {
@@ -1047,6 +1050,7 @@ private:
             return now;
         }
     }
+#endif
 
 private:
     // Internal helper when lock is already held
