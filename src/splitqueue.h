@@ -2,6 +2,7 @@
 #include "scope-logger.h"
 #include "config.h"
 
+#include "fork_base.h"
 // This code is supposed to have minimum dependencies.
 // It can be compiled for Kernel environment, where C++ std-lib is absent.
 // this limits: exceptions, memory allocation, iterators
@@ -17,14 +18,15 @@ class SplitQueue {
 
     using circular_buffer_t = CircularBuffer<item_t>;
     using iterator = typename circular_buffer_t::iterator;
-    using LogFn = int(*)(const char* fmt, va_list);
+
+public:
+    using LogFn = FunctionRef<int(const char*, va_list)>; // int
 
 private:
 
     circular_buffer_t buffer;
     iterator split;
-    LogFn log_ = nullptr;
-
+    LogFn log_;
 public:
 
 
@@ -45,7 +47,7 @@ public:
   public:
     // for gdb
     void log_queues(const char* msg) { // const -> mysterious operator- miss
-        if (log_ == nullptr)
+        if (! log_)
             return;
 
         trace("%s: %lu [%lu | %lu]\n", msg,
@@ -73,10 +75,11 @@ public:
 #endif
 
 public:
-    explicit SplitQueue(int capacity, LogFn fn
-                        ) : buffer(circular_buffer_t(capacity)),
-                            split(buffer.begin()),
-                            log_(fn) {
+    explicit SplitQueue(int capacity) : SplitQueue(capacity, LogFn{}) {};
+
+    explicit SplitQueue(int capacity, LogFn fn) : buffer(circular_buffer_t(capacity)),
+                                                  split(buffer.begin()),
+                                                  log_(fn) {
         log_queues(__func__);
     };
 
