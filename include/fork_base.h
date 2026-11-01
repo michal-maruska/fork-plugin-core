@@ -28,19 +28,28 @@ struct ForkInfo {
 
 // Dumper:
 template <typename Sig> class FunctionRef;
+
 template <typename R, typename... Args> class FunctionRef<R(Args...)> {
-  void *obj_ = nullptr;
-  R (*call_)(void *, Args...) = nullptr;
+    void *obj_ = nullptr;
+    R (*call_)(void *, Args...) = nullptr;
 
 public:
-  FunctionRef() = default;
+    FunctionRef() = default;
 
-  template <typename F>
-  FunctionRef(F &f) // holds a pointer to f, does NOT copy it
-      : obj_(&f), call_([](void *o, Args... a) -> R {
-          return (*static_cast<F *>(o))(static_cast<Args>(a)...);
-        }) {}
+    template <typename F>
+    FunctionRef(F &f) // holds a pointer to f, does NOT copy it
+        : obj_(&f),
+          call_([](void *o, Args... a) -> R {
+              return (*static_cast<F *>(o))(static_cast<Args>(a)...);
+          }) {}
 
-  explicit operator bool() const { return call_ != nullptr; }
-  R operator()(Args... a) const { return call_(obj_, static_cast<Args>(a)...); }
+    FunctionRef(const FunctionRef&) = default;
+    FunctionRef& operator=(const FunctionRef&) = default;
+
+    FunctionRef(FunctionRef&) = default;
+    FunctionRef& operator=(FunctionRef&) = default;
+
+    explicit operator bool() const { return call_ != nullptr; }
+
+    R operator()(Args... a) const { return call_(obj_, static_cast<Args>(a)...); }
 };
