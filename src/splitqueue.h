@@ -91,7 +91,7 @@ public:
     }
 
     bool back_empty() {
-        // log_queues(__func__);
+        log_queues(__func__);
         return split == buffer.end();
     }
 
@@ -127,12 +127,14 @@ public:
     item_t pop() {
         ScopeLogger QL(this, __func__);
 
+        log_queues("pre-pop");
         item_t item = buffer.front();
         buffer.pop_front();
         split-=1;
 #if DEBUG
         dump_item(__func__, item);
 #endif
+        log_queues("post-pop");
         return item;
     }
 
@@ -141,12 +143,12 @@ public:
     void move_to_front() {
         ScopeLogger QL(this, __func__);
         if (back_empty()) {
-//            trace("%s: BUG\n", __func__);
+            trace("%s: BUG\n", __func__);
 // bug:           abort();
             return;
         }
-
         ++split;
+        log_queues("post-move-to-front");
     }
 
     //
