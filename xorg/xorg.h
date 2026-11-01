@@ -31,7 +31,6 @@ extern "C" {
 #undef max
 #undef min
 }
-#include <string>
 #include "fork_base.h"
 
 extern void
