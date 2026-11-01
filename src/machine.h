@@ -454,7 +454,7 @@ private:
     void activate_fork_rewind(fork_reason_t fork_reason) {
         UNUSED(fork_reason);
         check_locked();
-        mdb("%s", __func__);
+        mdb("%s\n", __func__);
 
         // assert()
         if (tq.front_empty()) {
@@ -938,6 +938,7 @@ private:
         // followed by return to this cycle!
         while (! environment->output_frozen()) {
 
+            mdb("%s: ", __func__);
             if (! tq.back_empty()) {
                 transition_by_key();
             } else {
@@ -1178,7 +1179,7 @@ public:
             }
 
             const Keycode key = environment->detail_of(pevent);
-            mdb("%s: event %u (%s) time: %" TIME_FMT "\n",
+            mdb("** %s: event %u (%s) time: %" TIME_FMT "\n",
                 __func__,
                 environment->detail_of(pevent),
                 environment->press_p(pevent)?"press":"release",
@@ -1223,7 +1224,7 @@ public:
                 environment->log("%s: bug: time moved backwards!\n", __func__);
                 return next_decision_time_locked();
             }
-
+            mdb("** %s\n", __func__);
             mCurrent_time = now;
             process_automaton_locked(false);
         }
