@@ -403,7 +403,7 @@ using concreteMachineRec = forkNS::forkingMachine<ConcreteTestEnvironment,
 
 TEST(machineConcurrentTest, ConcurrentLocking) {
   auto env = new ConcreteTestEnvironment();
-  auto fm = std::make_unique<concreteMachineRec>(env);
+  auto fm = new concreteMachineRec(env);
 
   fm->configure_global(fork_configure_debug, 1, true);
 
@@ -433,6 +433,8 @@ TEST(machineConcurrentTest, ConcurrentLocking) {
   for (auto& t : threads) {
     t.join();
   }
+
+  delete fm;
 }
 
 // machineTest
