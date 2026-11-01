@@ -48,6 +48,9 @@ else()
     message(STATUS "Skipping code coverage setup: compiler is ${CMAKE_CXX_COMPILER_ID}, not GNU/Clang/Flang")
 endif()
 
+add_compile_options(-fmax-errors=5)
+
+
 # configure_file(CMake/config.h.in ${PROJECT_BINARY_DIR}/include/config.h)
 
 add_library(forking_machine INTERFACE)
