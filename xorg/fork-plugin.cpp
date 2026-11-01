@@ -376,7 +376,7 @@ create_plugin(const DeviceIntPtr keybd, DevicePluginRec* plugin_class)
 
     // new object.... which dumps the
     auto dumper = std::make_unique<XorgDumper>();
-    forking_machine->register_dumper(*dumper.release());
+    // forking_machine->register_dumper(*dumper.release());
 
     plugin->data = static_cast<void *>(forking_machine);
 
