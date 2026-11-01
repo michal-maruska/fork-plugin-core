@@ -80,6 +80,17 @@ public:
     using unique_outqueue_lock = unique_lock;
 
 
+private:
+    /* we don't transfer ownership; it's the (default) destructor
+     * which deallocates the Environment */
+    Environment *environment;
+
+public:
+
+    const Environment* get_environment() {
+        return environment;
+    }
+
 #if 0 // not yet
 #if 0
 private:
@@ -136,12 +147,6 @@ private:
 
     void check_locked() const {}
     bool mStopped = false;
-
-
-private:
-    /* we don't transfer ownership; it's the (default) destructor
-     * which deallocates the Environment */
-    Environment *environment;
 
 
 private:
