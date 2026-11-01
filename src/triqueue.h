@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdio>
 // This code is supposed to have minimum dependencies.
 // It can be compiled for Kernel environment, where C++ std-lib is absent.
 // this limits: exceptions, memory allocation, iterators
@@ -20,17 +21,21 @@ class triqueue_t {
 
 private:
 
-    circular_buffer_t buffer;
     CircularBuffer<output_item_t> output_buffer;
-    iterator end_output;
+
+    circular_buffer_t internal_buffer;
     iterator end_internal;
 
 
-    LogFn log_ = nullptr;
+    LogFn log_ = ::vprintf; // nullptr
 
 void trace(const char* fmt, ...) {
 #ifdef FORK_DEBUG
-        if (log_) { va_list ap; va_start(ap, fmt); /* call log_ */ va_end(ap); }
+    // vprintf(fmt, ap);
+        if (log_) { va_list ap; va_start(ap, fmt);
+            /* call log_ */
+            log_(fmt, ap);
+            va_end(ap); }
 #endif
     }
 
@@ -53,10 +58,10 @@ public:
                  buffer.end().pos_);
 #endif
         trace("%s: %lu [%lu %lu %lu]\n", msg,
-                 buffer.size(),
-                 end_output - buffer.begin(),
-                 end_internal - end_output,
-                 buffer.end() - end_internal);
+                 output_buffer.size() + internal_buffer.size(),
+                 output_buffer.size(),
+                 end_internal - internal_buffer.begin(),
+                 internal_buffer.end() - end_internal);
     };
 
 #if DEBUG
@@ -78,54 +83,44 @@ public:
 #endif
 
 public:
-        explicit triqueue_t(int capacity) : buffer(circular_buffer_t(capacity)),
-                                            end_output(buffer.begin()),
-                                            end_internal(buffer.begin())
+        explicit triqueue_t(int capacity) : output_buffer(circular_buffer_t(capacity)),
+                                            internal_buffer(circular_buffer_t(capacity)),
+                                            end_internal(internal_buffer.begin())
         {
             log_queues(__func__);
         };
 
     // Queries
-    // int length();
 
+    // not used! would need 2 locks
     bool empty() {
-        return (buffer.empty());
+        return output_buffer.empty() && internal_buffer.empty();
     }
 
     bool middle_empty() {
-        return (end_internal == end_output);
+        return end_internal == internal_buffer.begin();
     }
 
-    // so empty would be   end_output = 0; end_internal = 0; buffer.end() ... lenght ....0 or 1?
     bool third_empty() {
         // log_queues(__func__);
-        return end_internal == buffer.end();
+        return end_internal == internal_buffer.end();
     }
 
     void rewind_middle() {
         scope_queue_logger QL(this, __func__);
-        end_internal = end_output;
+        end_internal = internal_buffer.begin();
     }
 
     // modifiers:
     void push(const item_t &item) {
-#if 0
-        env->log("%s: %lu\n", __func__, sizeof(item));
-        dump_item(__func__, item);
-#endif
-        buffer.push_back(item);
-
+        internal_buffer.push_back(item);
 #if DEBUG
-        // dump_item(input_queue.front());
         log_queues("post-push");
-#endif
-#if 0
-        peek_third();
 #endif
     }
 
     bool can_pop() {
-        return buffer.begin() != end_output;
+        return !output_buffer.empty();
     }
 
     output_item_t pop_output() {
@@ -143,13 +138,8 @@ public:
     item_t pop() {
         scope_queue_logger QL(this, __func__);
 
-        item_t item = buffer.front();
-
-        buffer.pop_front();
-        // buffer.increment_head();
-        // these are relative? yes. indices.
-        end_output-=1;
-        end_internal-=1;
+        item_t item = output_buffer.front();
+        output_buffer.pop_front();
 #if DEBUG
         dump_item(__func__, item);
 #endif
@@ -157,8 +147,7 @@ public:
     }
 
     const item_t& peek_third() {
-        const item_t& tmp = *(end_internal); // +1
-        // env->log("%s: %p\n", __func__, &tmp);
+        const item_t& tmp = *(end_internal);
 #if DEBUG
         dump_item(__func__, tmp);
 #endif
@@ -166,13 +155,12 @@ public:
     }
 
     item_t& peek_middle() {
-        item_t& tmp = *(end_output);
+        item_t& tmp = internal_buffer.front();
 #if DEBUG
         trace("%s: %p\n", __func__, &tmp);
 #endif
         return tmp;
     }
-
 
     output_item_t& head_output() {
         output_item_t& tmp = output_buffer.front();
@@ -182,17 +170,17 @@ public:
         return tmp;
     }
 
+
     // rewritable!
     item_t& head() {
-        // why?
-        // fixme: not pop. peek
-        item_t& tmp = buffer.front(); // *(end_output);
+        item_t& tmp = output_buffer.empty() ? internal_buffer.front() : output_buffer.front();
 #if DEBUG
         trace("%s: %p\n", __func__, &tmp);
 #endif
         return tmp;
     }
 
+    // so here we extend the type!
     void move_to_first(const output_item_t &output) {
         scope_queue_logger QL(this, __func__);
         if (middle_empty()) {
@@ -201,8 +189,13 @@ public:
 #endif
             return;
         }
-        output_buffer.push_back(output);
-        ++end_output;
+
+        // output_buffer.push_back(output);
+        output_buffer.push_back(internal_buffer.front());
+        internal_buffer.pop_front();
+
+        // this under state lock!
+        --end_internal;
     }
 
     void move_to_second() {
@@ -229,10 +222,12 @@ public:
 
 
     const item_t* first() {
-        if (buffer.empty()) {
-            return nullptr;
+        if (!output_buffer.empty()) {
+            return &(output_buffer.front());
+        } else if (!internal_buffer.empty()) {
+            return &(internal_buffer.front());
         } else {
-            return &(buffer.front());
+            return nullptr;
         }
     }
 };
