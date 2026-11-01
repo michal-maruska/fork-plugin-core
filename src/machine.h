@@ -75,6 +75,11 @@ public:
     };
     using OutputEvent     = archive_entry<PlatformEvent, ForkDecision>;
 
+    using unique_lock = typename Trait::unique_lock;
+    using unique_state_lock = unique_lock;
+    using unique_outqueue_lock = unique_lock;
+
+
 #if 0 // not yet
 #if 0
 private:
@@ -119,10 +124,6 @@ private:
     mutable typename Trait::mutex_t mStateLock;
     mutable typename Trait::mutex_t mOutqueueLock;
     typename Trait::atomic_bool mFlusherFlag{false};
-
-    using unique_lock = typename Trait::unique_lock;
-    using unique_state_lock = unique_lock;
-    using unique_outqueue_lock = unique_lock;
 
     bool try_acquire_flusher() {
         bool expected = false;
