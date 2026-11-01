@@ -7,6 +7,7 @@ extern "C" {
 }
 
 #include "colors.h"
+#include <cstdio>
 
 extern "C" {
 #include <xorg-server.h>
@@ -64,12 +65,19 @@ public:
 private:
     const DeviceIntPtr keybd; // reference
     PluginInstance* const plugin;
+    FILE* log_file = nullptr;
 
 public:
-    XOrgEnvironment(const DeviceIntPtr keybd, PluginInstance* plugin): keybd(keybd), plugin(plugin){};
-    // should I just assert(keybd)
+    XOrgEnvironment(const DeviceIntPtr keybd, PluginInstance* plugin): keybd(keybd), plugin(plugin){
+        log_file = fopen("/tmp/fork.txt", "a");
+        setvbuf(log_file, nullptr, _IOLBF, 0);  // line-buffered
+    };
+    // should I assert(keybd)
 
-    ~XOrgEnvironment() = default;
+    ~XOrgEnvironment() {
+        fclose(log_file);
+        log_file=nullptr;
+    };
 
     bool output_frozen() {
         const PluginInstance* const nextPlugin = plugin->next;
@@ -140,6 +148,17 @@ public:
 
     void output(XorgEvent& pevent, fork_reason_t reason, Keycode code) {
         auto& event = pevent.event;
+
+        if (log_file) {
+            const auto& de = event.device_event;
+            fprintf(log_file, "%u,%s,%d,%d,%d\n",
+                    de.time,
+                    de.type == ET_KeyPress ? "PRESS" : "RELEASE",
+                    de.detail.key,
+                    // pevent.original_code,   // input keycode
+                    code,                   // output keycode (same if no fork)
+                    static_cast<int>(reason));
+        }
         if (reason  != fork_reason_t::reason_none) {
             // forked:
             event.device_event.detail.key = code;
