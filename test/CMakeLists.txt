@@ -32,6 +32,11 @@ endif()
 #gtest_discover_tests(test-triqueue)
 
 
+add_executable(test-splitqueue test-splitqueue.cpp)
+target_link_libraries(test-splitqueue GTest::gtest_main)
+gtest_discover_tests(test-splitqueue)
+
+
 
 add_executable(test-machine test-machine.cpp)
 
