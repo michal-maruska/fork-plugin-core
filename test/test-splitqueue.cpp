@@ -25,7 +25,7 @@ public:
     using value_t = int;
 protected:
   // testEnvironment environment;
-    SplitQueue<value_t, circular_buffer> q0_{100, nullptr};
+    SplitQueue<value_t, circular_buffer> q0_{100};
 
   void SetUp () override {
     // static variable:
@@ -195,7 +195,7 @@ TEST_F(splitqueueTest, MoveToFrontWithoutBackIsNoOp) {
 }
 
 TEST_F(splitqueueTest, PushBeyondCapacityOverwritesOldest) {
-    SplitQueue<int, circular_buffer> q{3, nullptr};
+    SplitQueue<int, circular_buffer> q{3};
 
   q.push(1);
   q.push(2);
