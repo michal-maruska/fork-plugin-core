@@ -5,7 +5,6 @@
 // This code is supposed to have minimum dependencies.
 // It can be compiled for Kernel environment, where C++ std-lib is absent.
 // this limits: exceptions, memory allocation, iterators
-#include <cstdio>
 #include <stdarg.h>
 // todo: move to common
 #ifndef UNREFERENCED_PARAMETER
@@ -24,7 +23,7 @@ private:
 
     circular_buffer_t buffer;
     iterator split;
-    LogFn log_ = ::vprintf; // nullptr;
+    LogFn log_ = nullptr;
 
 public:
 
@@ -74,8 +73,10 @@ public:
 #endif
 
 public:
-    explicit SplitQueue(int capacity) : buffer(circular_buffer_t(capacity)),
-                                        split(buffer.begin()) {
+    explicit SplitQueue(int capacity, LogFn fn
+                        ) : buffer(circular_buffer_t(capacity)),
+                            split(buffer.begin()),
+                            log_(fn) {
         log_queues(__func__);
     };
 
