@@ -75,6 +75,7 @@ public:
     };
     using OutputEvent     = archive_entry<PlatformEvent, ForkDecision>;
 
+#if 0 // not yet
 #if 0
 private:
     using DumperFn = void (*)(void* ctx, const Rec&);
@@ -97,6 +98,7 @@ public:
     }
 private:
     Dumper dumper_;                                // by value, not FunctionRef&
+#endif
 #endif
 
 private:
@@ -266,8 +268,8 @@ public:
         // have to assign the LOG function:
         // triqueue_t<PlatformEvent, CircularBufferArchive<typename Part1, typename Part2>Environment>::env = environment;
 
-        environment->log("ctor: allocating last_events\n");
-        environment->log("ctor: allocated last_events (%lu\n", max_last);
+        // environment->log("ctor: allocating last_events\n");
+        // environment->log("ctor: allocated last_events (%lu\n", max_last);
 
         environment->log("ctor: resetting forkActive\n");
         for (auto &i: forkActive) {
