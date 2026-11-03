@@ -34,7 +34,8 @@ concept CircularBufferLike = requires(T t, typename T::value_type v) {
 #endif
 
 
-inline constexpr auto NO_TIMEOUT = 0 /* whatever Time's zero-equivalent is, e.g. Time{0} */;
+inline constexpr auto NO_TIMEOUT = 0; /* whatever Time's zero-equivalent is, e.g. Time{0} */
+
 /**
  * Machine:
  * ... keeps log of the most-recent `archived_event_t'
