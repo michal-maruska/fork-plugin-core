@@ -31,9 +31,6 @@ concept CircularBufferLike = requires(T t, typename T::value_type v) {
     { t.capacity() } -> std::convertible_to<std::size_t>;
     { t[0] }         -> std::convertible_to<typename T::value_type>;
 };
-
-template <typename Keycode>
-requires std::integral<Keycode>
 #endif
 
 

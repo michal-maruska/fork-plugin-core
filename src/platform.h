@@ -49,7 +49,7 @@ concept EnvironmentConcept = requires(
     { env.log(fmt) }                   -> std::same_as<void>;
     { env.vlog(fmt, va) }              -> std::same_as<int>;
     { env.log_event(fmt, const_ev) }   -> std::same_as<void>;
-};
+} && std::integral<typename Env::Keycode>;
 #endif
 
 } // namespace forkNS
