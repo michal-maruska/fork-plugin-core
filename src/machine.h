@@ -74,12 +74,7 @@ public:
         fork_reason_t verdict;
         Keycode code;
     };
-    union EventOrTime {
-        PlatformEvent event;
-        Time time;
-        ~EventOrTime() {}  // no-op: caller knows which member is active
-    };
-    using OutputEvent = archive_entry<EventOrTime, ForkDecision>;
+    using OutputEvent = archive_entry<PlatformEvent, ForkDecision>;
 
     using unique_lock = typename Trait::unique_lock;
     using unique_state_lock = unique_lock;
@@ -212,6 +207,12 @@ private:
                                 // recalculated on more context
     Time mCurrent_time;         // the last time we received from previous
                                 // plugin/device. But only if after the last event.
+
+    /* the last time (accepted via accept_time) to push downstream
+     * once the output queue is drained. Modified only under lock:
+     * it is stored under the state-lock, and consumed in flush_to_next()
+     * under the outqueue-lock. 0 == nothing to push. */
+    Time output_time = 0;
 
     CircularBuffer<OutputEvent>  output_queue{20};
 
@@ -417,31 +418,6 @@ private:
 // see ./no/multiple-configs.cpp
 #endif
 
-
-    // under output lock!
-    void output_time(Time t) {
-        ForkDecision decision = { fork_reason_t::reason_pushtime, no_key};
-
-        if (output_queue.size() > 18) {
-            mdb("%s: output is full... \n");
-        }
-
-        OutputEvent entry = {
-            .first = { .time = t},
-            .second = decision,
-        };
-        unique_outqueue_lock lock(mOutqueueLock);
-        // this might avoid re-inserting it, but reuse existing last one if it's ....
-        if (!output_queue.empty()) {
-            OutputEvent& last = output_queue.back();
-            if (last.second.verdict == fork_reason_t::reason_pushtime) {
-                mdb("bingo: reusing the last time-push entry\n");
-                last.first.time = t;
-                return;
-            };
-        }
-        output_queue.push_back(entry);
-    }
 
     void output(ForkDecision& decision) {
         PlatformEvent& pevent = tq.peek_front();
@@ -1033,7 +1009,6 @@ private:
         log_queues(__func__);
 #endif
 
-        Time time_max =0;
         while (true) {
             unique_outqueue_lock outqueue_lock(mOutqueueLock);
 
@@ -1042,9 +1017,12 @@ private:
                 // Drop FLUSHER first, then OUTQUEUE lock
 
                 if (!environment->output_frozen()) {
-                    if (time_max != 0)
-                        environment->push_time(time_max);
+                    // the stored Time (set by accept_time under the state lock)
+                    if (output_time != 0) { // todo: should not be later that last event.
+                        environment->push_time(output_time);
+                        output_time = 0;
                     }
+                }
 
                 release_flusher();
                 outqueue_lock.unlock();
@@ -1055,16 +1033,8 @@ private:
             OutputEvent& entry = output_queue.front();
             // copy:
             ForkDecision decision = entry.second;
-            if (decision.verdict == fork_reason_t::reason_pushtime) {
-                Time time = entry.first.time;
-                if (time > time_max)
-                    time_max = time;
 
-                output_queue.pop_front();
-                continue;
-            }
-
-            PlatformEvent event = entry.first.event;
+            PlatformEvent event = entry.first;
             output_queue.pop_front();
 
             // re-entrancy ?
@@ -1221,6 +1191,12 @@ public:
             }
 
             mCurrent_time = 0;
+            {
+                // todo: useless?
+                // the stored Time was relative to the earlier events; don't push it:
+                unique_outqueue_lock lock(mOutqueueLock);
+                output_time = 0;
+            }
 
             if (key > MAX_KEYCODE) {
                 mdb("%s: out-of-bound event %d\n", __func__);
@@ -1258,7 +1234,10 @@ public:
             mdb("** %s\n", __func__);
             mCurrent_time = now;
             process_automaton_locked(false);
-            output_time(mCurrent_time);
+
+
+            unique_outqueue_lock lock(mOutqueueLock);
+            output_time = mCurrent_time;
         }
         flush_to_next();
 
