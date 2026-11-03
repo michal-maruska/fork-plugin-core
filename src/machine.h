@@ -1153,7 +1153,7 @@ private:
             describe_machine_state(this->state),
             internal_queue.length ()
             );
-        environment->fmt_event(__func__, pevent);
+        environment->log_event(__func__, pevent);
     }
 #endif
 

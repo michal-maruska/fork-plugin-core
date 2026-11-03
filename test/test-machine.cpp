@@ -91,7 +91,7 @@ public:
     vprintf(format, argptr);
     va_end(argptr);
   };
-  MOCK_METHOD(void, fmt_event,(const char* message, const TestEvent &event), (const));
+  MOCK_METHOD(void, log_event,(const char* message, const TestEvent &event), (const));
 
   MOCK_METHOD(void, archive_event,(test_archived_event& ae, const TestEvent& event));
   MOCK_METHOD(void, free_event,(TestEvent* event), (const));
@@ -229,7 +229,7 @@ public:
     static void push_time(Time now) {}
     static int vlog(const char* format, va_list argptr) {return 0;}
     static void log(const char* format...) {}
-    static void fmt_event(const char* message, const TestEvent &event) {}
+    static void log_event(const char* message, const TestEvent &event) {}
     static void archive_event(test_archived_event& ae, const TestEvent& event) {}
     static void free_event(TestEvent* pevent) {}
     static void rewrite_event(TestEvent& pevent, KeyCode code) {}
@@ -391,7 +391,7 @@ public:
     static void push_time(Time now) {}
     static int vlog(const char* format, va_list argptr) { return 0;}
     static void log(const char* format...) {}
-    static void fmt_event(const char* message, const TestEvent &event) {}
+    static void log_event(const char* message, const TestEvent &event) {}
     static void archive_event(test_archived_event& ae, const TestEvent& event) {}
     static void free_event(TestEvent* pevent) {}
     static void output(TestEvent &pevent, fork_reason_t reason, Keycode code) {}
@@ -513,7 +513,6 @@ TEST_F(machineTest, EventFreed) {
   EXPECT_CALL(*environment, detail_of(a)).Times(AnyNumber()).WillRepeatedly(Return(A));
   ON_CALL(*environment, press_p(A_pevent)).WillByDefault(Return(true));
   // archive_event
-  // fmt_event
   // ON_CALL(*environment,rewrite_event).
   //  EXPECT_CALL(*environment, push_time(a_time));
   EXPECT_CALL(*environment, push_time(a_time + next_time));
@@ -579,7 +578,6 @@ TEST_F(machineTest, ForkBySecond) {
   EXPECT_CALL(*environment, press_p(B_release_pevent)).WillRepeatedly(Return(false));
   // EXPECT_CALL(*environment, release_p(B_release_pevent)).WillRepeatedly(Return(true));
   // archive_event
-  // fmt_event
   // ON_CALL(*environment,rewrite_event).
 #if 0
   EXPECT_CALL(*environment,push_time(a_time));

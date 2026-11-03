@@ -174,7 +174,7 @@ public:
     }
 
     // the idea was to return a string. but who will deallocate it?
-    void fmt_event(const char* message, const XorgEvent& pevent) const {
+    void log_event(const char* message, const XorgEvent& pevent) const {
 #if 1
         const KeyCode key = detail_of(pevent);
         const bool press = press_p(pevent);
