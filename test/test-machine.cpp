@@ -81,8 +81,8 @@ public:
 
   // MOCK_METHOD(void, vlog,(const char* format, va_list argptr));
 
-  static void vlog(const char* format, va_list argptr) {
-    vprintf(format, argptr);
+  static int vlog(const char* format, va_list argptr) {
+    return vprintf(format, argptr);
   }
 
   static void log(const char* format...) {
@@ -227,7 +227,7 @@ public:
     }
 
     static void push_time(Time now) {}
-    static void vlog(const char* format, va_list argptr) {}
+    static int vlog(const char* format, va_list argptr) {return 0;}
     static void log(const char* format...) {}
     static void fmt_event(const char* message, const TestEvent &event) {}
     static void archive_event(test_archived_event& ae, const TestEvent& event) {}
@@ -389,7 +389,7 @@ public:
     static bool ignore_event(const TestEvent &pevent) { return false; }
     static bool output_frozen() { return false; }
     static void push_time(Time now) {}
-    static void vlog(const char* format, va_list argptr) {}
+    static int vlog(const char* format, va_list argptr) { return 0;}
     static void log(const char* format...) {}
     static void fmt_event(const char* message, const TestEvent &event) {}
     static void archive_event(test_archived_event& ae, const TestEvent& event) {}

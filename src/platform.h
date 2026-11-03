@@ -47,7 +47,7 @@ concept EnvironmentConcept = requires(
     // { env.rewrite_event(ev, kc) }      -> std::same_as<void>;
 
     { env.log(fmt) }                   -> std::same_as<void>;
-    { env.vlog(fmt, va) }              -> std::same_as<void>;
+    { env.vlog(fmt, va) }              -> std::same_as<int>;
     { env.fmt_event(fmt, const_ev) }   -> std::same_as<void>;
 };
 #endif

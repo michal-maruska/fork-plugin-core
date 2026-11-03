@@ -165,11 +165,12 @@ public:
         va_end(argptr);
     }
 
-    void vlog(const char* format, va_list argptr) const {
+    int vlog(const char* format, va_list argptr) const {
         va_list ap2;
         va_copy(ap2, argptr);       // copy existing va_list
         VErrorF(format, ap2);
         va_end(ap2);
+        return 0;
     }
 
     // the idea was to return a string. but who will deallocate it?
