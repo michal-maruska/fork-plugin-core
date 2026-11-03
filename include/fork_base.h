@@ -17,6 +17,7 @@ enum class fork_reason_t {
   reason_wrong,
   reason_release,
   reason_none,
+  reason_pushtime, // not a reason, but marker to use the Time component of the Union.
 };
 
 struct ForkInfo {

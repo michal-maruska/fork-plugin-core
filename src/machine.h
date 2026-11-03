@@ -76,7 +76,12 @@ public:
         fork_reason_t verdict;
         Keycode code;
     };
-    using OutputEvent     = archive_entry<PlatformEvent, ForkDecision>;
+    union EventOrTime {
+        PlatformEvent event;
+        Time time;
+        ~EventOrTime() {}  // no-op: caller knows which member is active
+    };
+    using OutputEvent = archive_entry<EventOrTime, ForkDecision>;
 
     using unique_lock = typename Trait::unique_lock;
     using unique_state_lock = unique_lock;
@@ -407,6 +412,24 @@ private:
 // see ./no/multiple-configs.cpp
 #endif
 
+
+    // under output lock!
+    void output_time(Time t) {
+        ForkDecision decision = { fork_reason_t::reason_pushtime, no_key};
+
+        OutputEvent entry = {
+            .first = { .time = t},
+            .second = decision,
+        };
+        unique_outqueue_lock lock(mOutqueueLock);
+        // this might avoid re-inserting it, but reuse existing last one if it's ....
+#if 0
+        if (!output_queue.empty()) {
+            last= output_queue.pop_last();
+        };
+#endif
+        output_queue.push_back(entry);
+    }
 
     void output(ForkDecision& decision) {
         PlatformEvent& pevent = tq.peek_front();
@@ -998,12 +1021,19 @@ private:
         log_queues(__func__);
 #endif
 
+        Time time_max =0;
         while (true) {
             unique_outqueue_lock outqueue_lock(mOutqueueLock);
 
             if (environment->output_frozen() || output_queue.empty()) {
                 // OUTPUT queue empty or frozen:
                 // Drop FLUSHER first, then OUTQUEUE lock
+
+                if (!environment->output_frozen()) {
+                    if (time_max != 0)
+                        environment->push_time(time_max);
+                    }
+
                 release_flusher();
                 outqueue_lock.unlock();
                 break;
@@ -1012,8 +1042,17 @@ private:
             // bug: we must COPY if we unlock.
             OutputEvent& entry = output_queue.front();
             // copy:
-            PlatformEvent event = entry.first;
             ForkDecision decision = entry.second;
+            if (decision.verdict == fork_reason_t::reason_pushtime) {
+                Time time = entry.first.time;
+                if (time > time_max)
+                    time_max = time;
+
+                output_queue.pop_front();
+                continue;
+            }
+
+            PlatformEvent event = entry.first.event;
             output_queue.pop_front();
 
             // re-entrancy ?
@@ -1024,34 +1063,8 @@ private:
             environment->output(event, decision.verdict, decision.code);
             mdb("calling output ... done\n");
         }
+    };
 
-        // log_queues("AFTER ");
-#if 0
-        // fixme: but this involves the STATE information, should have been brought to this function
-        // we cannot lock now.
-        // mmc: we might push the time of the 1st event in the next queue. Who else will do it?
-        if (!environment->output_frozen()) {
-            Time now = time_to_next_locked();
-            if (now) {
-                environment->push_time(now);
-            }
-        }
-#endif
-    }
-
-#if 0
-    // time we can push to the output -- no other event will come before that. Strange.
-    [[nodiscard]] Time time_to_next_locked() {
-        const PlatformEvent *item = tq.first();
-        if (item == nullptr) {
-            return mCurrent_time;
-        } else {
-            Time now = environment->time_of(*item);
-            mCurrent_time = 0;
-            return now;
-        }
-    }
-#endif
 
 private:
     // Internal helper when lock is already held
@@ -1233,6 +1246,7 @@ public:
             mdb("** %s\n", __func__);
             mCurrent_time = now;
             process_automaton_locked(false);
+            output_time(mCurrent_time);
         }
         flush_to_next();
 
