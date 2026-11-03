@@ -15,14 +15,11 @@
 template <typename item_t,
           template <typename> typename CircularBuffer>
 class SplitQueue {
-
-    using circular_buffer_t = CircularBuffer<item_t>;
-    using iterator = typename circular_buffer_t::iterator;
-
 public:
     using LogFn = FunctionRef<int(const char*, va_list)>; // int
-
 private:
+    using circular_buffer_t = CircularBuffer<item_t>;
+    using iterator = typename circular_buffer_t::iterator;
 
     circular_buffer_t buffer;
     iterator split;
