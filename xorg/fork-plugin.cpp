@@ -243,12 +243,16 @@ extern "C" /* static*/ Bool
 ForkProcessEvent(PluginInstance* plugin, InternalEvent *event, const Bool owner)
 // __attribute__((visibility("default")))
 {
+    machineRec* machine;
+    const XOrgEnvironment* env;
+    static int s_debug = 0;
+
     DB("%s: start %d %s\n", __func__, event->any.type, owner?"owner":"not owner");
 
     if ((event->any.type != ET_KeyPress) && (event->any.type != ET_KeyRelease)) {
         // ET_RawKeyPress
 #if DEBUG > 1
-        ErrorF("ignoring this type of event %d\n", event->any.type);
+        ErrorF("ignoring this type of event -- not keyboard: %d\n", event->any.type);
 #endif
         goto exit_free;
     }
@@ -262,20 +266,31 @@ ForkProcessEvent(PluginInstance* plugin, InternalEvent *event, const Bool owner)
         goto exit_free;
     };
 
-    {
-        const auto machine = plugin_machine(plugin);
+    machine = plugin_machine(plugin);
+    env = machine->get_environment();
 
+    if (event->device_event.detail.key == 118) { // Insert
+        if (event->any.type == ET_KeyPress) { // Insert
+            env->mark_issue();
+            s_debug = (1- s_debug);
+            machine->set_debug(s_debug);
+        }
+        // I don't need that key now.
+        // we are not ownere, right?
+        goto exit_free;
+    };
+
+    {
         const XorgEvent pevent {event};
         if (owner) {
             free(event);
             event = NULL;
         }
+
         Time next = machine->accept_event(pevent);
         // unlocked here now!
         set_wakeup_time(plugin, next);
     }
-
-
     // by now, if owner, we consumed the event.
     goto exit;
   exit_free:

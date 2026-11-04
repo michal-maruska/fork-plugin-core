@@ -144,6 +144,11 @@ public:
         archived_event.press = press_p(pevent);
     };
 
+    void mark_issue() const {
+        if (log_file) {
+            fprintf(log_file, "issue reported\n");
+        }
+    }
 
     void output(XorgEvent& pevent, fork_reason_t reason, Keycode code) {
         auto& event = pevent.event;
