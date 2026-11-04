@@ -223,7 +223,8 @@ private:
     };
 
     VLogger vlogger_{this};
-    SplitQueue<PlatformEvent, CircularBuffer> tq{100, vlogger_};
+    SplitQueue<PlatformEvent, CircularBuffer> tq{100};
+
 
     static bool time_difference_more(Time now, Time past, Time limit_difference) {
         return (now > past + limit_difference);
@@ -371,6 +372,12 @@ public:
     void set_debug(int level) {
         unique_state_lock lock(mStateLock);
         config->debug = level;
+        if (level) {
+            tq.set_vlogger(vlogger_);
+        } else {
+            typename SplitQueue<PlatformEvent, CircularBuffer>::LogFn empty{};
+            tq.set_vlogger(empty);
+        }
     }
 
     void stop() {

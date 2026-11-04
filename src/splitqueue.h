@@ -42,6 +42,11 @@ public:
     }
 
   public:
+    void set_vlogger(LogFn fn) {
+        // we drop the previous one.
+        log_ = fn;
+    }
+
     // for gdb
     void log_queues(const char* msg) { // const -> mysterious operator- miss
         if (! log_)
