@@ -422,17 +422,24 @@ private:
     void output_time(Time t) {
         ForkDecision decision = { fork_reason_t::reason_pushtime, no_key};
 
+        if (output_queue.size() > 18) {
+            mdb("%s: output is full... \n");
+        }
+
         OutputEvent entry = {
             .first = { .time = t},
             .second = decision,
         };
         unique_outqueue_lock lock(mOutqueueLock);
         // this might avoid re-inserting it, but reuse existing last one if it's ....
-#if 0
         if (!output_queue.empty()) {
-            last= output_queue.pop_last();
-        };
-#endif
+            OutputEvent& last = output_queue.back();
+            if (last.second.verdict == fork_reason_t::reason_pushtime) {
+                mdb("bingo: reusing the last time-push entry\n");
+                last.first.time = t;
+                return;
+            };
+        }
         output_queue.push_back(entry);
     }
 
