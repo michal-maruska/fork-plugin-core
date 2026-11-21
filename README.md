@@ -1,34 +1,135 @@
-# Keyboard filter driver
+# Fork — home-row modifiers on ordinary keyboards
 
-## Summary:  Use "[home row](https://en.wikipedia.org/wiki/Touch_typing#Home_row)" keys as modifiers (shift, hyper, super, kana,roya)
+Fork turns ordinary keys into modifiers based on *how* you press them. Tap a key
+and you get the letter. Hold it for a moment, or press it together with another
+key, and it becomes Shift, Ctrl, Alt, Super or Hyper. It works with the keyboard
+you already have — no firmware flashing and no custom hardware.
 
-This is a filter which parses the stream of keyboard events and detects _simultaneous_
-key-presses to reinterpret specific use of selected keys as modifiers, instead
-of their regular function. Also the _timing_ is significant.
+**Example:** hold `a` and `u i o / j k l / m , .` become the numeric keypad
+`7 8 9 / 4 5 6 / 1 2 3`. Release `a` and everything is normal again.
 
-**Example**: use "a" key to activate numeric keypad on 'uio jkl m-." keys.
+Fork can also switch to the modifier on a mouse click, so you can Shift-click,
+Ctrl-drag or resize windows with a forked modifier.
 
-Packaged as a plugin for X server, Weston plugin, and a Windows 10+ filter kernel driver.
+## What you get
 
-It is very similar to what qmk calls [Mod-Tap
-keys](https://github.com/qmk/qmk_firmware/blob/master/docs/mod_tap.md)..... but here (apart from working with regular
-keyboards) we can trigger the switch to modifier by mouse movement too!
-This is a big plus -- switching to modifier instantly when mouse is clicked, to drag, or resize, based on the modifier.
+- Home-row modifiers (and any other key-to-modifier mapping) on a normal keyboard.
+- Trigger by holding a key, by pressing it in parallel with another key, or by
+  clicking the mouse.
+- A quick tap still types the original key; auto-repeat keeps working for keys
+  that are not forked.
+- Works system-wide, so every application sees the resulting modifiers.
+- Same core behaviour on Xorg, Wayland/Weston and Windows.
 
-## How to install?
-* Windows ...
-  [see instructions](doc/windows-client-install.md)
+## Platform support
 
-* Linux -- either build from source, or use Debian (Sid) packages from
- [my reprepro apt repository](https://github.com/michal-maruska/apt-repo). That also provides the following requirements:
+| Platform | Status | Integration |
+| --- | --- | --- |
+| Linux — Xorg | supported | Xorg server plugin (patched Xorg) |
+| Linux — Wayland (Weston) | supported | patched libinput + Weston |
+| Windows 10/11 | supported | keyboard filter kernel driver |
+| macOS | not yet | DriverKit/kext planned |
 
-  - Xorg server -- a patch is needed to enable plugins in the key-processing "pipeline":
-      [xserver](https://github.com/michal-maruska/xserver/commits/mmc-all)
+## Install
 
-  - Weston --
-      a patch is needed for [libinput](https://github.com/MichalMaruska/libinput/commits/main/)
-      and [weston](https://github.com/MichalMaruska/weston/commits/main/)
+### Linux — Debian Sid / Unstable (recommended)
 
+Packages are published in the author's APT repository. It also carries the
+patched Xorg server and the patched libinput/Weston that the plugin needs.
 
-* for [Mac](https://developer.apple.com/documentation/driverkit/creating-a-driver-using-the-driverkit-sdk) not yet.
-https://developer.apple.com/documentation/kernel/implementing_drivers_system_extensions_and_kexts
+```sh
+sudo wget -O /etc/apt/trusted.gpg.d/maruska.asc \
+  https://michal-maruska.github.io/apt-repo/maruska.asc
+echo 'deb [signed-by=/etc/apt/trusted.gpg.d/maruska.asc] https://michal-maruska.github.io/apt-repo sid main' \
+  | sudo tee /etc/apt/sources.list.d/maruska.list
+sudo apt update
+sudo apt install fork-plugin xplugin xkb-reset
+```
+
+See [apt-repo](https://github.com/michal-maruska/apt-repo) for the repository
+details and caveats.
+
+To load the plugin into a running Xorg server:
+
+```sh
+xplugin fork
+```
+
+For Wayland, install the patched `weston` (and `libinput10`) from the same
+repository and start Weston as usual.
+
+### Linux — build from source
+
+Build dependencies on Debian/Ubuntu:
+
+```sh
+sudo apt install cmake ninja-build g++ pkg-config libx11-dev \
+  xserver-xorg-dev libinput-dev libboost-dev libgtest-dev libgmock-dev
+```
+
+On other distributions, install the equivalent development packages.
+
+Build, test and install:
+
+```sh
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+ctest --test-dir build
+sudo cmake --install build
+```
+
+Xorg support requires an X server with the plugin pipeline patch; Weston support
+requires patched libinput and Weston. See
+[porting-to-weston.md](doc/porting-to-weston.md) and the legacy
+[fork-install.md](doc/fork-install.md).
+
+### Windows 10/11
+
+The Windows frontend is a signed keyboard filter driver. See
+[windows-client-install.md](https://github.com/michal-maruska/fork-plugin/blob/main/doc/windows-client-install.md)
+for the certificate, driver installation and recovery steps. The application and
+driver source live in
+[fork-plugin-win-hook](https://github.com/michal-maruska/fork-plugin-win-hook).
+
+### macOS
+
+Not supported yet. A DriverKit/kext implementation is planned.
+
+## Fork vs QMK
+
+Fork is closest to QMK's
+[Mod-Tap](https://github.com/qmk/qmk_firmware/blob/master/docs/mod_tap.md) and
+combos, but it runs in the operating system's input stack instead of keyboard
+firmware.
+
+| | Fork | QMK |
+| --- | --- | --- |
+| Runs in | OS input layer (Xorg, Weston/libinput, Windows driver) | keyboard firmware |
+| Hardware | any keyboard, including laptop keyboards | QMK-supported keyboard |
+| Installation | install a package/driver; patched Xorg or Weston on Linux | flash firmware |
+| Tap vs hold | yes | yes (Mod-Tap) |
+| Chords / simultaneous keys | yes | yes (Combos) |
+| Modifier triggered by mouse | yes (click) | no |
+| Layers, macros, split keyboards, RGB | not the goal | yes |
+| OS support | needs a frontend per OS | works on any USB host |
+| Configuration | plugin/XKB configuration | `keymap.c` |
+
+Use Fork when you want home-row modifiers on a keyboard you cannot reflash. Use
+QMK when you have supported hardware and want the full firmware feature set.
+
+## Documentation
+
+- [What forking is and why](doc/fork.md)
+- [Interaction with auto-repeat](doc/KeyRepetition.md)
+- [The forking state machine](doc/fork-machine.html)
+- [API notes](doc/api.md)
+- [Porting to Weston / libinput](doc/porting-to-weston.md)
+- [Legacy XFree86 install notes](doc/fork-install.md)
+- [Known problems / notes](doc/problems)
+- [License background](doc/xlicense.md)
+
+## License
+
+Fork is released under the [Creative Commons Attribution-ShareAlike 3.0
+Unported license](https://creativecommons.org/licenses/by-sa/3.0/). See
+[xlicense.md](doc/xlicense.md) for background.
