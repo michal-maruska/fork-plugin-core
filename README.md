@@ -27,7 +27,7 @@ Ctrl-drag or resize windows with a forked modifier.
 | --- | --- | --- |
 | Linux — Xorg | supported | Xorg server plugin (patched Xorg) |
 | Linux — Wayland (Weston) | supported | patched libinput + Weston |
-| Windows 10/11 | supported | keyboard filter kernel driver |
+| Windows 10/11 | supported | usermode filter in separate repo |
 | macOS | not yet | DriverKit/kext planned |
 
 ## Install
@@ -85,11 +85,9 @@ requires patched libinput and Weston. See
 
 ### Windows 10/11
 
-The Windows frontend is a signed keyboard filter driver. See
-[windows-client-install.md](https://github.com/michal-maruska/fork-plugin/blob/main/doc/windows-client-install.md)
-for the certificate, driver installation and recovery steps. The application and
-driver source live in
+Windows support is a usermode filter in the separate repository
 [fork-plugin-win-hook](https://github.com/michal-maruska/fork-plugin-win-hook).
+Its own documentation and installation instructions are available there.
 
 ### macOS
 
