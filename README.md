@@ -35,7 +35,11 @@ Ctrl-drag or resize windows with a forked modifier.
 ### Linux — Debian Sid / Unstable (recommended)
 
 Packages are published in the author's APT repository. It also carries the
-patched Xorg server and the patched libinput/Weston that the plugin needs.
+patched Xorg server (from [https://github.com/michal-maruska/xserver](https://github.com/michal-maruska/xserver)
+under TAGs) and the patched libinput/Weston that the plugin needs.
+The Weston and libinput patches are at
+[https://github.com/michal-maruska/weston](https://github.com/michal-maruska/weston) and
+[https://github.com/michal-maruska/libinput](https://github.com/michal-maruska/libinput).
 
 ```sh
 sudo wget -O /etc/apt/trusted.gpg.d/maruska.asc \
